@@ -552,7 +552,7 @@ function App(){
   if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signUp,resetPassword,updatePassword,resendConfirmation}} />;
   return <div className={`app-shell sidebar-${sidebarSize}`}>
     <aside className={`sidebar ${sidebarOpen?'sidebar-open':''}`}>
-      <div className="brand"><div className="brand-mark"><CircleDollarSign size={21}/></div><span>Pocket<span className="brand-dot">.</span></span><button className="icon-btn mobile-close" onClick={()=>setSidebarOpen(false)}><X size={18}/></button></div>
+      <div className="brand"><div className="brand-mark"><CircleDollarSign size={21}/></div><span>Pocket</span><button className="icon-btn mobile-close" onClick={()=>setSidebarOpen(false)}><X size={18}/></button></div>
       {visibleNavGroups.map(group=><div className="nav-group" key={group.label}><div className="nav-label">{group.label}</div>{group.items.map(([name,Icon])=><button key={name} className={`nav-item ${page===name?'active':''}`} onClick={()=>{setPage(name);setSidebarOpen(false)}}><Icon size={18}/><span>{name}</span>{name==='Transactions'&&<span className="nav-count">{transactions.length}</span>}</button>)}</div>)}
       {isAdmin&&<div className="nav-group admin-nav-group"><div className="nav-label">ADMINISTRATION</div><button className={`nav-item ${page==='Admin access'?'active':''}`} onClick={()=>{setPage('Admin access');setSidebarOpen(false)}}><ShieldCheck size={18}/><span>User access</span></button></div>}<div className="sidebar-bottom"><button className="nav-item" onClick={()=>setModal('settings')}><Settings size={18}/><span>Settings & data</span></button></div>
     </aside>
@@ -751,7 +751,7 @@ function AccountSetupWizard({onSave,currency='EGP'}){
   {name:'Other',description:'Another place you keep money',icon:'👛'}
  ];
  async function submit(){if(!form.name.trim())return;setSaving(true);try{await onSave(form)}finally{setSaving(false)}}
- return <div className="modal-backdrop setup-wizard-backdrop"><div className="modal setup-wizard-modal"><div className="setup-wizard-brand"><span className="brand-mark"><Wallet size={20}/></span><span>Pocket<span className="brand-dot">.</span></span><span className="setup-step-count">STEP {step} OF 3</span></div><div className="setup-progress"><span style={{width:`${step/3*100}%`}}/></div>
+ return <div className="modal-backdrop setup-wizard-backdrop"><div className="modal setup-wizard-modal"><div className="setup-wizard-brand"><span className="brand-mark"><Wallet size={20}/></span><span>Pocket</span><span className="setup-step-count">STEP {step} OF 3</span></div><div className="setup-progress"><span style={{width:`${step/3*100}%`}}/></div>
   {step===1&&<><div className="setup-wizard-intro"><span className="setup-wizard-kicker">LET’S GET YOU SET UP</span><h2>Where do you keep your money?</h2><p>Choose the first account or wallet you want to track. You can add more later.</p></div><div className="setup-type-grid">{types.map(t=><button type="button" key={t.name} className={`setup-type-card ${form.type===t.name?'selected':''}`} onClick={()=>set('type',t.name)}><span className="setup-type-emoji">{t.icon}</span><span><b>{t.name}</b><small>{t.description}</small></span>{form.type===t.name&&<Check size={16}/>}</button>)}</div><div className="modal-actions"><button className="btn btn-primary" onClick={()=>setStep(2)}>Continue <ArrowUpRight size={16}/></button></div></>}
   {step===2&&<><div className="setup-wizard-intro"><span className="setup-wizard-kicker">YOUR FIRST ACCOUNT</span><h2>Give it a name</h2><p>Add a name you’ll recognize and its current starting balance.</p></div><form onSubmit={e=>{e.preventDefault();setStep(3)}}><div className="setup-selected-type"><span className="setup-type-emoji">{types.find(t=>t.name===form.type)?.icon}</span><div><b>{form.type}</b><small>You can change these details later.</small></div><button type="button" className="text-link" onClick={()=>setStep(1)}>Change</button></div><div className="form-grid setup-form-grid"><Field label="Account / wallet name" wide><input autoFocus required maxLength={60} value={form.name} onChange={e=>set('name',e.target.value)} placeholder={form.type==='Cash'?'e.g. Cash in hand':form.type==='Digital wallet'?'e.g. Vodafone Cash':'e.g. Main bank account'}/></Field><Field label={`Opening balance (${currency})`} wide><input type="number" min="0" step="0.01" required value={form.opening_balance} onChange={e=>set('opening_balance',e.target.value)}/><small className="field-help">Enter 0 if you want to start tracking from today.</small></Field></div><div className="modal-actions"><button type="button" className="btn btn-secondary" onClick={()=>setStep(1)}>Back</button><button type="submit" className="btn btn-primary">Review account <ArrowUpRight size={16}/></button></div></form></>}
   {step===3&&<><div className="setup-wizard-intro"><span className="setup-wizard-kicker">READY TO GO</span><h2>Review your account</h2><p>Make sure everything looks right. You can edit it anytime.</p></div><div className="setup-review-card"><span className="setup-review-icon"><Wallet size={23}/></span><div className="setup-review-copy"><small>ACCOUNT / WALLET</small><h3>{form.name}</h3><span>{form.type}</span></div><div className="setup-review-balance"><small>STARTING BALANCE</small><b>{fmt(Number(form.opening_balance||0))}</b></div></div><div className="setup-ready-note"><Check size={17}/><span>After you create this account, you can add transactions and track your balance in Pocket.</span></div><div className="modal-actions"><button type="button" className="btn btn-secondary" onClick={()=>setStep(2)}>Back</button><button type="button" className="btn btn-primary" disabled={saving} onClick={submit}>{saving?<LoaderCircle size={16} className="spin"/>:<Check size={16}/>} Create account</button></div></>}
@@ -778,24 +778,22 @@ function AuthScreen(p){
  const submit=isSignup?signUp:isForgot?resetPassword:isUpdatePassword?updatePassword:signIn;
  return <main className="auth-page pocket-auth-page">
   <section className="auth-visual pocket-auth-visual">
-   <div className="auth-brand pocket-brand"><div className="brand-mark"><Wallet size={22}/></div><span>Pocket<span className="brand-dot">.</span></span></div>
+   <div className="auth-brand pocket-brand"><div className="brand-mark"><Wallet size={22}/></div><span>Pocket</span></div>
    <div className="pocket-hero-orbit pocket-orbit-one"/><div className="pocket-hero-orbit pocket-orbit-two"/>
    <div className="auth-visual-copy pocket-visual-copy">
     <span className="eyebrow"><span className="pocket-live-dot"/> YOUR MONEY, IN FOCUS</span>
     <h1>Feel good about<br/>where your money<br/><em>is going.</em></h1>
     <p>A calmer way to understand your spending, plan what’s next, and make your money work for you.</p>
-    <div className="pocket-preview-card">
-     <div className="pocket-preview-top"><div><small>MONTHLY OVERVIEW</small><b>Your money at a glance</b></div><span className="pocket-preview-badge"><TrendingUp size={13}/> On track</span></div>
-     <div className="pocket-preview-balance"><span>Available to plan</span><strong>EGP 12,480</strong><small><i/> Your financial picture, made clearer</small></div>
-     <div className="pocket-bars" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
-     <div className="pocket-preview-legend"><span><i className="pocket-legend-green"/> Income</span><span><i className="pocket-legend-muted"/> Spending</span><span>Monthly snapshot</span></div>
+    <div className="pocket-greeting-preview">
+     <div className="pocket-greeting-avatar"><img src="/avatars/avatar-01.webp" alt="3D Pocket profile avatar"/></div>
+     <div className="pocket-greeting-copy"><span>Good morning,</span><strong>Your money, your way.</strong><i aria-hidden="true"/><p>A clearer view of your money starts here.</p></div>
+     <span className="pocket-greeting-spark" aria-hidden="true">✦</span>
     </div>
-    <div className="pocket-trust-row"><span><ShieldCheck size={15}/> Private by design</span><span><Check size={15}/> Built around your goals</span></div>
    </div>
    <small className="auth-copyright">Pocket Finance · Make room for what matters.</small>
   </section>
   <section className="auth-panel pocket-auth-panel"><div className="auth-card pocket-auth-card">
-   <div className="auth-mobile-brand pocket-mobile-brand"><div className="brand-mark"><Wallet size={21}/></div><b>pocket<span className="brand-dot">.</span></b></div>
+   <div className="auth-mobile-brand pocket-mobile-brand"><div className="brand-mark"><Wallet size={21}/></div><b>Pocket</b></div>
    <div className="pocket-form-kicker">{isSignup?'A BETTER MONEY HABIT STARTS HERE':isForgot?'GET BACK INTO YOUR ACCOUNT':isUpdatePassword?'SECURE YOUR ACCOUNT':'YOUR FINANCIAL SPACE'}</div>
    <h2>{isSignup?'Create your Pocket':isForgot?'Reset your password':isUpdatePassword?'Choose a new password':'Welcome back.'}</h2>
    <p className="auth-subtitle">{isSignup?'A clearer view of your money starts with one small step.':isForgot?'We’ll send you a secure link to reset your password.':isUpdatePassword?'Choose a strong password you have not used before.':'Sign in to pick up where you left off.'}</p>

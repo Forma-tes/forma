@@ -493,3 +493,57 @@ body { background: #f4f6fa; color: var(--ink); }
 .topbar-actions { z-index: 81; }
 .top-popover { z-index: 999; }
 .account-popover { transform-origin: top right; }
+
+/* Final polish: budget snapshot contrast, Pocket wordmark, and greeting-led auth screen. */
+.brand-dot { display:none !important; }
+.budget-summary .insight-box { background:#f2f4ff; border:1px solid #e1e5ff; border-radius:12px; color:#29304a; }
+.budget-summary .insight-box b,.budget-summary .insight-box strong { color:#252d49; }
+.budget-summary .insight-box p { color:#59627d; }
+.budget-summary .insight-icon { background:#e1e6ff; color:#4f63df; }
+:root[data-theme="dark"] .budget-summary .insight-box { background:linear-gradient(135deg,#202944,#1a2237); border-color:#354367; color:#edf1ff; box-shadow:inset 0 1px 0 #ffffff08; }
+:root[data-theme="dark"] .budget-summary .insight-box b,:root[data-theme="dark"] .budget-summary .insight-box strong { color:#f3f5ff; }
+:root[data-theme="dark"] .budget-summary .insight-box p { color:#c1cbe4; }
+:root[data-theme="dark"] .budget-summary .insight-icon { background:#303d68; color:#b7c2ff; }
+:root[data-theme="dark"] .budget-summary .progress-caption { color:#c2c9dc; }
+:root[data-theme="dark"] .budget-summary .budget-total span { color:#b9c2d6; }
+.pocket-auth-page { grid-template-columns:minmax(0,1fr) minmax(400px,.88fr); background:#0d1530; color:#f5f6ff; }
+.pocket-auth-visual { background:radial-gradient(ellipse at 20% 18%,#5b63d944 0,transparent 42%),radial-gradient(ellipse at 80% 85%,#6c4fd62e 0,transparent 45%),linear-gradient(145deg,#111a3a 0%,#121b3c 52%,#10172f 100%); }
+.pocket-auth-visual:before { opacity:.22; background-image:linear-gradient(#d9ddff0a 1px,transparent 1px),linear-gradient(90deg,#d9ddff0a 1px,transparent 1px); }
+.pocket-brand .brand-mark,.pocket-mobile-brand .brand-mark { background:linear-gradient(135deg,#aeb8ff,#7769f4); color:#111832; box-shadow:0 8px 26px #8175ff45; }
+.pocket-visual-copy { max-width:600px; padding:38px 0 32px; }
+.pocket-visual-copy .eyebrow { color:#b7c0ff; }
+.pocket-live-dot { background:#a9b4ff; box-shadow:0 0 0 5px #a9b4ff20; }
+.pocket-visual-copy h1 em { color:#aeb6ff; }
+.pocket-visual-copy>p { color:#b9c3e5; }
+.pocket-greeting-preview { position:relative;display:flex;align-items:center;gap:20px;width:min(560px,100%);min-height:188px;padding:20px 25px 20px 18px;overflow:hidden;border:1px solid #a7b2ff36;border-radius:24px;background:linear-gradient(120deg,#1b2850e8,#20214be0 60%,#28245be8);box-shadow:0 24px 65px #070d2d66,inset 0 1px 0 #ffffff12;isolation:isolate; }
+.pocket-greeting-preview:before { content:"";position:absolute;z-index:-1;width:310px;height:310px;right:-85px;top:-145px;border-radius:50%;background:radial-gradient(circle,#8d83ff40,transparent 67%); }
+.pocket-greeting-preview:after { content:"";position:absolute;z-index:-1;width:130%;height:1px;left:15%;top:54%;background:linear-gradient(90deg,transparent,#8e91ff,#c3a2ff,transparent);transform:rotate(-8deg);box-shadow:0 0 15px #9c8cff;animation:greeting-glow-line 4s ease-in-out infinite alternate; }
+.pocket-greeting-avatar { flex:0 0 132px;width:132px;height:148px;display:grid;place-items:center;position:relative;animation:auth-avatar-float 4s ease-in-out infinite; }
+.pocket-greeting-avatar:before { content:"";position:absolute;width:122px;height:122px;border-radius:50%;background:linear-gradient(145deg,#aaaaff7a,#6f6af52b);border:1px solid #b9baff65;box-shadow:0 0 0 8px #a7a7ff0a,0 0 36px #8d7cff35; }
+.pocket-greeting-avatar img { position:relative;width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 13px 15px #070b2466); }
+.pocket-greeting-copy { position:relative;z-index:1;display:flex;flex-direction:column;gap:7px;min-width:0; }
+.pocket-greeting-copy>span { font-size:13px;color:#c4ccf5;animation:auth-copy-in .8s both; }
+.pocket-greeting-copy strong { font:800 clamp(22px,2.4vw,32px) 'Sora','Manrope',sans-serif;letter-spacing:-1.2px;color:#f5f5ff;animation:auth-copy-in .85s .12s both; }
+.pocket-greeting-copy i { display:block;width:64px;height:3px;border-radius:8px;background:linear-gradient(90deg,#b0b8ff,#8d79ff);animation:greeting-line .9s .25s both; }
+.pocket-greeting-copy p { margin:2px 0 0;color:#b8c1e5;font-size:11px;line-height:1.55;animation:auth-copy-in .85s .2s both; }
+.pocket-greeting-spark { position:absolute;right:28px;top:24px;color:#c7b9ff;font-size:18px;text-shadow:0 0 15px #a99cff;animation:spark-pulse 2.4s ease-in-out infinite; }
+@keyframes auth-avatar-float {0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes auth-copy-in {from{opacity:0;transform:translateY(10px);filter:blur(3px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes greeting-glow-line {from{transform:translateX(-4%) rotate(-8deg);opacity:.45}to{transform:translateX(4%) rotate(-8deg);opacity:.95}}
+@keyframes spark-pulse {0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
+.pocket-auth-panel { background:linear-gradient(145deg,#111a38 0%,#151d3d 100%); }
+.pocket-auth-panel:before { border-color:#c2c9ff0d; }
+.pocket-auth-card { border-color:#aab5ff24;background:linear-gradient(145deg,#1c2748e8,#161f3cef);box-shadow:0 28px 80px #070b2790,inset 0 1px 0 #ffffff0d; }
+.pocket-auth-card .auth-field input { background:#111a35;border-color:#35436c;color:#f4f5ff; }
+.pocket-auth-card .auth-field input:focus { border-color:#a3adff;box-shadow:0 0 0 3px #8e9cff22; }
+.pocket-auth-card .auth-submit { background:linear-gradient(135deg,#b6bdff,#8176f8);border-color:#c1c7ff;color:#121936;box-shadow:0 10px 28px #8175fa30; }
+.pocket-auth-card .auth-submit:hover:not(:disabled) { background:linear-gradient(135deg,#c9ceff,#9b91ff); }
+.pocket-auth-card .auth-text-link,.pocket-auth-card .auth-switch button { color:#b8c1ff; }
+.pocket-auth-card .pocket-form-kicker { color:#b8c0ff; }
+.pocket-auth-card .pocket-form-divider span { background:#35416a; }
+.pocket-auth-card .pocket-form-divider { color:#8995c3; }
+.pocket-auth-card .pocket-privacy { color:#9da9d0; }
+.pocket-auth-visual .auth-copyright { color:#8996c3; }
+@media(max-width:900px){.pocket-greeting-preview{gap:12px;padding:16px;min-height:165px}.pocket-greeting-avatar{flex-basis:105px;width:105px;height:125px}.pocket-greeting-avatar:before{width:98px;height:98px}}
+@media(max-width:760px){.pocket-auth-visual{display:none}.pocket-auth-panel{background:radial-gradient(ellipse at 50% 0%,#2a2d68 0,transparent 45%),linear-gradient(145deg,#111a38,#151d3d)}.pocket-auth-card{background:linear-gradient(145deg,#1c2748f2,#161f3cf5)}}
+@media(prefers-reduced-motion:reduce){.pocket-greeting-avatar,.pocket-greeting-copy>span,.pocket-greeting-copy strong,.pocket-greeting-copy i,.pocket-greeting-copy p,.pocket-greeting-spark,.pocket-greeting-preview:after{animation:none!important}}
