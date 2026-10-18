@@ -935,3 +935,18 @@ body { background: #f4f6fa; color: var(--ink); }
 .tx-debt-subcategory-values{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:4px;font-size:10px;color:var(--muted,#8d95a5)}
 .tx-debt-subcategory-values span{display:flex;flex-direction:column;gap:3px}
 .tx-debt-subcategory-values b{font-size:11px;color:var(--text,#303746)}
+
+/* Payment confirmation uses the app primary color, not destructive red. */
+.confirm-action-icon-payment{color:#7b7cff;background:rgba(108,124,245,.14)}
+
+/* Header quick theme switch, placed beside notifications. */
+.theme-toggle-btn{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;color:var(--muted);background:var(--panel);transition:background .18s ease,color .18s ease,border-color .18s ease}
+.theme-toggle-btn:hover{background:color-mix(in srgb,var(--green) 10%,var(--panel));color:var(--green);border-color:var(--green)}
+:root[data-theme="dark"] .theme-toggle-btn{background:#222b3b;border-color:#394256;color:#d9defa}
+@media(max-width:680px){.theme-toggle-btn{width:31px;height:31px}}
+
+/* Dismissible popovers stay within the viewport while the page behind them is locked. */
+.top-popover{max-height:min(70vh,560px);overflow-y:auto;overscroll-behavior:contain}
+.notification-popover{max-height:min(72vh,600px)}
+.modal-backdrop{overscroll-behavior:contain}
+.modal{overscroll-behavior:contain}
