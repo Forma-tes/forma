@@ -582,7 +582,7 @@ body { background: #f4f6fa; color: var(--ink); }
 .type-toggle{grid-template-columns:repeat(3,minmax(0,1fr))}.type-toggle button{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0}.type-toggle button.transfer-selected{color:#6c7cf5}.amount-transfer{color:#6c7cf5!important}
 
 /* Keep every create/edit/import modal above the sticky topbar and page cards. */
-.modal-backdrop{z-index:1000!important}
+.modal-backdrop{z-index:10000!important;visibility:visible;opacity:1;pointer-events:auto}
 .modal-backdrop .modal{position:relative;z-index:1001}
 
 /* Category/subcategory picker and robust dark-mode surfaces */
