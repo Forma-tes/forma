@@ -6,7 +6,7 @@ create table if not exists public.transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   transaction_date date not null default current_date,
-  type text not null check (type in ('Income','Expense')),
+  type text not null check (type in ('Income','Expense','Transfer')),
   category text not null,
   description text not null default '',
   amount numeric(14,2) not null check (amount >= 0),
@@ -30,6 +30,9 @@ create table if not exists public.financial_accounts (
   created_at timestamptz not null default now()
 );
 alter table public.transactions add column if not exists account_id uuid references public.financial_accounts(id) on delete set null;
+alter table public.transactions add column if not exists to_account_id uuid references public.financial_accounts(id) on delete set null;
+alter table public.transactions drop constraint if exists transactions_type_check;
+alter table public.transactions add constraint transactions_type_check check (type in ('Income','Expense','Transfer'));
 create index if not exists financial_accounts_user_idx on public.financial_accounts(user_id, created_at);
 
 -- Debt and installment tracking (manual tracker; no lender/payment integrations).

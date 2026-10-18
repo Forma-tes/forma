@@ -146,3 +146,11 @@ The account menu and notification popover use the existing authenticated session
 - In Google Cloud Console, configure the OAuth consent screen and add the Supabase project's callback URL shown in the Supabase Google provider settings (typically `https://<project-ref>.supabase.co/auth/v1/callback`) as an authorized redirect URI.
 - In Supabase **Authentication → URL Configuration**, ensure the deployed Pocket URL is the Site URL and is included in Redirect URLs. The app sends `VITE_SITE_URL` (or the current origin) as the post-login redirect.
 - Google sign-in will not complete until these provider settings are configured in Supabase; no client secret belongs in the frontend or `.env` file.
+
+
+## Gender-personalized categories and transfers
+
+- During email sign-up, users can choose Female, Male, or Prefer not to say. The choice is stored in Supabase Auth user metadata and only personalizes suggested categories; it does not restrict access to custom categories.
+- Transaction types include Expense, Income, and Transfer. Transfers move an amount from one account/wallet to another and are excluded from income/expense totals.
+- Before deploying the transfer feature to an existing Supabase project, run `supabase/migrations/20261018_gender_categories_and_transfers.sql` in Supabase SQL Editor. The main `supabase/schema.sql` also includes the updated schema for new setups.
+- Google OAuth sign-ups may not have a gender choice during the Google consent flow; those accounts use the shared core categories until the user chooses a gender in a future profile update.
