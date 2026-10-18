@@ -115,7 +115,6 @@ function App(){
   const [transactions,setTransactions] = useState([]);
   const [,setExpenseCategoryRevision] = useState(0);
   useEffect(()=>{const refresh=()=>setExpenseCategoryRevision(v=>v+1);window.addEventListener('pocket-expense-categories-updated',refresh);return()=>window.removeEventListener('pocket-expense-categories-updated',refresh)},[]);
-  useEffect(()=>{if(!cloudReady||!session?.user?.id)return;let alive=true;(async()=>{const {data,error}=await supabase.from('expense_categories').select('name').eq('user_id',session.user.id).order('name');if(!alive)return;if(!error&&Array.isArray(data)&&data.length){setExpenseCategoriesOverride(data.map(x=>x.name));}})();return()=>{alive=false}},[session?.user?.id]);
   const [budgets,setBudgets] = useState([]);
   const [goals,setGoals] = useState([]);
   const [recurring,setRecurring] = useState([]);
@@ -134,6 +133,7 @@ function App(){
   const [notificationToast,setNotificationToast] = useState(null);
   const seenNotificationIds = useRef(null);
   const [session,setSession] = useState(null);
+  useEffect(()=>{if(!cloudReady||!session?.user?.id)return;let alive=true;(async()=>{const {data,error}=await supabase.from('expense_categories').select('name').eq('user_id',session.user.id).order('name');if(!alive)return;if(!error&&Array.isArray(data)&&data.length){setExpenseCategoriesOverride(data.map(x=>x.name));}})();return()=>{alive=false}},[session?.user?.id]);
   const [profile,setProfile] = useState(null);
   const [adminUsers,setAdminUsers] = useState([]);
   const [adminLoading,setAdminLoading] = useState(false);
