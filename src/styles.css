@@ -950,3 +950,7 @@ body { background: #f4f6fa; color: var(--ink); }
 .notification-popover{max-height:min(72vh,600px)}
 .modal-backdrop{overscroll-behavior:contain}
 .modal{overscroll-behavior:contain}
+
+/* Visible notification count badge */
+.notification-btn{position:relative;overflow:visible}
+.notification-count-badge{position:absolute;top:-5px;right:-7px;min-width:17px;height:17px;padding:0 4px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#e55367;color:#fff;border:2px solid var(--panel,#fff);font-size:9px;font-weight:800;line-height:1;letter-spacing:-.1px;box-shadow:0 1px 3px #151a2725;pointer-events:none}
