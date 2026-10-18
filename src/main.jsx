@@ -28,6 +28,8 @@ const menExpenseCategories = ['Grooming & Personal Care','Fitness & Sports','Sty
 const getExpenseCategories = gender => [...new Set([...coreExpenseCategories,...(gender==='female'?womenExpenseCategories:gender==='male'?menExpenseCategories:[])])];
 const expenseCategories = getExpenseCategories('');
 const incomeCategories = ['Salary','Freelance','Business','Bonus','Investments','Other income'];
+// Explicit timezone choices used by Account & Profile; avoids a runtime crash when opening the modal.
+const zones = ['Africa/Cairo','Africa/Casablanca','Africa/Johannesburg','Asia/Dubai','Asia/Riyadh','Asia/Kuwait','Asia/Qatar','Asia/Amman','Europe/London','Europe/Paris','Europe/Berlin','America/New_York','America/Chicago','America/Los_Angeles','Asia/Tokyo','Australia/Sydney'];
 const categories = [...new Set([...getExpenseCategories('female'),...getExpenseCategories('male'),...incomeCategories,'Transfer'])];
 const getCategoriesForType = (type,gender) => type==='Income'?incomeCategories:type==='Transfer'?['Transfer']:getExpenseCategories(gender);
 const categoryHierarchy = {
