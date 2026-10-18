@@ -82,8 +82,10 @@ const monthNow = localISODate().slice(0,7);
 const fmt = n => { let currency='EGP'; try { currency=localStorage.getItem('forma_currency')||'EGP'; } catch {} return new Intl.NumberFormat('en-EG',{style:'currency',currency,maximumFractionDigits:currency==='EGP'?0:2}).format(Number(n)||0); };
 const firstName = name => String(name||'').trim().split(/\s+/)[0] || '';
 const getGreeting = (timezone) => { let hour=new Date().getHours(); try { if(timezone) hour=Number(new Intl.DateTimeFormat('en-US',{hour:'2-digit',hourCycle:'h23',timeZone:timezone}).format(new Date())); } catch {} return hour<12?'Good morning':hour<17?'Good afternoon':'Good evening'; };
-const PROFILE_AVATARS = Array.from({length:10},(_,i)=>({id:`avatar-${String(i+1).padStart(2,'0')}`,gender:[0,2,5,7,8].includes(i)?'male':'female',src:`/avatars/avatar-${String(i+1).padStart(2,'0')}.webp`}));
-function ProfileAvatar({value,className=''}){const avatar=PROFILE_AVATARS.find(a=>a.id===value)||PROFILE_AVATARS[0];return <img className={`profile-avatar-image ${className}`} src={avatar.src} alt="Profile avatar"/>;}
+const PROFILE_AVATARS = Array.from({length:10},(_,i)=>({id:`avatar-${String(i+1).padStart(2,'0')}`,gender:[0,2,5,6,8].includes(i)?'male':'female',src:`/avatars/avatar-${String(i+1).padStart(2,'0')}.webp`}));
+const defaultAvatarForGender = gender => gender==='female'?'avatar-02':gender==='male'?'avatar-01':'avatar-01';
+const avatarsForGender = gender => gender==='female'||gender==='male'?PROFILE_AVATARS.filter(avatar=>avatar.gender===gender):PROFILE_AVATARS;
+function ProfileAvatar({value,className=''}){const isRemotePhoto=typeof value==='string'&&/^https?:\/\//i.test(value);const avatar=PROFILE_AVATARS.find(a=>a.id===value)||PROFILE_AVATARS[0];return <img className={`profile-avatar-image ${className}`} src={isRemotePhoto?value:avatar.src} alt="Profile avatar" referrerPolicy="no-referrer" onError={e=>{if(isRemotePhoto){e.currentTarget.onerror=null;e.currentTarget.src=avatar.src;}}}/>;}
 const addFrequency = (date, frequency) => { const step=d=>{if(frequency==='Weekly')d.setDate(d.getDate()+7);else if(frequency==='Monthly')d.setMonth(d.getMonth()+1);else if(frequency==='Quarterly')d.setMonth(d.getMonth()+3);else d.setFullYear(d.getFullYear()+1);return d;};let d=new Date(`${date||localISODate()}T12:00:00`);d=step(d);while(localISODate(d)<=localISODate())d=step(d);return localISODate(d); };
 const shortDate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : 'No date';
 const monthLabel = m => new Date(m+'-15T12:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});
@@ -144,6 +146,7 @@ function App(){
   const [design,setDesign] = useState(()=>localStorage.getItem('forma_design')||'classic');
   const [sidebarSize,setSidebarSize] = useState(()=>localStorage.getItem('forma_sidebar_size')||'comfortable');
   const [profileAvatar,setProfileAvatar] = useState(()=>{const saved=localStorage.getItem('forma_profile_avatar');return PROFILE_AVATARS.some(a=>a.id===saved)?saved:'avatar-01'});
+  const [avatarPickerGender,setAvatarPickerGender] = useState('prefer_not_to_say');
   const [backupForUsers,setBackupForUsers] = useState(false);
   const [paidBusy,setPaidBusy] = useState([]);
   const [localLoaded,setLocalLoaded] = useState(false);
@@ -241,7 +244,11 @@ function App(){
       setCurrency(nextCurrency);setTimezone(nextTimezone);
       localStorage.setItem('forma_currency',nextCurrency);localStorage.setItem('forma_timezone',nextTimezone);
       if(meta.full_name)setProfileName(meta.full_name);
+      // Keep a user's explicit Pocket avatar if one is saved; otherwise use the photo supplied by Google OAuth.
+      const googlePhoto=meta.picture||meta.avatar_url||meta.photo_url||session.user.identities?.find(identity=>identity.provider==='google')?.identity_data?.picture;
       if(meta.avatar)setProfileAvatar(meta.avatar);
+      else if(googlePhoto)setProfileAvatar(googlePhoto);
+      else {const genderDefault=defaultAvatarForGender(meta.gender);setProfileAvatar(genderDefault);localStorage.setItem('forma_profile_avatar',genderDefault);}
     }
   },[session?.user?.id]);
   useEffect(()=>{
@@ -443,7 +450,7 @@ function App(){
     const {data,error}=await supabase.auth.signUp({
       email:authEmail.trim(),
       password:authPassword,
-      options:{data:{full_name:authName.trim(),gender:authGender},emailRedirectTo:authRedirectUrl()}
+      options:{data:{full_name:authName.trim(),gender:authGender,avatar:defaultAvatarForGender(authGender)},emailRedirectTo:authRedirectUrl()}
     });
     setBusy(false);
     if(error){setAuthMsg(error.message);return;}
@@ -648,8 +655,8 @@ function App(){
     {modal==='recurring'&&<RecurringModal currency={currency} initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={addRecurring}/>}
     {modal==='budget'&&<BudgetModal currency={currency} initial={editing} month={month} onClose={()=>{setModal(null);setEditing(null)}} onSave={addBudget}/>}
      {modal==='app-settings'&&<SettingsModal {...{onClose:()=>setModal(null),theme,setTheme,design,setDesign,sidebarSize,setSidebarSize,isAdmin,backupForUsers,setBackupVisibility,exportCSV,exportBackup,handleImport,restoreBackup,session,supabase}}/>}
-    {modal==='profile'&&<AccountProfileModal {...{onClose:()=>setModal(null),openAvatarPicker:()=>setModal('avatar-picker'),session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
-    {modal==='avatar-picker'&&<AvatarPickerModal current={profileAvatar} onClose={()=>setModal('profile')} onChoose={avatar=>{setProfileAvatar(avatar);setModal('profile')}} />}
+    {modal==='profile'&&<AccountProfileModal {...{onClose:()=>setModal(null),openAvatarPicker:gender=>{setAvatarPickerGender(gender||session?.user?.user_metadata?.gender||'prefer_not_to_say');setModal('avatar-picker')},session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
+    {modal==='avatar-picker'&&<AvatarPickerModal current={profileAvatar} gender={avatarPickerGender} onClose={()=>setModal('profile')} onChoose={avatar=>{setProfileAvatar(avatar);setModal('profile')}} />}
     {modal==='account'&&<AccountModal initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveAccount}/> }
     {modal==='debt'&&<DebtModal currency={currency} initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveDebt}/> }
     {modal==='import'&&<ImportModal rows={importPreview} onClose={()=>{setModal(null);setImportPreview([])}} onConfirm={confirmImport}/>}
@@ -968,7 +975,7 @@ function AccountProfileModal(p){
  const genderOptions=[{value:'female',label:'Female',detail:'Personalized suggestions'},{value:'male',label:'Male',detail:'Personalized suggestions'},{value:'prefer_not_to_say',label:'Prefer not to say',detail:'Keep suggestions general'}];
  return <ModalShell title="Account & profile" subtitle="Manage your identity and regional preferences in one place." onClose={onClose} wide><form className="auth-form profile-settings-form" onSubmit={e=>{e.preventDefault();saveProfile({full_name:name,gender:userGender,currency:curr,timezone:zone,avatar:profileAvatar})}}>
    <section className="profile-settings-card profile-personal-card"><div className="profile-section-heading"><span className="profile-section-icon"><UserRound size={17}/></span><div><h3>Personal details</h3><p>How you appear across Pocket.</p></div></div>
-    <div className="profile-identity-strip"><span className="profile-avatar-preview"><ProfileAvatar value={profileAvatar}/></span><div className="profile-avatar-current-copy"><b>{name.trim()||'Your profile'}</b><small>{session?.user?.email||'Your personal Pocket workspace'}</small><span className="profile-avatar-caption">Profile picture</span></div><button type="button" className="btn btn-secondary btn-sm" onClick={openAvatarPicker}>Change picture</button></div>
+    <div className="profile-identity-strip"><span className="profile-avatar-preview"><ProfileAvatar value={profileAvatar}/></span><div className="profile-avatar-current-copy"><b>{name.trim()||'Your profile'}</b><small>{session?.user?.email||'Your personal Pocket workspace'}</small><span className="profile-avatar-caption">Profile picture</span></div><button type="button" className="btn btn-secondary btn-sm" onClick={()=>openAvatarPicker(userGender)}>Change picture</button></div>
     <div className="profile-fields-row"><Field label="Display name"><input required maxLength={80} value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" autoComplete="name"/></Field><div className="field profile-gender-field"><span>Gender</span><div className="profile-gender-options" role="group" aria-label="Gender">{genderOptions.map(option=><button key={option.value} type="button" className={`profile-gender-option ${userGender===option.value?'selected':''}`} aria-pressed={userGender===option.value} onClick={()=>setUserGender(option.value)}><span className="profile-gender-check">{userGender===option.value?<Check size={13}/>:null}</span><b>{option.label}</b></button>)}</div></div></div>
     <p className="small-muted profile-gender-note">Gender is used to personalize suggested expense categories. You can still choose any category.</p>
    </section>
@@ -976,8 +983,10 @@ function AccountProfileModal(p){
    <div className="profile-settings-footer"><span className="small-muted"><LockKeyhole size={13}/> Your profile details are kept with your account.</span><div className="modal-actions"><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button className="btn btn-primary" type="submit" disabled={profileSaving}>{profileSaving?<><LoaderCircle size={15} className="spin"/> Saving…</>:'Save changes'}</button></div></div>
   </form></ModalShell>
 }
-function AvatarPickerModal({current,onClose,onChoose}){
- return <ModalShell title="Change profile picture" subtitle="Choose the picture you want to use across Pocket." onClose={onClose} wide><div className="avatar-picker-popup-grid">{PROFILE_AVATARS.map((avatar,i)=><button type="button" key={avatar.id} className={`avatar-picker-popup-card ${current===avatar.id?'selected':''}`} onClick={()=>onChoose(avatar.id)} aria-label={`Choose profile picture ${i+1}`}><img src={avatar.src} alt={`Profile picture ${i+1}`} loading="lazy"/><span>{current===avatar.id?<><Check size={14}/> Selected</>:'Choose picture'}</span></button>)}</div><div className="modal-actions"><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button></div></ModalShell>
+function AvatarPickerModal({current,onClose,onChoose,gender='prefer_not_to_say'}){
+ const options=avatarsForGender(gender);
+ const label=gender==='female'?'Female avatars':gender==='male'?'Male avatars':'All avatars';
+ return <ModalShell title="Change profile picture" subtitle={`Choose from ${label.toLowerCase()} to use across Pocket.`} onClose={onClose} wide><div className="avatar-picker-gender-label">{label}<span>{options.length} pictures</span></div><div className="avatar-picker-popup-grid">{options.map((avatar,i)=><button type="button" key={avatar.id} className={`avatar-picker-popup-card ${current===avatar.id?'selected':''}`} onClick={()=>onChoose(avatar.id)} aria-label={`Choose ${gender} profile picture ${i+1}`}><img src={avatar.src} alt={`${avatar.gender} profile picture ${i+1}`} loading="lazy"/><span>{current===avatar.id?<><Check size={14}/> Selected</>:'Choose picture'}</span></button>)}</div><div className="modal-actions"><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button></div></ModalShell>
 }
 function SettingsModal(p){
  const {onClose,theme,setTheme,design,setDesign,sidebarSize,setSidebarSize,isAdmin,backupForUsers,setBackupVisibility,exportCSV,exportBackup,handleImport,restoreBackup,session,supabase}=p;
