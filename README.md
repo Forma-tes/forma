@@ -163,3 +163,18 @@ The consolidated `supabase/schema.sql` includes the guarded `admin_delete_user` 
 ## Add/Edit Wizard UI updates
 
 The account/wallet, budget, savings goal, recurring payment, and debt forms now follow a card-first multi-step wizard pattern. Savings goals open in a dedicated full-screen creation/edit experience. Sidebar **Settings** is separate from the account-menu **Account & profile** screen. The consolidated schema safely adds `goal_type` to `savings_goals`, `debt_type` to `debts`, and `subcategory` to `recurring_payments`. Run `supabase/schema.sql` in Supabase SQL Editor to apply the additive columns before deploying.
+
+
+## Access requests (server-side email)
+
+New users are no longer forced through the first-account setup wizard. They can request access from the access-restricted screen. The administrator email is stored only in Supabase Edge Function secrets and is never rendered in the client.
+
+To enable delivery, apply `supabase/migrations/20261018_access_requests.sql`, deploy the `request-access` Edge Function, and set these Edge Function secrets in Supabase (never put them in Vite `.env`):
+
+- `ACCESS_REQUEST_ADMIN_EMAIL` = `mahmoudadel240@gmail.com`
+- `RESEND_API_KEY` = your Resend API key
+- `ACCESS_REQUEST_FROM_EMAIL` = a sender address verified in your Resend account
+
+Supabase provides `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` to Edge Functions in the hosted environment. If your project requires manual setup, set them as server-side function secrets only. The frontend calls the function with the signed-in session.
+
+The notification email is sent by the server through Resend, not from the user's email client, and the admin address is not exposed in the UI. Requests are rate-limited to one pending request per user per 24 hours.

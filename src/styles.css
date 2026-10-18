@@ -866,3 +866,8 @@ body { background: #f4f6fa; color: var(--ink); }
 .debt-calculation-preview .text-danger{color:#b42335;font-weight:600}
 @media(max-width:900px){.debt-card-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.debt-primary-metrics{grid-template-columns:1fr 1fr}.debt-primary-metrics>div:first-child{grid-column:1/-1}.debt-calculation-preview{grid-template-columns:1fr 1fr}.debt-card-actions{align-items:flex-start;flex-direction:column}.debt-card-actions .btn{width:100%;justify-content:center}}
+
+/* Toasts must remain visible above open modals, including error messages. */
+.toast{z-index:30000!important;pointer-events:none}
+.tx-empty-account-callout{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tx-empty-account-callout .btn{flex-shrink:0}

@@ -526,3 +526,24 @@ alter table public.debts add column if not exists interest_rate numeric(8,4);
 alter table public.debts add column if not exists paid_installments integer not null default 0;
 alter table public.debts add column if not exists amount_paid numeric(14,2) not null default 0;
 update public.debts set total_repayment = coalesce(total_repayment, original_amount, 0), interest_rate = coalesce(interest_rate, 0), paid_installments = coalesce(paid_installments, 0), amount_paid = coalesce(amount_paid, greatest(0, coalesce(total_repayment, original_amount, 0) - coalesce(remaining_amount, 0)));
+
+-- Savings goal linkage for transfers (safe to run on existing projects).
+alter table public.transactions add column if not exists goal_id uuid null references public.savings_goals(id) on delete set null;
+create index if not exists transactions_goal_id_idx on public.transactions(goal_id) where goal_id is not null;
+
+-- Private access request log; emails are sent only by the request-access Edge Function.
+create table if not exists public.access_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  user_email text not null default '',
+  user_name text not null default '',
+  status text not null default 'pending' check (status in ('pending','approved','denied')),
+  created_at timestamptz not null default now(),
+  notified_at timestamptz
+);
+create index if not exists access_requests_user_created_idx on public.access_requests(user_id, created_at desc);
+alter table public.access_requests enable row level security;
+drop policy if exists "Users can view own access requests" on public.access_requests;
+create policy "Users can view own access requests" on public.access_requests for select to authenticated using (auth.uid() = user_id);
+revoke all on public.access_requests from anon, authenticated;
+grant select on public.access_requests to authenticated;
