@@ -67,6 +67,7 @@ create table if not exists public.savings_goals (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
+  goal_type text not null default 'Other',
   target_amount numeric(14,2) not null default 0 check (target_amount >= 0),
   saved_amount numeric(14,2) not null default 0 check (saved_amount >= 0),
   target_date date,
@@ -79,6 +80,7 @@ create table if not exists public.recurring_payments (
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   category text not null default 'Bills',
+  subcategory text,
   amount numeric(14,2) not null default 0 check (amount >= 0),
   frequency text not null default 'Monthly' check (frequency in ('Weekly','Monthly','Quarterly','Yearly')),
   next_due_date date,
@@ -92,6 +94,10 @@ create table if not exists public.recurring_payments (
 
 alter table public.transactions enable row level security;
 alter table public.budgets enable row level security;
+-- Compatibility columns used by the current Pocket forms (safe for existing databases).
+alter table public.savings_goals add column if not exists goal_type text not null default 'Other';
+alter table public.recurring_payments add column if not exists subcategory text;
+
 alter table public.savings_goals enable row level security;
 alter table public.recurring_payments enable row level security;
 alter table public.financial_accounts enable row level security;
