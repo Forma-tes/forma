@@ -412,73 +412,72 @@ end;
 $$;
 revoke all on function public.admin_delete_user(uuid) from public;
 grant execute on function public.admin_delete_user(uuid) to authenticated;
--- Pocket: replace legacy category labels with the new category system.
--- Run once in Supabase SQL Editor. Existing transaction amounts/dates are preserved.
+-- Pocket: remove legacy category labels and keep only the new category system.
+-- Safe to rerun: transaction amounts/dates are preserved; when both an old and
+-- new budget exist for the same user/month, the existing NEW budget is kept.
 
--- Transactions: keep old leaf labels as subcategories under the new parent categories.
-update public.transactions set category = 'Housing', subcategory = coalesce(nullif(subcategory, ''), 'Rent') where type = 'Expense' and category = 'Rent';
-update public.transactions set category = 'Food & Groceries', subcategory = coalesce(nullif(subcategory, ''), 'Groceries') where type = 'Expense' and category = 'Food';
-update public.transactions set category = 'Bills & Utilities', subcategory = coalesce(nullif(subcategory, ''), 'Other bill') where type = 'Expense' and category = 'Bills';
-update public.transactions set category = 'Bills & Utilities', subcategory = coalesce(nullif(subcategory, ''), 'Mobile bill') where type = 'Expense' and category = 'Mobile Bill';
-update public.transactions set category = 'Education', subcategory = coalesce(nullif(subcategory, ''), 'Courses') where type = 'Expense' and category = 'Training';
-update public.transactions set category = 'Other', subcategory = coalesce(nullif(subcategory, ''), 'Other expense') where type = 'Expense' and category = 'Personal Care';
+-- Transactions: move old category labels into the new category hierarchy.
+update public.transactions
+set category = 'Housing', subcategory = coalesce(nullif(btrim(subcategory), ''), 'Rent')
+where type = 'Expense' and lower(btrim(category)) = 'rent';
 
+update public.transactions
+set category = 'Food & Groceries', subcategory = coalesce(nullif(btrim(subcategory), ''), 'Groceries')
+where type = 'Expense' and lower(btrim(category)) = 'food';
+
+update public.transactions
+set category = 'Bills & Utilities', subcategory = coalesce(nullif(btrim(subcategory), ''), 'Other bill')
+where type = 'Expense' and lower(btrim(category)) = 'bills';
+
+update public.transactions
+set category = 'Bills & Utilities', subcategory = coalesce(nullif(btrim(subcategory), ''), 'Mobile bill')
+where type = 'Expense' and lower(btrim(category)) = 'mobile bill';
+
+update public.transactions
+set category = 'Education', subcategory = coalesce(nullif(btrim(subcategory), ''), 'Courses')
+where type = 'Expense' and lower(btrim(category)) = 'training';
+
+update public.transactions
+set category = 'Other', subcategory = coalesce(nullif(btrim(subcategory), ''), 'Other expense')
+where type = 'Expense' and lower(btrim(category)) = 'personal care';
+
+-- Budgets: discard old duplicate rows if the corresponding new category already
+-- exists for the same user/month; otherwise rename the old row to the new label.
 begin;
+create temporary table if not exists pocket_legacy_budget_map (
+  old_category text primary key,
+  new_category text not null
+) on commit drop;
+truncate table pocket_legacy_budget_map;
+insert into pocket_legacy_budget_map(old_category,new_category) values
+  ('Rent','Housing'),
+  ('Food','Food & Groceries'),
+  ('Bills','Bills & Utilities'),
+  ('Mobile Bill','Bills & Utilities'),
+  ('Training','Education'),
+  ('Personal Care','Other');
 
-create temporary table budget_migration
-on commit drop as
-select
-  user_id,
-  case category
-    when 'Rent' then 'Housing'
-    when 'Food' then 'Food & Groceries'
-    when 'Bills' then 'Bills & Utilities'
-    when 'Mobile Bill' then 'Bills & Utilities'
-    when 'Training' then 'Education'
-    when 'Personal Care' then 'Other'
-    else category
-  end as category,
-  month,
-  sum(amount) as amount
-from public.budgets
-where category in (
-  'Rent', 'Housing',
-  'Food', 'Food & Groceries',
-  'Bills', 'Mobile Bill', 'Bills & Utilities',
-  'Training', 'Education',
-  'Personal Care', 'Other'
-)
-group by user_id,
-  case category
-    when 'Rent' then 'Housing'
-    when 'Food' then 'Food & Groceries'
-    when 'Bills' then 'Bills & Utilities'
-    when 'Mobile Bill' then 'Bills & Utilities'
-    when 'Training' then 'Education'
-    when 'Personal Care' then 'Other'
-    else category
-  end,
-  month;
+delete from public.budgets old
+using pocket_legacy_budget_map m, public.budgets newer
+where lower(btrim(old.category)) = lower(m.old_category)
+  and newer.user_id = old.user_id
+  and newer.month = old.month
+  and newer.category = m.new_category;
 
-delete from public.budgets
-where category in (
-  'Rent', 'Housing',
-  'Food', 'Food & Groceries',
-  'Bills', 'Mobile Bill', 'Bills & Utilities',
-  'Training', 'Education',
-  'Personal Care', 'Other'
-);
-
-insert into public.budgets (user_id, category, month, amount)
-select user_id, category, month, amount
-from budget_migration;
-
+update public.budgets b
+set category = m.new_category
+from pocket_legacy_budget_map m
+where lower(btrim(b.category)) = lower(m.old_category);
 commit;
-update public.budgets set category = 'Other' where category = 'Personal Care';
 
--- Recurring payments: rename old categories to the new parent category system.
-update public.recurring_payments set category = 'Housing' where category = 'Rent';
-update public.recurring_payments set category = 'Food & Groceries' where category = 'Food';
-update public.recurring_payments set category = 'Bills & Utilities' where category in ('Bills','Mobile Bill');
-update public.recurring_payments set category = 'Education' where category = 'Training';
-update public.recurring_payments set category = 'Other' where category = 'Personal Care';
+drop table if exists pocket_legacy_budget_map;
+
+-- Recurring payments: normalize old labels to the new category names.
+update public.recurring_payments set category = 'Housing' where lower(btrim(category)) = 'rent';
+update public.recurring_payments set category = 'Food & Groceries' where lower(btrim(category)) = 'food';
+update public.recurring_payments set category = 'Bills & Utilities' where lower(btrim(category)) in ('bills','mobile bill');
+update public.recurring_payments set category = 'Education' where lower(btrim(category)) = 'training';
+update public.recurring_payments set category = 'Other' where lower(btrim(category)) = 'personal care';
+
+-- Collapse duplicate legacy/new budget labels case-insensitively, preferring the
+-- exact new category label if any duplicate remains after the mapping above.

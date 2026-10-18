@@ -158,3 +158,8 @@ The account menu and notification popover use the existing authenticated session
 
 ### Admin user deletion
 The consolidated `supabase/schema.sql` includes the guarded `admin_delete_user` function. The owner cannot be deleted, users cannot delete themselves from the admin list, and only the owner can delete a super admin. Deleting a user cascades their personal Pocket records. For an existing database, run the full consolidated schema file once in Supabase SQL Editor.
+
+
+## Add/Edit Wizard UI updates
+
+The account/wallet, budget, savings goal, recurring payment, and debt forms now follow a card-first multi-step wizard pattern. Savings goals open in a dedicated full-screen creation/edit experience. Sidebar **Settings** is separate from the account-menu **Account & profile** screen. The consolidated schema safely adds `goal_type` to `savings_goals`, `debt_type` to `debts`, and `subcategory` to `recurring_payments`. Run `supabase/schema.sql` in Supabase SQL Editor to apply the additive columns before deploying.
