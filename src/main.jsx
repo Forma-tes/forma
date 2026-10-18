@@ -1151,7 +1151,70 @@ function SettingsModal(p){
   {title:'Notification Preferences',desc:'Choose which financial reminders appear in Pocket.',icon:<BellRing size={18}/>,body:<div className="settings-preference-list">{[['budgetAlerts','Budget limit alerts','Notify me when a budget reaches 90%.'],['debtAlerts','Debt reminders','Show upcoming and overdue installment reminders.'],['recurringAlerts','Recurring payments','Show reminders for upcoming recurring payments.']].map(([key,label,help])=><label className="setting-toggle" key={key}><span><b>{label}</b><small>{help}</small></span><input type="checkbox" checked={!!prefs[key]} onChange={e=>update(key,e.target.checked)}/></label>)}</div>},
   {title:'Security & Privacy',desc:'Review your account access and protect your financial data.',icon:<ShieldCheck size={18}/>,body:<><div className="settings-info-row"><LockKeyhole size={17}/><div><b>Account authentication</b><p className="small-muted">Your account is protected by Pocket sign-in and Supabase authentication.</p></div></div>{session&&<button className="btn btn-secondary" onClick={async()=>{const {error}=await supabase.auth.resetPasswordForEmail(session.user.email);alert(error?error.message:'If password reset is available, a reset email will be sent to your inbox.')}}>Request password reset</button>}<p className="small-muted" style={{marginTop:10}}>Never share exported backups; they may contain private financial information.</p></>},
   {title:'Data Management',desc:'Back up, restore or import your financial records.',icon:<Database size={18}/>,body:<>{(isAdmin||backupForUsers)?<><div className="settings-actions"><button className="btn btn-secondary" onClick={exportBackup}><FileJson size={16}/>Full JSON backup</button><button className="btn btn-secondary" onClick={exportCSV}><Download size={16}/>Export transactions</button><label className="btn btn-secondary file-btn"><Upload size={16}/>Restore JSON backup<input type="file" accept="application/json,.json" onChange={restoreBackup}/></label><label className="btn btn-secondary file-btn"><FileSpreadsheet size={16}/>Import Excel<input type="file" accept=".xlsx,.xls,.csv" onChange={handleImport}/></label></div><p className="small-muted" style={{marginTop:10}}>Backup files contain private financial data. Keep them secure.</p></>:<p className="small-muted">Backup and restore tools are currently limited to Owner and Super Admins.</p>}</>},
-  {title:'Expense Categories',desc:'Add, rename or remove categories used in expense transactions.',icon:<SlidersHorizontal size={18}/>,body:<div className="expense-category-settings"><p className="small-muted">Your current expense categories are listed below. Changes are saved to your Pocket account in Supabase.</p><form className="expense-category-add" onSubmit={e=>{e.preventDefault();const value=newExpenseCat.trim();if(value&&!expenseCats.some(c=>(typeof c==='string'?c:c.name).toLowerCase()===value.toLowerCase())){saveExpenseCats([...expenseCats,value],{addName:value}).then(ok=>{if(ok)setNewExpenseCat('')});}}}><input aria-label="New expense category" placeholder="New category name" value={newExpenseCat} onChange={e=>setNewExpenseCat(e.target.value)} maxLength={50}/><button className="btn btn-primary" type="submit" disabled={!newExpenseCat.trim()||expenseCats.some(c=>(typeof c==='string'?c:c.name).toLowerCase()===newExpenseCat.trim().toLowerCase())}><Plus size={15}/>Add category</button></form><div className="expense-category-list">{categoryBusy&&<p className="small-muted">Loading / saving categories…</p>}{categoryError&&<p className="small-muted" role="alert">{categoryError}</p>}{expenseCats.map(item=>{const cat=item.name;return <div className="expense-category-row" key={cat}><label className="expense-category-visibility"><input type="checkbox" checked={item.is_enabled!==false} disabled={categoryBusy} onChange={async e=>{const nextEnabled=e.target.checked;setCategoryBusy(true);setCategoryError('');if(!supabase||!session?.user?.id){setCategoryError('Please sign in to update category visibility.');setCategoryBusy(false);return;}const {error}=await supabase.from('expense_categories').update({is_enabled:nextEnabled}).eq('user_id',session.user.id).eq('name',cat);if(error)setCategoryError(error.message||'Could not update category visibility.');else{const next=expenseCats.map(x=>x.name===cat?{...x,is_enabled:nextEnabled}:x);setExpenseCats(next);setExpenseCategoriesOverride(next.filter(x=>x.is_enabled).map(x=>x.name));}setCategoryBusy(false);}}/><span>Show</span></label>{editingExpenseCat===cat?<><input aria-label="Rename category" value={editingExpenseValue} onChange={e=>setEditingExpenseValue(e.target.value)} maxLength={50}/><button className="btn btn-primary btn-sm" onClick={async()=>{const value=editingExpenseValue.trim();if(value&&!expenseCats.some(c=>(typeof c==='string'?c:c.name)!==cat&&(typeof c==='string'?c:c.name).toLowerCase()===value.toLowerCase())){const ok=await saveExpenseCats(expenseCats.map(c=>(typeof c==='string'?c:c.name)===cat?value:c),{rename:{from:cat,to:value}});if(ok)setEditingExpenseCat('');}}} disabled={!editingExpenseValue.trim()}>Save</button><button className="btn btn-secondary btn-sm" onClick={()=>setEditingExpenseCat('')}>Cancel</button></>:<><span>{cat}</span><div className="row-actions"><button type="button" className="icon-btn" aria-label={'Rename '+cat} onClick={()=>{setEditingExpenseCat(cat);setEditingExpenseValue(cat);}}><Pencil size={14}/></button><button type="button" className="icon-btn danger-hover" aria-label={'Delete '+cat} onClick={()=>{if(window.confirm('Remove this expense category? Existing transactions will keep their saved category name.'))saveExpenseCats(expenseCats.filter(c=>(typeof c==='string'?c:c.name)!==cat),{deleteName:cat});}}><Trash2 size={14}/></button></div></>}</div>)}</div><p className="small-muted">Note: removing a category won’t delete or rewrite historical transactions.</p></div>},
+  {
+   title:'Expense Categories',
+   desc:'Add, rename or remove categories used in expense transactions.',
+   icon:<SlidersHorizontal size={18}/>,
+   body:(
+    <div className="expense-category-settings">
+     <p className="small-muted">Your current expense categories are listed below. Changes are saved to your Pocket account in Supabase.</p>
+     <form className="expense-category-add" onSubmit={e=>{
+      e.preventDefault();
+      const value=newExpenseCat.trim();
+      const exists=expenseCats.some(c=>String(typeof c==='string'?c:c.name).toLowerCase()===value.toLowerCase());
+      if(value&&!exists){saveExpenseCats([...expenseCats,value],{addName:value}).then(ok=>{if(ok)setNewExpenseCat('')});}
+     }}>
+      <input aria-label="New expense category" placeholder="New category name" value={newExpenseCat} onChange={e=>setNewExpenseCat(e.target.value)} maxLength={50}/>
+      <button className="btn btn-primary" type="submit" disabled={!newExpenseCat.trim()||expenseCats.some(c=>String(typeof c==='string'?c:c.name).toLowerCase()===newExpenseCat.trim().toLowerCase())}><Plus size={15}/>Add category</button>
+     </form>
+     <div className="expense-category-list">
+      {categoryBusy&&<p className="small-muted">Loading / saving categories…</p>}
+      {categoryError&&<p className="small-muted" role="alert">{categoryError}</p>}
+      {expenseCats.map(item=>{
+       const cat=typeof item==='string'?item:item.name;
+       const enabled=typeof item==='string'?true:item.is_enabled!==false;
+       return <div className="expense-category-row" key={cat}>
+        <label className="expense-category-visibility">
+         <input type="checkbox" checked={enabled} disabled={categoryBusy} onChange={async e=>{
+          const nextEnabled=e.target.checked;
+          setCategoryBusy(true);setCategoryError('');
+          if(!supabase||!session?.user?.id){setCategoryError('Please sign in to update category visibility.');setCategoryBusy(false);return;}
+          const {error}=await supabase.from('expense_categories').update({is_enabled:nextEnabled}).eq('user_id',session.user.id).eq('name',cat);
+          if(error){setCategoryError(error.message||'Could not update category visibility.');}
+          else {const next=expenseCats.map(x=>(typeof x==='string'?x:x.name)===cat?{name:cat,is_enabled:nextEnabled}:x);setExpenseCats(next);setExpenseCategoriesOverride(next.filter(x=>typeof x==='string'||x.is_enabled!==false).map(x=>typeof x==='string'?x:x.name));}
+          setCategoryBusy(false);
+         }}/>
+         <span>Show</span>
+        </label>
+        {editingExpenseCat===cat?(
+         <>
+          <input aria-label="Rename category" value={editingExpenseValue} onChange={e=>setEditingExpenseValue(e.target.value)} maxLength={50}/>
+          <button className="btn btn-primary btn-sm" onClick={async()=>{
+           const value=editingExpenseValue.trim();
+           const duplicate=expenseCats.some(c=>{const name=typeof c==='string'?c:c.name;return name!==cat&&name.toLowerCase()===value.toLowerCase()});
+           if(value&&!duplicate){const ok=await saveExpenseCats(expenseCats.map(c=>(typeof c==='string'?c:c.name)===cat?value:c),{rename:{from:cat,to:value}});if(ok)setEditingExpenseCat('');}
+          }} disabled={!editingExpenseValue.trim()}>Save</button>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setEditingExpenseCat('')}>Cancel</button>
+         </>
+        ):(
+         <>
+          <span>{cat}</span>
+          <div className="row-actions">
+           <button type="button" className="icon-btn" aria-label={'Rename '+cat} onClick={()=>{setEditingExpenseCat(cat);setEditingExpenseValue(cat);}}><Pencil size={14}/></button>
+           <button type="button" className="icon-btn danger-hover" aria-label={'Delete '+cat} onClick={()=>{
+            const confirmed=window.confirm('Remove this expense category? Existing transactions will keep their saved category name.');
+            if(confirmed){saveExpenseCats(expenseCats.filter(c=>(typeof c==='string'?c:c.name)!==cat),{deleteName:cat});}
+           }}><Trash2 size={14}/></button>
+          </div>
+         </>
+        )}
+       </div>;
+      })}
+     </div>
+     <p className="small-muted">Note: removing a category won’t delete or rewrite historical transactions.</p>
+    </div>
+   )
+  },
   {title:'Preferences',desc:'Personalize how dates and navigation behave.',icon:<SlidersHorizontal size={18}/>,body:<div className="settings-preference-grid"><label className="field"><span>First page after opening Pocket</span><select value={prefs.firstPage} onChange={e=>update('firstPage',e.target.value)}>{['Overview','Transactions','Accounts','Budgets','Debts','Goals','Recurring payments','Insights & reports'].map(x=><option key={x}>{x}</option>)}</select></label><label className="field"><span>Date format</span><select value={prefs.dateFormat} onChange={e=>update('dateFormat',e.target.value)}><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option><option>YYYY-MM-DD</option></select></label><label className="field"><span>Financial year starts</span><select value={prefs.financialMonth} onChange={e=>update('financialMonth',e.target.value)}>{Array.from({length:12},(_,i)=>i+1).map(m=><option value={String(m)} key={m}>{new Date(2026,m-1,1).toLocaleString('en',{month:'long'})}</option>)}</select></label></div>},
   ...(isAdmin?[{title:'User Permissions',desc:'Control access to administrative data tools.',icon:<Users size={18}/>,body:<label className="setting-toggle"><span><b>Show Backup & restore to regular users</b><small>When off, only Owner and Super Admins can see these tools.</small></span><input type="checkbox" checked={backupForUsers} onChange={e=>setBackupVisibility(e.target.checked)}/></label>}]:[])
  ];
