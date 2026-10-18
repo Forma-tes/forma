@@ -138,3 +138,11 @@ The account menu and notification popover use the existing authenticated session
 - Refreshed dashboard visual system with structured cards, clearer data hierarchy, modern admin-style navigation, and blue insight accents.
 - Appearance settings expose only Light/Dark theme selection; design preset and sidebar density controls are removed from the Settings UI.
 - Typography remains Sora for brand/headings and Manrope for UI/data.
+
+
+## Google sign-in setup
+- The login and sign-up screens include **Continue with Google**, using Supabase OAuth (`signInWithOAuth`); existing email/password, email confirmation, and password reset flows remain available.
+- In Supabase, open **Authentication → Sign In / Providers → Google**, enable Google, and add the Google OAuth Client ID and Client Secret from Google Cloud Console.
+- In Google Cloud Console, configure the OAuth consent screen and add the Supabase project's callback URL shown in the Supabase Google provider settings (typically `https://<project-ref>.supabase.co/auth/v1/callback`) as an authorized redirect URI.
+- In Supabase **Authentication → URL Configuration**, ensure the deployed Pocket URL is the Site URL and is included in Redirect URLs. The app sends `VITE_SITE_URL` (or the current origin) as the post-login redirect.
+- Google sign-in will not complete until these provider settings are configured in Supabase; no client secret belongs in the frontend or `.env` file.

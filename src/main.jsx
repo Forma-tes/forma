@@ -376,6 +376,12 @@ function App(){
     setBusy(false);
     setAuthMsg(error ? error.message : 'If this address has a pending confirmation, a new confirmation email has been sent. Check your inbox and spam folder.');
   }
+  async function signInWithGoogle(){
+    if(!supabase){setAuthMsg('Google sign-in is unavailable until Supabase is configured.');return;}
+    setBusy(true);setAuthMsg('');
+    const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:authRedirectUrl()}});
+    if(error){setBusy(false);setAuthMsg(error.message);}
+  }
   async function signUp(e){
     e.preventDefault(); if(!supabase)return;
     if(authPassword.length<8){setAuthMsg('Use a password with at least 8 characters.');return;}
@@ -549,7 +555,7 @@ function App(){
   const visibleNavGroups=[{label:'WORKSPACE',items:[['Overview',LayoutDashboard],['Transactions',ArrowLeftRight],['Accounts & wallets',Wallet],['Cash flow calendar',CalendarDays],['Budgets',CreditCard],['Savings goals',Target],['Subscriptions & bills',Repeat2],['Debts & installments',CircleDollarSign]]},{label:'ANALYZE',items:[['Insights & reports',ChartNoAxesCombined]]}].map(g=>({...g,items:g.items.filter(([name])=>allowedFeatures.includes(PAGE_FEATURE[name]))})).filter(g=>g.items.length);
   const canSeeCurrentPage=page==='Admin access'?isAdmin:page==='Access restricted'?true:allowedFeatures.includes(PAGE_FEATURE[page]);
   if(cloudReady && authLoading) return <div className="auth-loading"><div className="brand-mark"><CircleDollarSign size={23}/></div><b>Pocket</b><span>Preparing your secure workspace…</span></div>;
-  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signUp,resetPassword,updatePassword,resendConfirmation}} />;
+  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
   return <div className={`app-shell sidebar-${sidebarSize}`}>
     <aside className={`sidebar ${sidebarOpen?'sidebar-open':''}`}>
       <div className="brand"><div className="brand-mark"><CircleDollarSign size={21}/></div><span>Pocket</span><button className="icon-btn mobile-close" onClick={()=>setSidebarOpen(false)}><X size={18}/></button></div>
@@ -773,7 +779,7 @@ function RecurringModal({initial,onClose,onSave,currency='EGP'}){const [f,S]=use
 function BudgetModal({initial,month,onClose,onSave,currency='EGP'}){const [f,S]=useState({category:initial?.category||'Food',month:(initial?.month||monthStart(month)).slice(0,7),amount:initial?.amount??''});const set=(k,v)=>S(s=>({...s,[k]:v}));return <ModalShell title={initial?.id?'Edit budget':'Set a category budget'} subtitle="Choose a monthly limit that feels realistic." onClose={onClose}><form onSubmit={e=>{e.preventDefault();onSave(f)}}><div className="form-grid"><Field label="Category"><select value={f.category} onChange={e=>set('category',e.target.value)}>{expenseCategories.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Month"><input type="month" required value={f.month} onChange={e=>set('month',e.target.value)}/></Field><Field label={`Monthly budget (${currency})`} wide><input required type="number" min="0" value={f.amount} onChange={e=>set('amount',e.target.value)} placeholder="e.g. 2500"/></Field></div><div className="modal-actions"><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="submit" className="btn btn-primary"><Check size={16}/>Save budget</button></div></form></ModalShell>}
 function ImportModal({rows,onClose,onConfirm}){return <ModalShell title="Import transactions" subtitle="Review the first rows before importing them." onClose={onClose} wide><div className="import-summary"><FileSpreadsheet size={22}/><div><b>{rows.length} transactions ready</b><span>Imported records will be added to your ledger.</span></div></div><div className="table-wrap import-table"><table className="data-table"><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead><tbody>{rows.slice(0,8).map((r,i)=><tr key={i}><td>{r.transaction_date}</td><td>{r.type}</td><td>{r.category}</td><td>{r.description}</td><td>{fmt(r.amount)}</td></tr>)}</tbody></table></div>{rows.length>8&&<p className="small-muted">Showing first 8 rows of {rows.length}.</p>}<div className="modal-actions"><button className="btn btn-secondary" onClick={onClose}>Cancel</button><button className="btn btn-primary" onClick={onConfirm}><Upload size={16}/>Import {rows.length} rows</button></div></ModalShell>}
 function AuthScreen(p){
- const {authMode,setAuthMode,authName,setAuthName,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signUp,resetPassword,updatePassword,resendConfirmation}=p;
+ const {authMode,setAuthMode,authName,setAuthName,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}=p;
  const isSignup=authMode==='signup', isForgot=authMode==='forgot', isUpdatePassword=authMode==='update-password';
  const submit=isSignup?signUp:isForgot?resetPassword:isUpdatePassword?updatePassword:signIn;
  return <main className="auth-page pocket-auth-page">
@@ -782,11 +788,11 @@ function AuthScreen(p){
    <div className="pocket-hero-orbit pocket-orbit-one"/><div className="pocket-hero-orbit pocket-orbit-two"/>
    <div className="auth-visual-copy pocket-visual-copy">
     <span className="eyebrow"><span className="pocket-live-dot"/> YOUR MONEY, IN FOCUS</span>
-    <h1>Feel good about<br/>where your money<br/><em>is going.</em></h1>
-    <p>A calmer way to understand your spending, plan what’s next, and make your money work for you.</p>
+    <h1>Your money.<br/><em>Your way.</em></h1>
+    <p>Plan with confidence, build better habits, and make room for what matters.</p>
     <div className="pocket-greeting-preview">
      <div className="pocket-greeting-avatar"><img src="/avatars/avatar-01.webp" alt="3D Pocket profile avatar"/></div>
-     <div className="pocket-greeting-copy"><span>Good morning,</span><strong>Your money, your way.</strong><i aria-hidden="true"/><p>A clearer view of your money starts here.</p></div>
+     <div className="pocket-greeting-copy"><span className="auth-greeting-time">A little more clarity, every day</span><strong>Good things start<br/>with a plan.</strong><i aria-hidden="true"/><p>Your money, your pace. Your goals, in reach.</p></div>
      <span className="pocket-greeting-spark" aria-hidden="true">✦</span>
     </div>
    </div>
@@ -803,7 +809,8 @@ function AuthScreen(p){
     {!isForgot&&<label className="auth-field"><span>{isUpdatePassword?'New password':'Password'}</span><input type="password" autoComplete={isSignup||isUpdatePassword?'new-password':'current-password'} minLength={isSignup||isUpdatePassword?8:1} required value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder={isSignup||isUpdatePassword?'At least 8 characters':'Enter your password'}/></label>}
     {isUpdatePassword&&<label className="auth-field"><span>Confirm new password</span><input type="password" autoComplete="new-password" minLength={8} required value={authConfirmPassword} onChange={e=>setAuthConfirmPassword(e.target.value)} placeholder="Enter the new password again"/></label>}
     {!isSignup&&!isForgot&&!isUpdatePassword&&<button type="button" className="auth-text-link forgot-link" onClick={()=>{setAuthMode('forgot');setAuthMsg('')}}>Forgot password?</button>}
-    <button className="btn btn-primary auth-submit pocket-auth-submit" type="submit" disabled={busy}>{busy?<LoaderCircle className="spin" size={17}/>:null}{busy?'Please wait…':isSignup?'Create account':isForgot?'Send reset link':isUpdatePassword?'Update password':'Sign in to Pocket'}<span aria-hidden="true">↗</span></button>
+    <button className="btn btn-primary auth-submit pocket-auth-submit" type="submit" disabled={busy}>{busy?<LoaderCircle className="spin" size={17}/>:null}{busy?'Please wait…':isSignup?'Create account':isForgot?'Send reset link':isUpdatePassword?'Update password':'Sign in'}<span aria-hidden="true">↗</span></button>
+    {!isForgot&&!isUpdatePassword&&<><div className="pocket-form-divider pocket-google-divider"><span/><small>OR CONTINUE WITH</small><span/></div><button type="button" className="pocket-google-button" onClick={signInWithGoogle} disabled={busy}><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 38.05 46.98 31.95 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.45-4.88 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Continue with Google</span></button></>}
     {authMsg&&<p className={`auth-message ${/check your email|link has been sent|created successfully|confirmation email has been sent/i.test(authMsg)?'auth-message-success':'auth-message-error'}`} role="status">{authMsg}</p>}
     {!isSignup&&!isForgot&&/not confirmed|confirmation email|confirm your email/i.test(authMsg)&&<button type="button" className="auth-text-link pocket-resend" onClick={resendConfirmation} disabled={busy}>{busy?'Sending…':'Resend confirmation email'}</button>}
    </form>
