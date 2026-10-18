@@ -1004,3 +1004,5 @@ body { background: #f4f6fa; color: var(--ink); }
 .expense-category-row .row-actions{display:flex;gap:4px;flex-shrink:0}
 .expense-category-row .btn{white-space:nowrap}
 @media(max-width:560px){.expense-category-add{align-items:stretch;flex-direction:column}.expense-category-add .btn{justify-content:center}.expense-category-row{flex-wrap:wrap}.expense-category-row input{flex-basis:100%}}
+.expense-category-visibility{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.expense-category-visibility input{width:16px;height:16px;accent-color:var(--primary,#7c83fd);cursor:pointer}
