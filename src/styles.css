@@ -959,3 +959,36 @@ body { background: #f4f6fa; color: var(--ink); }
 .settings-redesign-intro{display:flex;align-items:center;gap:13px;padding:16px 17px;margin:0 0 17px;border:1px solid #e9ebff;background:linear-gradient(115deg,#f5f6ff,#fbfbff);border-radius:13px}.settings-redesign-icon{width:42px;height:42px;display:grid;place-items:center;flex-shrink:0;border-radius:12px;background:#e9ebff;color:#6877ef}.settings-redesign-intro b{font-size:12px;color:#303644}.settings-redesign-intro p{font-size:10px;color:#9299a7;margin:5px 0 0}.settings-accordion-list{display:grid;gap:10px}.settings-card{border:1px solid #e9ecf2;border-radius:12px;overflow:hidden;background:var(--surface,#fff)}.settings-card-trigger{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;padding:14px;text-align:left;color:inherit}.settings-card-trigger:hover{background:#fafbff}.settings-card-icon{width:37px;height:37px;border-radius:10px;background:#f0f1ff;color:#6c7cf5;display:grid;place-items:center;flex-shrink:0}.settings-card-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}.settings-card-copy b{font-size:11px;color:#343a48}.settings-card-copy small{font-size:10px;line-height:1.45;color:#9299a7}.settings-card-chevron{color:#9299a7;transition:transform .18s}.settings-card.is-expanded .settings-card-chevron{transform:rotate(180deg)}.settings-card-content{padding:0 15px 16px 64px}.settings-preference-list{display:grid;gap:3px}.settings-preference-list .setting-toggle{border:0;border-radius:8px;padding:10px 0}.settings-preference-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.settings-preference-grid .field:last-child{grid-column:1/-1}.settings-info-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:13px;color:#6c7cf5}.settings-info-row>div{flex:1}.settings-info-row b{font-size:11px;color:#424959}.settings-info-row p{margin:5px 0 0}.settings-card-content .small-muted{font-size:10px}.settings-card-content .settings-actions{gap:8px}.settings-card-content .setting-toggle{margin:0}
 :root[data-theme="dark"] .settings-redesign-intro{background:#20283a;border-color:#30384a}:root[data-theme="dark"] .settings-redesign-intro b,:root[data-theme="dark"] .settings-card-copy b,:root[data-theme="dark"] .settings-info-row b{color:#edf0f8}:root[data-theme="dark"] .settings-card{border-color:#30384a}:root[data-theme="dark"] .settings-card-trigger:hover{background:#252e41}:root[data-theme="dark"] .settings-card-icon{background:#2d3551;color:#a3adff}
 @media(max-width:640px){.settings-card-content{padding-left:14px}.settings-preference-grid{grid-template-columns:1fr}.settings-preference-grid .field:last-child{grid-column:auto}.settings-redesign-intro{align-items:flex-start}}
+
+/* Settings accordion contrast polish */
+.settings-card{background:var(--surface,#fff);transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.settings-card-trigger{min-height:66px;padding:14px 16px}
+.settings-card-copy b{color:#303644}
+.settings-card-copy small{color:#687386}
+.settings-card-content{color:var(--ink,#303644)}
+.settings-card-content .small-muted{color:var(--muted,#7a8495)}
+.settings-card.is-expanded{box-shadow:0 5px 18px rgba(24,32,56,.06)}
+:root[data-theme="dark"] .settings-card{background:#1d2432!important;border-color:#343d50!important;color:#edf0f8}
+:root[data-theme="dark"] .settings-card-copy b{color:#f1f3fa!important}
+:root[data-theme="dark"] .settings-card-copy small{color:#aab4c8!important}
+:root[data-theme="dark"] .settings-card-content{color:#e8ebf4}
+:root[data-theme="dark"] .settings-card-content .small-muted{color:#a2abc0!important}
+:root[data-theme="dark"] .settings-card.is-expanded{box-shadow:0 8px 24px rgba(0,0,0,.16)}
+:root[data-theme="dark"] .settings-preference-list .setting-toggle,
+:root[data-theme="dark"] .settings-preference-grid .field{color:#edf0f8}
+:root[data-theme="dark"] .settings-preference-grid .field input,
+:root[data-theme="dark"] .settings-preference-grid .field select{background:#222b3b;color:#e7ebf5;border-color:#394256}
+
+/* Language switch and Arabic RTL support */
+.language-toggle-btn{min-width:36px;padding:0 8px;font-size:12px;font-weight:800;letter-spacing:.1px}
+.app-shell[dir="rtl"]{direction:rtl}
+.app-shell[dir="rtl"] .sidebar{left:auto;right:0;border-right:0;border-left:1px solid var(--line)}
+.app-shell[dir="rtl"] .main-area{margin-left:0;margin-right:260px}
+.app-shell.sidebar-compact[dir="rtl"] .main-area{margin-right:88px}
+.app-shell.sidebar-wide[dir="rtl"] .main-area{margin-right:292px}
+.app-shell[dir="rtl"] .nav-item,.app-shell[dir="rtl"] .nav-label,.app-shell[dir="rtl"] .page-heading,.app-shell[dir="rtl"] .panel-header,.app-shell[dir="rtl"] .settings-card-copy{text-align:right}
+.app-shell[dir="rtl"] .nav-item:hover{transform:translateX(-1px)}
+.app-shell[dir="rtl"] .topbar-left{flex-direction:row}
+.app-shell[dir="rtl"] .settings-card-chevron{margin-right:auto;margin-left:0}
+.app-shell[dir="rtl"] .settings-card-trigger{flex-direction:row}
+@media(max-width:680px){.app-shell[dir="rtl"] .main-area,.app-shell.sidebar-compact[dir="rtl"] .main-area,.app-shell.sidebar-wide[dir="rtl"] .main-area{margin-right:0;width:100%}.app-shell[dir="rtl"] .sidebar{right:0;left:auto}.app-shell[dir="rtl"] .top-popover{right:auto;left:-4px}}
