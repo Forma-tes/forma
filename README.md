@@ -154,3 +154,9 @@ The account menu and notification popover use the existing authenticated session
 - Transaction types include Expense, Income, and Transfer. Transfers move an amount from one account/wallet to another and are excluded from income/expense totals.
 - Before deploying the transfer feature to an existing Supabase project, run `supabase/migrations/20261018_gender_categories_and_transfers.sql` in Supabase SQL Editor. The main `supabase/schema.sql` also includes the updated schema for new setups.
 - Google OAuth sign-ups may not have a gender choice during the Google consent flow; those accounts use the shared core categories until the user chooses a gender in a future profile update.
+
+
+## Transaction subcategories
+- The transaction form now shows a category and a dependent subcategory selector.
+- Run `supabase/migrations/20261018_transaction_subcategories.sql` in Supabase SQL Editor before deploying so subcategories persist.
+- `.env` is included as a local template; replace placeholders locally and do not commit it. Configure the same variables in Vercel Environment Variables.

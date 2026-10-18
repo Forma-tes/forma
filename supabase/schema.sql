@@ -8,6 +8,7 @@ create table if not exists public.transactions (
   transaction_date date not null default current_date,
   type text not null check (type in ('Income','Expense','Transfer')),
   category text not null,
+  subcategory text,
   description text not null default '',
   amount numeric(14,2) not null check (amount >= 0),
   need_want text check (need_want in ('Need','Want')),
