@@ -23,12 +23,7 @@ Responsive personal-finance web app with Supabase authentication and per-user cl
 ## 1. Connect your existing Supabase project
 1. In Supabase, open your project and go to **Project Settings → API** (or **API Keys**, depending on dashboard layout).
 2. Copy the **Project URL** and the **publishable key** (or legacy `anon` public key). Never use a `service_role` or secret key in a browser app.
-3. In this project folder, duplicate `.env.example` as `.env` and fill:
-   ```env
-   VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-   VITE_SUPABASE_ANON_KEY=YOUR_PUBLIC_OR_ANON_KEY
-VITE_SITE_URL=https://YOUR_PRODUCTION_POCKET_DOMAIN
-   ```
+3. The included `.env` already contains this project’s local configuration. Keep it out of Git commits; set the same variables in Vercel Environment Variables for production:
 4. Open **SQL Editor** in Supabase and run the complete contents of `supabase/schema.sql`.
 5. In Vercel, set `VITE_SITE_URL` to the exact canonical HTTPS URL of the deployed Pocket app (the domain users actually open). Redeploy after changing it.
 6. In Supabase **Authentication → URL Configuration**, set **Site URL** to that same production URL, without a wildcard, for example `https://your-pocket-domain.vercel.app`. Add these under **Redirect URLs**: `https://your-pocket-domain.vercel.app/**` and `http://localhost:5173/**` for local testing. Replace the example domain with your real Pocket domain.
@@ -152,14 +147,14 @@ The account menu and notification popover use the existing authenticated session
 
 - During email sign-up, users can choose Female, Male, or Prefer not to say. The choice is stored in Supabase Auth user metadata and only personalizes suggested categories; it does not restrict access to custom categories.
 - Transaction types include Expense, Income, and Transfer. Transfers move an amount from one account/wallet to another and are excluded from income/expense totals.
-- Before deploying the transfer feature to an existing Supabase project, run `supabase/migrations/20261018_gender_categories_and_transfers.sql` in Supabase SQL Editor. The main `supabase/schema.sql` also includes the updated schema for new setups.
+- The consolidated `supabase/schema.sql` includes the transfer columns and all current schema changes. Run that single file in Supabase SQL Editor.
 - Google OAuth sign-ups may not have a gender choice during the Google consent flow; those accounts use the shared core categories until the user chooses a gender in a future profile update.
 
 
 ## Transaction subcategories
 - The transaction form now shows a category and a dependent subcategory selector.
-- Run `supabase/migrations/20261018_transaction_subcategories.sql` in Supabase SQL Editor before deploying so subcategories persist.
-- `.env` is included as a local template; replace placeholders locally and do not commit it. Configure the same variables in Vercel Environment Variables.
+- The consolidated `supabase/schema.sql` includes the transaction subcategory column and category migration.
+- `.env` is included with the requested local values; do not commit it to GitHub. Configure the same variables in Vercel Environment Variables.
 
-### Admin user deletion migration
-Before using the admin delete-user action, run `supabase/migrations/20261018_admin_delete_user.sql` once in Supabase SQL Editor. It is guarded: the owner cannot be deleted, users cannot delete themselves from the admin list, and only the owner can delete a super admin. Deleting a user cascades their personal Pocket records.
+### Admin user deletion
+The consolidated `supabase/schema.sql` includes the guarded `admin_delete_user` function. The owner cannot be deleted, users cannot delete themselves from the admin list, and only the owner can delete a super admin. Deleting a user cascades their personal Pocket records. For an existing database, run the full consolidated schema file once in Supabase SQL Editor.

@@ -376,3 +376,109 @@ revoke all on function public.admin_update_user_access(uuid,text[],text) from pu
 grant execute on function public.is_forma_admin() to authenticated;
 grant execute on function public.admin_list_users() to authenticated;
 grant execute on function public.admin_update_user_access(uuid,text[],text) to authenticated;
+-- Pocket: support transfers between accounts/wallets.
+-- Run in Supabase SQL Editor before deploying the updated app.
+alter table public.transactions add column if not exists to_account_id uuid references public.financial_accounts(id) on delete set null;
+alter table public.transactions drop constraint if exists transactions_type_check;
+alter table public.transactions add constraint transactions_type_check check (type in ('Income','Expense','Transfer'));
+-- Pocket: persist transaction subcategories. Run in Supabase SQL Editor before deploying.
+alter table public.transactions add column if not exists subcategory text;
+-- Allows the owner/super admins to delete a user's Auth account and cascade their personal data.
+-- The owner cannot be deleted. Super admins cannot delete themselves or other super admins.
+create or replace function public.admin_delete_user(p_target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_actor_role text;
+  v_target_role text;
+begin
+  select p.role into v_actor_role from public.profiles p where p.id = auth.uid();
+  if coalesce(v_actor_role,'') not in ('owner','super_admin') then
+    raise exception 'Admin access required';
+  end if;
+  if p_target_user_id = auth.uid() then raise exception 'You cannot delete your own account here'; end if;
+  select p.role into v_target_role from public.profiles p where p.id = p_target_user_id for update;
+  if not found then raise exception 'User not found'; end if;
+  if v_target_role = 'owner' then raise exception 'The owner account cannot be deleted'; end if;
+  if v_actor_role <> 'owner' and v_target_role = 'super_admin' then
+    raise exception 'Only the owner can delete a super admin';
+  end if;
+  delete from auth.users where id = p_target_user_id;
+  if not found then raise exception 'Auth user not found'; end if;
+end;
+$$;
+revoke all on function public.admin_delete_user(uuid) from public;
+grant execute on function public.admin_delete_user(uuid) to authenticated;
+-- Pocket: replace legacy category labels with the new category system.
+-- Run once in Supabase SQL Editor. Existing transaction amounts/dates are preserved.
+
+-- Transactions: keep old leaf labels as subcategories under the new parent categories.
+update public.transactions set category = 'Housing', subcategory = coalesce(nullif(subcategory, ''), 'Rent') where type = 'Expense' and category = 'Rent';
+update public.transactions set category = 'Food & Groceries', subcategory = coalesce(nullif(subcategory, ''), 'Groceries') where type = 'Expense' and category = 'Food';
+update public.transactions set category = 'Bills & Utilities', subcategory = coalesce(nullif(subcategory, ''), 'Other bill') where type = 'Expense' and category = 'Bills';
+update public.transactions set category = 'Bills & Utilities', subcategory = coalesce(nullif(subcategory, ''), 'Mobile bill') where type = 'Expense' and category = 'Mobile Bill';
+update public.transactions set category = 'Education', subcategory = coalesce(nullif(subcategory, ''), 'Courses') where type = 'Expense' and category = 'Training';
+update public.transactions set category = 'Other', subcategory = coalesce(nullif(subcategory, ''), 'Other expense') where type = 'Expense' and category = 'Personal Care';
+
+begin;
+
+create temporary table budget_migration
+on commit drop as
+select
+  user_id,
+  case category
+    when 'Rent' then 'Housing'
+    when 'Food' then 'Food & Groceries'
+    when 'Bills' then 'Bills & Utilities'
+    when 'Mobile Bill' then 'Bills & Utilities'
+    when 'Training' then 'Education'
+    when 'Personal Care' then 'Other'
+    else category
+  end as category,
+  month,
+  sum(amount) as amount
+from public.budgets
+where category in (
+  'Rent', 'Housing',
+  'Food', 'Food & Groceries',
+  'Bills', 'Mobile Bill', 'Bills & Utilities',
+  'Training', 'Education',
+  'Personal Care', 'Other'
+)
+group by user_id,
+  case category
+    when 'Rent' then 'Housing'
+    when 'Food' then 'Food & Groceries'
+    when 'Bills' then 'Bills & Utilities'
+    when 'Mobile Bill' then 'Bills & Utilities'
+    when 'Training' then 'Education'
+    when 'Personal Care' then 'Other'
+    else category
+  end,
+  month;
+
+delete from public.budgets
+where category in (
+  'Rent', 'Housing',
+  'Food', 'Food & Groceries',
+  'Bills', 'Mobile Bill', 'Bills & Utilities',
+  'Training', 'Education',
+  'Personal Care', 'Other'
+);
+
+insert into public.budgets (user_id, category, month, amount)
+select user_id, category, month, amount
+from budget_migration;
+
+commit;
+update public.budgets set category = 'Other' where category = 'Personal Care';
+
+-- Recurring payments: rename old categories to the new parent category system.
+update public.recurring_payments set category = 'Housing' where category = 'Rent';
+update public.recurring_payments set category = 'Food & Groceries' where category = 'Food';
+update public.recurring_payments set category = 'Bills & Utilities' where category in ('Bills','Mobile Bill');
+update public.recurring_payments set category = 'Education' where category = 'Training';
+update public.recurring_payments set category = 'Other' where category = 'Personal Care';
