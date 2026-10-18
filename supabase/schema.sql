@@ -517,3 +517,11 @@ update public.recurring_payments set category = 'Other' where lower(btrim(catego
 alter table public.recurring_payments add column if not exists subcategory text;
 alter table public.recurring_payments add column if not exists account_id uuid references public.financial_accounts(id) on delete set null;
 alter table public.debts add column if not exists debt_type text not null default 'Other';
+
+-- Loan schedule and installment tracking (backwards-compatible for existing debts).
+alter table public.debts add column if not exists start_date date;
+alter table public.debts add column if not exists term_months integer;
+alter table public.debts add column if not exists total_repayment numeric(14,2);
+alter table public.debts add column if not exists interest_rate numeric(8,4);
+alter table public.debts add column if not exists paid_installments integer not null default 0;
+update public.debts set total_repayment = coalesce(total_repayment, original_amount, 0), interest_rate = coalesce(interest_rate, 0), paid_installments = coalesce(paid_installments, 0);
