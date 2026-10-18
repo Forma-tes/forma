@@ -582,7 +582,7 @@ body { background: #f4f6fa; color: var(--ink); }
 .type-toggle{grid-template-columns:repeat(3,minmax(0,1fr))}.type-toggle button{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0}.type-toggle button.transfer-selected{color:#6c7cf5}.amount-transfer{color:#6c7cf5!important}
 
 /* Keep every create/edit/import modal above the sticky topbar and page cards. */
-.modal-backdrop{z-index:10000!important;visibility:visible;opacity:1;pointer-events:auto}
+.modal-backdrop{z-index:1000!important}
 .modal-backdrop .modal{position:relative;z-index:1001}
 
 /* Category/subcategory picker and robust dark-mode surfaces */
@@ -719,21 +719,3 @@ body { background: #f4f6fa; color: var(--ink); }
 .profile-settings-form .profile-avatar-field{padding:14px;border:1px solid var(--line,rgba(120,130,150,.2));border-radius:14px;background:var(--surface-soft,rgba(120,130,150,.05))}
 .profile-settings-form .avatar-picker{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 @media(max-width:620px){.profile-settings-form{grid-template-columns:1fr}.profile-settings-form .field-wide,.profile-settings-form .profile-avatar-field,.profile-settings-form .small-muted,.profile-settings-form .modal-actions{grid-column:auto}}
-
-/* Profile polish: keep the chosen avatar visible and open the full gallery on demand. */
-.profile-settings-form .profile-gender-note{grid-column:1/-1;margin:-7px 0 0}
-.profile-avatar-current-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px}
-.profile-avatar-preview{width:58px;height:58px;border-radius:17px;overflow:hidden;display:grid;place-items:center;background:var(--surface-soft,rgba(120,130,150,.08));border:1px solid var(--line,rgba(120,130,150,.2));flex:0 0 auto}
-.profile-avatar-preview .profile-avatar-image{width:100%;height:100%;object-fit:contain}
-.profile-avatar-current-copy{display:flex;flex:1;min-width:150px;flex-direction:column;gap:5px}
-.profile-avatar-current-copy b{font-size:11px}.profile-avatar-current-copy small{font-size:10px;color:var(--text-muted,#9299a8)}
-.avatar-picker-popup-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.avatar-picker-popup-card{min-width:0;padding:10px 8px;border:1px solid var(--line,rgba(120,130,150,.2));border-radius:13px;background:var(--surface-soft,rgba(120,130,150,.04));display:flex;flex-direction:column;align-items:center;gap:9px;color:var(--text,#4b5363);cursor:pointer;transition:border-color .15s,transform .15s,background .15s}
-.avatar-picker-popup-card:hover{transform:translateY(-2px);border-color:var(--blue,#6c7cf5)}
-.avatar-picker-popup-card.selected{border:2px solid var(--blue,#6c7cf5);background:rgba(108,124,245,.09);padding:9px 7px}
-.avatar-picker-popup-card img{width:72px;height:72px;object-fit:contain;display:block}
-.avatar-picker-popup-card span{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;text-align:center}
-.sidebar-navigation-tools{display:flex;justify-content:flex-start;padding:8px 12px;margin:2px 0 8px;border-bottom:1px solid var(--line,rgba(120,130,150,.18))}
-.sidebar-navigation-tools .sidebar-size-toggle{width:40px;min-height:38px;padding:9px;justify-content:center}
-.sidebar-navigation-tools .sidebar-size-toggle>span{display:none}
-@media(max-width:620px){.avatar-picker-popup-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.avatar-picker-popup-card img{width:62px;height:62px}.profile-avatar-current-row .btn{margin-left:0}}
