@@ -14,9 +14,9 @@ Deno.serve(async (req) => {
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const adminEmail = Deno.env.get('ACCESS_REQUEST_ADMIN_EMAIL');
-  const resendKey = Deno.env.get('RESEND_API_KEY');
+  const brevoKey = Deno.env.get('BREVO_API_KEY');
   const fromEmail = Deno.env.get('ACCESS_REQUEST_FROM_EMAIL');
-  if (!adminEmail || !resendKey || !fromEmail) {
+  if (!adminEmail || !brevoKey || !fromEmail) {
     return new Response(JSON.stringify({ error: 'Access request email is not configured on the server.' }), { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
@@ -34,19 +34,20 @@ Deno.serve(async (req) => {
   const { error: insertError } = await service.from('access_requests').insert({ user_id: user.id, user_email: email, user_name: name });
   if (insertError) return new Response(JSON.stringify({ error: 'Could not save the access request.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-  const emailResponse = await fetch('https://api.resend.com/emails', {
+  const emailResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+    headers: { 'api-key': brevoKey, 'Content-Type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({
-      from: fromEmail,
-      to: [adminEmail],
+      sender: { name: 'Pocket Access Requests', email: fromEmail },
+      to: [{ email: adminEmail }],
       subject: 'Pocket access request',
-      text: `A user requested access to Pocket.\n\nName: ${name || 'Not provided'}\nEmail: ${email || 'Not provided'}\nUser ID: ${user.id}\n\nOpen Pocket Admin → User access to review and enable the required features.`,
+      textContent: `A user requested access to Pocket.\n\nName: ${name || 'Not provided'}\nEmail: ${email || 'Not provided'}\nUser ID: ${user.id}\n\nOpen Pocket Admin → User access to review and enable the required features.`,
     }),
   });
   if (!emailResponse.ok) {
-    const { error: updateError } = await service.from('access_requests').update({ status: 'pending' }).eq('user_id', user.id).eq('status', 'pending');
-    return new Response(JSON.stringify({ error: 'The request was saved, but the admin notification email could not be sent. Please contact the administrator through the app support channel.' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const providerError = await emailResponse.text().catch(() => '');
+    console.error('Brevo email send failed:', emailResponse.status, providerError.slice(0, 1000));
+    return new Response(JSON.stringify({ error: 'The request was saved, but the admin notification email could not be sent. Check the request-access function logs for the Brevo error.' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
   await service.from('access_requests').update({ notified_at: new Date().toISOString() }).eq('user_id', user.id).eq('status', 'pending');
   return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
