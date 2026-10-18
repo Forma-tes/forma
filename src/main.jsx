@@ -452,7 +452,20 @@ function App(){
   async function addBudget(form){
     const p={category:form.category,month:monthStart(form.month),amount:Number(form.amount)};
     const saved=await saveRecord('budgets',p,editing?.id);if(!saved)return;
-    setBudgets(old=>[...old.filter(x=>!(x.category===saved.category&&(x.month||'').slice(0,7)===(saved.month||'').slice(0,7)&&x.id!==saved.id)),saved]);setModal(null);setEditing(null);setToast('Budget saved');
+    // Replace the edited row by id and prevent duplicate rows for the same category/month.
+    // If the month was changed in the editor, move the page to that month so the update is visible immediately.
+    setBudgets(old=>{
+      const withoutEdited=old.filter(x=>String(x.id)!==String(saved.id));
+      const withoutDuplicate=withoutEdited.filter(x=>!(x.category===saved.category&&(x.month||'').slice(0,7)===(saved.month||'').slice(0,7)));
+      return [saved,...withoutDuplicate];
+    });
+    if(saved.month)setMonth((saved.month||'').slice(0,7));
+    setModal(null);setEditing(null);setToast('Budget updated');
+    // Re-fetch cloud state after saving so the Budget page reflects the database value, not a stale cached row.
+    if(cloudReady&&session?.user){
+      const {data,error}=await supabase.from('budgets').select('*').order('month',{ascending:false});
+      if(!error)setBudgets(data||[]);
+    }
   }
   async function saveAccount(form){
     if(isGoalsAccount(editing)){setToast('The system Goals account cannot be edited.');return;}
