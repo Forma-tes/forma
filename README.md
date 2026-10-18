@@ -188,3 +188,9 @@ The notification email is sent by the server through Resend, not from the user's
 - Savings-goal linked transfers are counted as deposits when moving into a Savings account and subtracted when moving out of a Savings account. For reliable direction detection, mark the account that holds the goal funds as type **Savings account**.
 
 Build verification note: `npm install` could not reach npm registry in the current environment, so run `npm install` and `npm run build` locally before deploying.
+
+## Goals system account setup
+
+Apply `supabase/migrations/20261018_goals_system_account.sql` in the Supabase Dashboard SQL Editor (or run the updated `supabase/schema.sql`) before deploying this version. The migration adds a protected system account named **Goals** with type **Savings account**, backfills it for existing users, and creates it automatically for new sign-ups. It also prevents the system account from being renamed, edited, or deleted.
+
+Transfers to or from **Goals** must be linked to one savings goal. Transfers into Goals increase that goal's saved amount; transfers out reduce it. Goals transfers remain transfers and are not counted as income or expenses.

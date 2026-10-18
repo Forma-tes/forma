@@ -883,3 +883,31 @@ body { background: #f4f6fa; color: var(--ink); }
 .debt-payment-mini .goal-amounts{margin:14px 0}
 .debt-payment-mini .progress-track{margin:10px 0 6px}
 .debt-payment-mini .btn{width:100%;justify-content:center}
+
+/* Debt payments are available directly inside the Add Transaction wizard. */
+.tx-modal-debt-section{margin-top:18px;padding:16px;border:1px solid var(--border,#e7eaf0);border-radius:13px;background:var(--panel-subtle,#f9faff)}
+.tx-modal-debt-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.tx-modal-debt-heading h4{display:flex;align-items:center;gap:7px;margin:0;font-size:13px;color:var(--text,#303746)}
+.tx-modal-debt-heading p{font-size:10px;color:var(--muted,#8d95a5);margin:5px 0 0;line-height:1.5}
+.tx-modal-debt-heading>span{font-size:10px;color:var(--muted,#8d95a5);white-space:nowrap}
+.tx-modal-debt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.tx-modal-debt-grid .debt-payment-mini{padding:13px;background:var(--panel,#fff);border:1px solid var(--border,#e7eaf0);border-radius:10px}
+.tx-modal-debt-grid .debt-card-title h3{font-size:12px}
+.tx-modal-debt-grid .debt-card-title p{font-size:10px}
+.tx-modal-debt-grid .goal-amounts{margin:10px 0}
+.tx-modal-debt-grid .goal-amounts b{font-size:12px}
+.tx-modal-debt-grid .field-label{font-size:10px}
+.tx-modal-debt-grid .debt-progress-track{height:7px;background:var(--track,#edf0f6)}
+.debt-progress-track span{min-width:0;transition:width .25s ease}
+
+/* Protected system Goals account and required goal-transfer selection */
+.system-account-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid rgba(80,185,154,.28);border-radius:999px;background:rgba(80,185,154,.10);color:var(--success,#319b7a);font-size:11px;font-weight:700;white-space:nowrap}
+.goals-transfer-callout{display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border:1px solid rgba(80,185,154,.3);border-radius:14px;background:rgba(80,185,154,.08)}
+.goals-transfer-callout-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:rgba(80,185,154,.15);color:#329b7b}
+.goals-transfer-callout b{display:block;font-size:13px;line-height:1.4;color:var(--text-primary,#202b3c)}
+.goals-transfer-callout p{margin:4px 0 0;font-size:12px;line-height:1.5;color:var(--text-secondary,#738096)}
+.goals-subcategory-picker{min-width:0;padding-top:2px}
+.goals-subcategory-grid .tx-subcategory-card{display:flex;align-items:center;gap:8px;min-height:44px;text-align:left}
+.goals-subcategory-grid .tx-subcategory-card svg:last-child{margin-left:auto;flex-shrink:0}
+.goals-no-goals{padding:14px;border:1px dashed var(--border-color,#d6dce6);border-radius:12px;color:var(--text-secondary,#738096);font-size:13px;line-height:1.5}
+.transaction-goal-subcategory{display:flex;align-items:center;gap:4px;margin-top:5px;color:var(--text-secondary,#738096);font-size:11px;line-height:1.3}
