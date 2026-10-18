@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
 import * as XLSX from 'xlsx';
@@ -6,7 +6,7 @@ import {
   LayoutDashboard, ArrowLeftRight, Wallet, Target, Repeat2, ChartNoAxesCombined,
   Settings, Search, Plus, Bell, ChevronDown, ChevronLeft, ChevronRight, ArrowUpRight, UserRound, ShieldCheck, FileJson,
   ArrowDownRight, TrendingUp, Download, Upload, CalendarDays, SlidersHorizontal,
-  MoreHorizontal, X, Check, CircleHelp, PiggyBank, CreditCard, Sparkles, LogOut,
+  MoreHorizontal, X, Check, XCircle, CircleHelp, PiggyBank, CreditCard, Sparkles, LogOut,
   Pencil, Trash2, Mail, LoaderCircle, FileSpreadsheet, CircleDollarSign, Menu, Users, LockKeyhole, Sun, Moon
 } from 'lucide-react';
 import {
@@ -123,6 +123,8 @@ function App(){
   const requestConfirm=(title,description,onConfirm,confirmLabel='Delete',options={})=>setConfirmDialog({title,description,onConfirm,confirmLabel,...options});
   const [editing,setEditing] = useState(null);
   const [toast,setToast] = useState('');
+  const [notificationToast,setNotificationToast] = useState(null);
+  const seenNotificationIds = useRef(null);
   const [session,setSession] = useState(null);
   const [profile,setProfile] = useState(null);
   const [adminUsers,setAdminUsers] = useState([]);
@@ -337,6 +339,14 @@ function App(){
   const budgetAlerts=budgets.filter(b=>(b.month||'').slice(0,7)===activeMonth).map(b=>{const spent=transactions.filter(t=>t.type==='Expense'&&(t.transaction_date||'').slice(0,7)===activeMonth&&t.category===b.category).reduce((sum,t)=>sum+Number(t.amount||0),0);const pct=Number(b.amount)>0?spent/Number(b.amount)*100:0;return {...b,spent,pct};}).filter(b=>b.pct>=90).map(b=>({id:`budget-${b.id}`,kind:'budget',name:`${b.category} budget at ${Math.round(b.pct)}%`,detail:`${fmt(b.spent)} of ${fmt(b.amount)} used`,target:'Budgets',amount:null,pct:b.pct}));
   const debtAlerts=debts.filter(d=>Number(d.remaining_amount||0)>0&&d.due_date&&d.due_date<=(()=>{const date=new Date();date.setDate(date.getDate()+7);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`})()).map(d=>({id:`debt-${d.id}`,kind:'debt',name:d.name,detail:`${d.due_date<todayISO?'Overdue':'Installment due'} · ${d.due_date}`,target:'Debts & installments',amount:Number(d.monthly_payment||0)}));
   const notificationItems=[...budgetAlerts,...debtAlerts,...upcoming.map(r=>({id:`recurring-${r.id}`,kind:'recurring',name:r.name,detail:r.next_due_date?`Due ${new Date(r.next_due_date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${r.frequency||'Recurring'}`:'Upcoming payment',target:'Recurring payments',amount:Number(r.amount||0)}))];
+  useEffect(()=>{
+    const currentIds=new Set(notificationItems.map(item=>String(item.id)));
+    if(seenNotificationIds.current===null){seenNotificationIds.current=currentIds;return;}
+    const added=notificationItems.find(item=>!seenNotificationIds.current.has(String(item.id)));
+    seenNotificationIds.current=currentIds;
+    if(added){setNotificationToast(added);}
+  },[notificationItems.map(item=>item.id).join('|')]);
+  useEffect(()=>{if(!notificationToast)return;const timer=setTimeout(()=>setNotificationToast(null),4800);return()=>clearTimeout(timer)},[notificationToast]);
   const displayName=firstName(session ? (session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'there') : (profileName||'there'));
   const greeting=getGreeting(session?.user?.user_metadata?.timezone||timezone);
   void clock; void currency;
@@ -752,7 +762,8 @@ function App(){
     {modal==='debt'&&<DebtModal currency={currency} accounts={accounts} initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveDebt}/> }
     {modal==='import'&&<ImportModal rows={importPreview} onClose={()=>{setModal(null);setImportPreview([])}} onConfirm={confirmImport}/>}
     {confirmDialog&&<ConfirmActionModal dialog={confirmDialog} onCancel={()=>setConfirmDialog(null)} onConfirm={async()=>{const action=confirmDialog.onConfirm;setConfirmDialog(null);await action?.()}}/>}
-    {toast&&<div className="toast"><Check size={17}/>{toast}</div>}
+    {toast&&<div className={`toast ${/insufficient balance|error|failed|could not/i.test(toast)?'toast-error':'toast-success'}`} role="status">{/insufficient balance|error|failed|could not/i.test(toast)?<XCircle size={18}/>:<Check size={17}/>}<span>{toast}</span></div>}
+    {notificationToast&&<div role="button" tabIndex={0} className="notification-toast" onClick={()=>{setPage(notificationToast.target);setNotificationToast(null)}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){setPage(notificationToast.target);setNotificationToast(null)}}} aria-label={`Open notification: ${notificationToast.name}`}><span className={`notification-toast-icon ${notificationToast.kind}`}><Bell size={17}/></span><span className="notification-toast-copy"><b>New notification</b><strong>{notificationToast.name}</strong><small>{notificationToast.detail}</small></span><button type="button" className="notification-toast-close" aria-label="Dismiss notification" onClick={e=>{e.stopPropagation();setNotificationToast(null)}}><X size={15}/></button></div>}
   </div>;
 }
 
