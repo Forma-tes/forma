@@ -823,3 +823,19 @@ body { background: #f4f6fa; color: var(--ink); }
 .btn-danger{background:#d94c5c!important;color:#fff!important;border:1px solid #d94c5c!important}
 .btn-danger:hover{background:#c93c4d!important}
 .budget-card-head .row-actions{margin-left:auto;display:flex;gap:4px;align-items:center}
+
+/* Compact budget cards with adjacent actions */
+.budget-grid{gap:12px}
+.budget-card{padding:13px 14px;border-radius:13px}
+.budget-card-head{gap:8px;min-width:0}
+.budget-card-head>div:not(.row-actions){min-width:0;gap:3px}
+.budget-card-head b{font-size:10px;line-height:1.35}
+.budget-card-head small{font-size:8px;line-height:1.35}
+.budget-card-head .row-actions{flex:0 0 auto;flex-direction:row!important;gap:3px;margin-left:auto}
+.budget-card-head .row-actions .icon-btn{width:27px;height:27px;min-width:27px;padding:5px;border-radius:7px}
+.budget-numbers{margin:17px 0 9px;gap:4px}
+.budget-numbers b{font-size:17px}
+.budget-numbers span{font-size:9px}
+.budget-card-foot{margin-top:8px;font-size:8px}
+@media(max-width:1050px){.budget-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.budget-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.budget-card{padding:11px}.budget-card-head{gap:6px}.budget-card-head .row-actions .icon-btn{width:24px;height:24px;min-width:24px}.budget-card-head b{font-size:9px}.budget-numbers{margin:14px 0 8px}.budget-numbers b{font-size:15px}}
