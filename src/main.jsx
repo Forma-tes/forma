@@ -94,7 +94,7 @@ const uid = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Ma
 const FEATURE_OPTIONS = [
   {key:'overview',label:'Overview',description:'Main financial summary and dashboard'},
   {key:'transactions',label:'Transactions',description:'Add, edit, import, and export transactions'},
-  {key:'accounts',label:'Accounts & wallets',description:'Bank accounts, cash, wallets, and balances'},
+  {key:'accounts',label:'Accounts',description:'Bank accounts, cash, wallets, and balances'},
   {key:'calendar',label:'Cash flow calendar',description:'Transactions and upcoming payment dates'},
   {key:'budgets',label:'Budgets',description:'Monthly category budgets and limits'},
   {key:'goals',label:'Savings goals',description:'Savings targets and milestones'},
