@@ -911,3 +911,27 @@ body { background: #f4f6fa; color: var(--ink); }
 .goals-subcategory-grid .tx-subcategory-card svg:last-child{margin-left:auto;flex-shrink:0}
 .goals-no-goals{padding:14px;border:1px dashed var(--border-color,#d6dce6);border-radius:12px;color:var(--text-secondary,#738096);font-size:13px;line-height:1.5}
 .transaction-goal-subcategory{display:flex;align-items:center;gap:4px;margin-top:5px;color:var(--text-secondary,#738096);font-size:11px;line-height:1.3}
+
+/* Compact debt picker inside the expense category step */
+.tx-modal-debt-section-inline{margin-top:14px;padding:12px;border-radius:12px}
+.tx-modal-debt-section-inline .tx-modal-debt-heading{margin-bottom:10px}
+.tx-debt-subcategory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.tx-debt-subcategory-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:11px 12px;text-align:left;border:1px solid var(--border,#dfe4ee);border-radius:10px;background:var(--panel,#fff);color:var(--text,#303746);cursor:pointer;transition:border-color .15s,background .15s}
+.tx-debt-subcategory-card:hover,.tx-debt-subcategory-card.selected{border-color:var(--accent,#7c6cf4);background:var(--accent-soft,rgba(124,108,244,.08))}
+.tx-debt-subcategory-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+.tx-debt-subcategory-card>small{font-size:10px;color:var(--muted,#8d95a5)}
+.tx-debt-subcategory-values{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:4px;font-size:10px;color:var(--muted,#8d95a5)}
+.tx-debt-subcategory-values span{display:flex;flex-direction:column;gap:3px}
+.tx-debt-subcategory-values b{font-size:11px;color:var(--text,#303746)}
+
+/* Compact debt picker inside the expense category step */
+.tx-modal-debt-section-inline{margin-top:14px;padding:12px;border-radius:12px}
+.tx-modal-debt-section-inline .tx-modal-debt-heading{margin-bottom:10px}
+.tx-debt-subcategory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.tx-debt-subcategory-card{display:flex;flex-direction:column;gap:6px;min-width:0;padding:11px 12px;text-align:left;border:1px solid var(--border,#dfe4ee);border-radius:10px;background:var(--panel,#fff);color:var(--text,#303746);cursor:pointer;transition:border-color .15s,background .15s}
+.tx-debt-subcategory-card:hover,.tx-debt-subcategory-card.selected{border-color:var(--accent,#7c6cf4);background:var(--accent-soft,rgba(124,108,244,.08))}
+.tx-debt-subcategory-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+.tx-debt-subcategory-card>small{font-size:10px;color:var(--muted,#8d95a5)}
+.tx-debt-subcategory-values{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:4px;font-size:10px;color:var(--muted,#8d95a5)}
+.tx-debt-subcategory-values span{display:flex;flex-direction:column;gap:3px}
+.tx-debt-subcategory-values b{font-size:11px;color:var(--text,#303746)}
