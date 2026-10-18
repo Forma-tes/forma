@@ -481,3 +481,8 @@ update public.recurring_payments set category = 'Other' where lower(btrim(catego
 
 -- Collapse duplicate legacy/new budget labels case-insensitively, preferring the
 -- exact new category label if any duplicate remains after the mapping above.
+
+
+-- Compatibility columns used by the current Pocket add/edit wizards.
+alter table public.recurring_payments add column if not exists subcategory text;
+alter table public.debts add column if not exists debt_type text not null default 'Other';
