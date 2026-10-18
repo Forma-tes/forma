@@ -978,17 +978,3 @@ body { background: #f4f6fa; color: var(--ink); }
 :root[data-theme="dark"] .settings-preference-grid .field{color:#edf0f8}
 :root[data-theme="dark"] .settings-preference-grid .field input,
 :root[data-theme="dark"] .settings-preference-grid .field select{background:#222b3b;color:#e7ebf5;border-color:#394256}
-
-/* Language switch and Arabic RTL support */
-.language-toggle-btn{min-width:36px;padding:0 8px;font-size:12px;font-weight:800;letter-spacing:.1px}
-.app-shell[dir="rtl"]{direction:rtl}
-.app-shell[dir="rtl"] .sidebar{left:auto;right:0;border-right:0;border-left:1px solid var(--line)}
-.app-shell[dir="rtl"] .main-area{margin-left:0;margin-right:260px}
-.app-shell.sidebar-compact[dir="rtl"] .main-area{margin-right:88px}
-.app-shell.sidebar-wide[dir="rtl"] .main-area{margin-right:292px}
-.app-shell[dir="rtl"] .nav-item,.app-shell[dir="rtl"] .nav-label,.app-shell[dir="rtl"] .page-heading,.app-shell[dir="rtl"] .panel-header,.app-shell[dir="rtl"] .settings-card-copy{text-align:right}
-.app-shell[dir="rtl"] .nav-item:hover{transform:translateX(-1px)}
-.app-shell[dir="rtl"] .topbar-left{flex-direction:row}
-.app-shell[dir="rtl"] .settings-card-chevron{margin-right:auto;margin-left:0}
-.app-shell[dir="rtl"] .settings-card-trigger{flex-direction:row}
-@media(max-width:680px){.app-shell[dir="rtl"] .main-area,.app-shell.sidebar-compact[dir="rtl"] .main-area,.app-shell.sidebar-wide[dir="rtl"] .main-area{margin-right:0;width:100%}.app-shell[dir="rtl"] .sidebar{right:0;left:auto}.app-shell[dir="rtl"] .top-popover{right:auto;left:-4px}}
