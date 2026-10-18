@@ -645,7 +645,7 @@ function App(){
         {canSeeCurrentPage&&(page==='Insights & reports'||page==='Insights & forecast'||page==='Reports')&&<InsightsReportsPage {...{transactions,month,setMonth,budgets,recurring,goals,debts,currency,setPage,accounts}}/>}
         {canSeeCurrentPage&&page==='Budgets'&&<BudgetsPage {...{budgets,transactions,month,setMonth,setModal,setEditing,setToast,removeRecord,setBudgets}}/>}
         {canSeeCurrentPage&&page==='Savings goals'&&<GoalsPage {...{goals,setModal,setEditing,setToast,removeRecord,setGoals,totalSaved,goalTarget}}/>}
-        {canSeeCurrentPage&&(page==='Recurring payments'||page==='Subscriptions & bills')&&<RecurringPage {...{recurring,setModal,setEditing,setToast,removeRecord,setRecurring,markRecurringPaid,paidBusy}}/>}
+        {canSeeCurrentPage&&(page==='Recurring payments'||page==='Subscriptions & bills')&&<RecurringPage {...{recurring,setModal,setEditing,setToast,removeRecord,setRecurring,markRecurringPaid,paidBusy,deleteRecurringPayment}}/>}
       </div>
       <footer className="footer"><span>Pocket Finance <span className="footer-dot">•</span> Make room for what matters.</span><span>Currency: {currency}</span></footer>
     </main>
@@ -742,7 +742,7 @@ function GoalsPage(p){
  {goals.length===0&&<div className="panel empty-large"><EmptyState icon={Target} title="Every goal starts somewhere" text="Create your first savings goal and watch your progress grow." action={()=>{setEditing(null);setModal('goal')}} actionLabel="Create a goal"/></div>}</div></>;
 }
 function RecurringPage(p){
- const {recurring,setModal,setEditing,removeRecord,markRecurringPaid,paidBusy}=p;
+ const {recurring,setModal,setEditing,removeRecord,markRecurringPaid,paidBusy,deleteRecurringPayment}=p;
  const total=recurring.reduce((s,r)=>s+Number(r.amount||0)*(r.frequency==='Weekly'?52/12:r.frequency==='Quarterly'?1/3:r.frequency==='Yearly'?1/12:1),0);
  const today=localISODate();
  const isPaid=r=>Boolean(r.last_paid_date&&r.next_due_date&&r.last_paid_date<r.next_due_date&&today<r.next_due_date) || Boolean(r.paid_this_cycle&&!r.next_due_date);
