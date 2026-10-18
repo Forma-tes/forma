@@ -178,3 +178,13 @@ To enable delivery, apply `supabase/migrations/20261018_access_requests.sql`, de
 Supabase provides `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` to Edge Functions in the hosted environment. If your project requires manual setup, set them as server-side function secrets only. The frontend calls the function with the signed-in session.
 
 The notification email is sent by the server through Resend, not from the user's email client, and the admin address is not exposed in the UI. Requests are rate-limited to one pending request per user per 24 hours.
+
+## Account defaults, debt payments, and savings goal transfers
+
+- In **Accounts & wallets**, use **Set as default account** on an account card. The selection is stored in this browser and preselected for new transactions.
+- The transaction wizard now asks for the account on step 2 and offers **Add account** in the same flow.
+- The **Debt** section on Transactions lets you choose the account used to pay an installment. Recording it creates an expense transaction linked to the debt and updates the debt's paid amount, remaining amount, installment count, and progress.
+- Run `supabase/migrations/20261018_transaction_debt_link.sql` in Supabase SQL Editor before recording debt payments in the hosted app.
+- Savings-goal linked transfers are counted as deposits when moving into a Savings account and subtracted when moving out of a Savings account. For reliable direction detection, mark the account that holds the goal funds as type **Savings account**.
+
+Build verification note: `npm install` could not reach npm registry in the current environment, so run `npm install` and `npm run build` locally before deploying.
