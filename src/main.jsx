@@ -106,7 +106,8 @@ const FEATURE_OPTIONS = [
 const PAGE_FEATURE = {'Overview':'overview','Transactions':'transactions','Accounts & wallets':'accounts','Cash flow calendar':'calendar','Budgets':'budgets','Savings goals':'goals','Subscriptions & bills':'subscriptions','Recurring payments':'subscriptions','Debts & installments':'debts','Insights & forecast':'insights','Reports':'insights','Insights & reports':'insights'};
 
 function App(){
-  const [page,setPage] = useState('Overview');
+  const [page,setPage] = useState(()=>{try{return localStorage.getItem('pocket_current_page')||'Overview'}catch{return 'Overview'}});
+  useEffect(()=>{try{localStorage.setItem('pocket_current_page',page)}catch{}},[page]);
   const [transactions,setTransactions] = useState([]);
   const [budgets,setBudgets] = useState([]);
   const [goals,setGoals] = useState([]);
@@ -452,19 +453,20 @@ function App(){
   async function addBudget(form){
     const p={category:form.category,month:monthStart(form.month),amount:Number(form.amount)};
     const saved=await saveRecord('budgets',p,editing?.id);if(!saved)return;
-    // Replace the edited row by id and prevent duplicate rows for the same category/month.
-    // If the month was changed in the editor, move the page to that month so the update is visible immediately.
+    // Immediately replace by id OR category/month so the card always uses the latest saved amount.
+    // This also handles older rows whose ID changed during a migration/import.
+    const savedMonth=(saved.month||p.month||'').slice(0,7);
     setBudgets(old=>{
-      const withoutEdited=old.filter(x=>String(x.id)!==String(saved.id));
-      const withoutDuplicate=withoutEdited.filter(x=>!(x.category===saved.category&&(x.month||'').slice(0,7)===(saved.month||'').slice(0,7)));
-      return [saved,...withoutDuplicate];
+      const match=x=>String(x.id)===String(saved.id)||(x.category===saved.category&&(x.month||'').slice(0,7)===savedMonth);
+      return [saved,...old.filter(x=>!match(x))];
     });
-    if(saved.month)setMonth((saved.month||'').slice(0,7));
+    if(savedMonth)setMonth(savedMonth);
+    setPage('Budgets');
     setModal(null);setEditing(null);setToast('Budget updated');
-    // Re-fetch cloud state after saving so the Budget page reflects the database value, not a stale cached row.
+    // Refresh from Supabase after the write; only replace state if the read succeeds.
     if(cloudReady&&session?.user){
       const {data,error}=await supabase.from('budgets').select('*').order('month',{ascending:false});
-      if(!error)setBudgets(data||[]);
+      if(!error&&Array.isArray(data))setBudgets(data);
     }
   }
   async function saveAccount(form){
