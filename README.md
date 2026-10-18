@@ -160,3 +160,6 @@ The account menu and notification popover use the existing authenticated session
 - The transaction form now shows a category and a dependent subcategory selector.
 - Run `supabase/migrations/20261018_transaction_subcategories.sql` in Supabase SQL Editor before deploying so subcategories persist.
 - `.env` is included as a local template; replace placeholders locally and do not commit it. Configure the same variables in Vercel Environment Variables.
+
+### Admin user deletion migration
+Before using the admin delete-user action, run `supabase/migrations/20261018_admin_delete_user.sql` once in Supabase SQL Editor. It is guarded: the owner cannot be deleted, users cannot delete themselves from the admin list, and only the owner can delete a super admin. Deleting a user cascades their personal Pocket records.
