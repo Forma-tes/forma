@@ -194,3 +194,15 @@ Build verification note: `npm install` could not reach npm registry in the curre
 Apply `supabase/migrations/20261018_goals_system_account.sql` in the Supabase Dashboard SQL Editor (or run the updated `supabase/schema.sql`) before deploying this version. The migration adds a protected system account named **Goals** with type **Savings account**, backfills it for existing users, and creates it automatically for new sign-ups. It also prevents the system account from being renamed, edited, or deleted.
 
 Transfers to or from **Goals** must be linked to one savings goal. Transfers into Goals increase that goal's saved amount; transfers out reduce it. Goals transfers remain transfers and are not counted as income or expenses.
+
+## Admin-created username accounts (Supabase Cloud)
+
+This update adds Owner/Super Admin account creation from **User access**. The email field is optional. When omitted, the account uses a non-deliverable internal auth address (`username@users.pocket.local`) and signs in with its username. Because that address cannot receive mail, password reset and email confirmation are unavailable for username-only accounts; provide an email if recovery is needed.
+
+Before deploying the frontend:
+
+1. Run `supabase/migrations/20261020_admin_create_username_users.sql` in the Supabase SQL Editor.
+2. Deploy the Edge Function `admin-create-user` from `supabase/functions/admin-create-user`. It uses the project's server-side `SUPABASE_SERVICE_ROLE_KEY`; never put that key in frontend `.env` or commit it.
+3. Deploy the updated frontend.
+
+The Edge Function verifies the caller's authenticated user and role on the server. Super Admins can create regular users; only the Owner can create a Super Admin. The User access page includes a Refresh action to reload the current user list without refreshing the entire app.
