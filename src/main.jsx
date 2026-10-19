@@ -22,6 +22,11 @@ const authRedirectUrl = () => String(import.meta.env.VITE_SITE_URL || window.loc
 const cloudReady = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('YOUR_PROJECT') && !supabaseKey.includes('YOUR_SUPABASE'));
 const supabase = cloudReady ? createClient(supabaseUrl, supabaseKey) : null;
 
+const localDemoAccounts = [
+  { username: 'test-user', password: '12345678', role: 'user', full_name: 'Test User', email: null, user_id: 'local-demo-test-user', enabled_features: ['Overview','Transactions','Accounts & wallets','Cash flow calendar','Budgets','Savings goals','Subscriptions & bills','Debts & installments','Insights & reports'].map(key=>({Overview:'overview',Transactions:'transactions','Accounts & wallets':'accounts','Cash flow calendar':'calendar',Budgets:'budgets','Savings goals':'goals','Subscriptions & bills':'recurring','Debts & installments':'debts','Insights & reports':'insights'}[key])) },
+  { username: 'test-admin', password: '12345678', role: 'super_admin', full_name: 'Test Admin', email: null, user_id: 'local-demo-test-admin', enabled_features: [] }
+];
+
 const coreExpenseCategories = ['Housing','Food & Groceries','Transportation','Bills & Utilities','Health','Shopping','Entertainment','Education','Travel','Savings & Debt','Family & Giving','Other'];
 const womenExpenseCategories = ['Beauty & Skincare','Hair & Nails','Personal & Period Care','Fashion & Styling'];
 const menExpenseCategories = ['Grooming & Personal Care','Fitness & Sports','Style & Accessories','Car & Gear'];
@@ -119,6 +124,15 @@ function readPocketStartupPage(){
     return preferredPage && POCKET_VALID_PAGES.has(preferredPage) ? preferredPage : 'Overview';
   } catch { return 'Overview'; }
 }
+function WorkspaceSkeleton(){
+  return <section className="workspace-skeleton" aria-label="Loading workspace" aria-busy="true">
+    <div className="skeleton-heading"><div className="skeleton-block skeleton-eyebrow"/><div className="skeleton-block skeleton-title"/><div className="skeleton-block skeleton-subtitle"/></div>
+    <div className="skeleton-metrics">{[1,2,3,4].map(item=><div className="skeleton-panel" key={item}><div className="skeleton-block skeleton-label"/><div className="skeleton-block skeleton-value"/><div className="skeleton-block skeleton-line"/></div>)}</div>
+    <div className="skeleton-columns"><div className="skeleton-panel skeleton-chart"><div className="skeleton-block skeleton-label"/><div className="skeleton-block skeleton-chart-shape"/></div><div className="skeleton-panel skeleton-chart"><div className="skeleton-block skeleton-label"/><div className="skeleton-block skeleton-chart-shape compact"/></div></div>
+    <p className="skeleton-status"><span className="pocket-loading-status-dot"/> Loading your workspace securely…</p>
+  </section>;
+}
+
 function App(){
   // Restore the last visited page on refresh and on the next visit in this browser.
   const [page,setPage] = useState(readPocketStartupPage);
@@ -151,8 +165,20 @@ function App(){
   const [notificationToast,setNotificationToast] = useState(null);
   const seenNotificationIds = useRef(null);
   const [session,setSession] = useState(null);
+  const [localDemoUser,setLocalDemoUser] = useState(()=>{try{return JSON.parse(localStorage.getItem('pocket_local_demo_user')||'null')}catch{return null}});
+  const [localDemoSignedIn,setLocalDemoSignedIn] = useState(()=>{try{return localStorage.getItem('pocket_local_demo_signed_in')==='true' && Boolean(localStorage.getItem('pocket_local_demo_user'))}catch{return false}});
+  const [localDemoUsername,setLocalDemoUsername] = useState('');
+  const [localDemoPassword,setLocalDemoPassword] = useState('');
+  const [localDemoAuthError,setLocalDemoAuthError] = useState('');
+  const exitLocalDemo=()=>{try{localStorage.setItem('pocket_local_demo_signed_in','false')}catch{};setLocalDemoSignedIn(false);setLocalDemoUser(null);setProfile(null);setLocalDemoPassword('');setLocalDemoAuthError('');setAccountMenuOpen(false);setNotificationsOpen(false);setModal(null)};
+  const enterLocalDemo=(event)=>{event?.preventDefault?.();const username=localDemoUsername.trim().toLowerCase();const account=localDemoAccounts.find(item=>item.username===username&&item.password===localDemoPassword);if(!account){setLocalDemoAuthError('Invalid username or password.');return;}const safeUser={username:account.username,role:account.role,full_name:account.full_name,email:account.email,user_id:account.user_id,enabled_features:account.enabled_features};try{localStorage.setItem('pocket_local_demo_signed_in','true');localStorage.setItem('pocket_local_demo_user',JSON.stringify(safeUser));}catch{}setLocalDemoUser(safeUser);setProfile(safeUser);setAdminUsers(localDemoAccounts.map(({password,...u})=>u));setProfileLoaded(true);setLocalDemoSignedIn(true);setLocalDemoPassword('');setLocalDemoAuthError('');setAuthMsg('');setAuthMode('choice');setPage('Overview');};
   useEffect(()=>{if(!cloudReady||!session?.user?.id)return;let alive=true;(async()=>{const {data,error}=await supabase.from('expense_categories').select('name').eq('user_id',session.user.id).order('name');if(!alive)return;if(!error&&Array.isArray(data)&&data.length){setExpenseCategoriesOverride(data.map(x=>x.name));}})();return()=>{alive=false}},[session?.user?.id]);
-  const [profile,setProfile] = useState(null);
+  const [profile,setProfile] = useState(()=>{try{return !cloudReady ? JSON.parse(localStorage.getItem('pocket_local_demo_user')||'null') : null}catch{return null}});
+  const [profileLoaded,setProfileLoaded] = useState(false);
+  const [profileLoadError,setProfileLoadError] = useState('');
+  const [profileRetry,setProfileRetry] = useState(0);
+  const [dataLoadError,setDataLoadError] = useState('');
+  const [dataLoadAttempt,setDataLoadAttempt] = useState(0);
   const [adminUsers,setAdminUsers] = useState([]);
   const [adminLoading,setAdminLoading] = useState(false);
   const [authEmail,setAuthEmail] = useState('');
@@ -252,6 +278,11 @@ function App(){
       if(authError){setAuthMode('signin');setAuthMsg(decodeURIComponent(authError.replace(/\+/g,' ')));}
       setSession(data?.session||null);
       setAuthLoading(false);
+    }).catch(error=>{
+      if(!alive)return;
+      setAuthMsg(error?.message||'Could not restore your session. Please sign in again.');
+      setSession(null);
+      setAuthLoading(false);
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,s)=>{
       if(event==='PASSWORD_RECOVERY'){
@@ -266,23 +297,31 @@ function App(){
     return ()=>{alive=false;subscription.unsubscribe()};
   },[]);
   useEffect(()=>{
-    if(!cloudReady || !session?.user?.id){setProfile(null);setAdminUsers([]);return;}
     let alive=true;
+    if(!cloudReady || !session?.user?.id){setProfile(null);setAdminUsers([]);setProfileLoadError('');setProfileLoaded(true);return ()=>{alive=false};}
+    setProfileLoaded(false);setProfileLoadError('');
     (async()=>{
-      const {data,error}=await supabase.from('profiles').select('id,email,full_name,role,enabled_features,created_at').eq('id',session.user.id).maybeSingle();
-      if(!alive)return;
-      if(error){setToast('Could not load your access profile. Run the latest supabase/schema.sql migration.');setProfile(null);return;}
-      setProfile(data||null);
-      const {data:settingData}=await supabase.from('app_settings').select('value').eq('key','backup_restore_for_users').maybeSingle();
-      if(alive)setBackupForUsers(settingData?.value===true);
-      if(data && ['owner','super_admin'].includes(data.role)){
-        setAdminLoading(true);
-        const {data:users,error:usersError}=await supabase.rpc('admin_list_users');
-        if(alive){if(usersError)setToast('Could not load user access list: '+usersError.message);else setAdminUsers(users||[]);setAdminLoading(false);}
-      } else {setAdminUsers([]);}
+      try {
+        const {data,error}=await supabase.from('profiles').select('id,email,full_name,role,enabled_features,created_at').eq('id',session.user.id).maybeSingle();
+        if(!alive)return;
+        if(error){setProfile(null);setProfileLoadError('Could not load your access profile. Check your connection and Supabase profile policies.');return;}
+        if(!data){setProfile(null);setProfileLoadError('Your access profile could not be found. Contact the Pocket administrator.');return;}
+        setProfile(data);
+        const {data:settingData}=await supabase.from('app_settings').select('value').eq('key','backup_restore_for_users').maybeSingle();
+        if(alive)setBackupForUsers(settingData?.value===true);
+        if(['owner','super_admin'].includes(data.role)){
+          setAdminLoading(true);
+          const {data:users,error:usersError}=await supabase.rpc('admin_list_users');
+          if(alive){if(usersError)setToast('Could not load user access list: '+usersError.message);else setAdminUsers(users||[]);setAdminLoading(false);}
+        } else {setAdminUsers([]);setAdminLoading(false);}
+      } catch (error) {
+        if(alive)setProfileLoadError(error?.message||'Could not load your access profile.');
+      } finally {
+        if(alive)setProfileLoaded(true);
+      }
     })();
     return ()=>{alive=false};
-  },[session?.user?.id]);
+  },[session?.user?.id,profileRetry]);
   useEffect(()=>{
     if(session?.user){
       const meta=session.user.user_metadata||{};
@@ -299,35 +338,38 @@ function App(){
     }
   },[session?.user?.id]);
   useEffect(()=>{
-    if(!cloudReady || !session?.user) return;
+    if(!cloudReady || !session?.user) {setAccountsLoaded(!cloudReady);return;}
     let alive=true;
     (async()=>{
       setAccountsLoaded(false);
-      setTransactions([]);
-      setBudgets([]);
-      setGoals([]);
-      setRecurring([]);setAccounts([]);setDebts([]);
+      setDataLoadError('');
       setBusy(true);
-      const [t,b,g,r,a,d]=await Promise.all([
-        supabase.from('transactions').select('*').order('transaction_date',{ascending:false}),
-        supabase.from('budgets').select('*').order('month',{ascending:false}),
-        supabase.from('savings_goals').select('*').order('created_at',{ascending:false}),
-        supabase.from('recurring_payments').select('*').order('next_due_date',{ascending:true}),
-        supabase.from('financial_accounts').select('*').order('created_at',{ascending:true}),
-        supabase.from('debts').select('*').order('due_date',{ascending:true})
-      ]);
-      if(!alive)return;
-      if(!t.error)setTransactions(t.data||[]);
-      if(!b.error)setBudgets(b.data||[]);
-      if(!g.error)setGoals(g.data||[]);
-      if(!r.error)setRecurring(r.data||[]);
-      if(!a.error)setAccounts(a.data||[]);
-      if(!d.error)setDebts(d.data||[]);
-      setAccountsLoaded(true);
-      setBusy(false);
+      try {
+        const [t,b,g,r,a,d]=await Promise.all([
+          supabase.from('transactions').select('*').order('transaction_date',{ascending:false}),
+          supabase.from('budgets').select('*').order('month',{ascending:false}),
+          supabase.from('savings_goals').select('*').order('created_at',{ascending:false}),
+          supabase.from('recurring_payments').select('*').order('next_due_date',{ascending:true}),
+          supabase.from('financial_accounts').select('*').order('created_at',{ascending:true}),
+          supabase.from('debts').select('*').order('due_date',{ascending:true})
+        ]);
+        if(!alive)return;
+        const errors=[t,b,g,r,a,d].filter(result=>result.error).map(result=>result.error.message);
+        if(!t.error)setTransactions(t.data||[]);
+        if(!b.error)setBudgets(b.data||[]);
+        if(!g.error)setGoals(g.data||[]);
+        if(!r.error)setRecurring(r.data||[]);
+        if(!a.error)setAccounts(a.data||[]);
+        if(!d.error)setDebts(d.data||[]);
+        if(errors.length)setDataLoadError(`Some data could not be loaded: ${[...new Set(errors)].join(' · ')}`);
+      } catch(error) {
+        if(alive)setDataLoadError(error?.message||'Could not load your workspace data.');
+      } finally {
+        if(alive){setAccountsLoaded(true);setBusy(false);}
+      }
     })();
     return ()=>{alive=false};
-  },[session?.user?.id]);
+  },[session?.user?.id,dataLoadAttempt]);
   useEffect(()=>{
     if(!cloudReady && localLoaded){
       localStorage.setItem('forma_transactions',JSON.stringify(transactions));
@@ -376,7 +418,7 @@ function App(){
     if(added){setNotificationToast(added);}
   },[notificationItems.map(item=>item.id).join('|')]);
   useEffect(()=>{if(!notificationToast)return;const timer=setTimeout(()=>setNotificationToast(null),4800);return()=>clearTimeout(timer)},[notificationToast]);
-  const displayName=firstName(session ? (session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'there') : (profileName||'there'));
+  const displayName=firstName(session ? (session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'there') : (localDemoUser?.full_name||profileName||'there'));
   const greeting=getGreeting(session?.user?.user_metadata?.timezone||timezone);
   void clock; void currency;
 
@@ -607,7 +649,8 @@ function App(){
     setAuthMsg('Password updated successfully. Sign in with your new password.');
   }
   async function createManagedUser(payload){
-    if(!cloudReady || !['owner','super_admin'].includes(profile?.role))return false;
+    if(!cloudReady){setToast('Creating users is available only in Supabase Cloud. These local demo accounts are fixed test accounts.');return false;}
+    if(!['owner','super_admin'].includes(profile?.role))return false;
     const {data,error}=await supabase.functions.invoke('admin-create-user',{body:payload});
     if(error){setToast(error.message||'Could not create user');return false;}
     if(data?.error){setToast(data.error);return false;}
@@ -616,14 +659,16 @@ function App(){
     return true;
   }
   async function refreshAdminUsers(){
-    if(!cloudReady || !['owner','super_admin'].includes(profile?.role))return;
+    if(!cloudReady){setAdminUsers(localDemoAccounts.map(({password,...u})=>u));setToast('Showing the two built-in local demo accounts.');return;}
+    if(!['owner','super_admin'].includes(profile?.role))return;
     setAdminLoading(true);
     const {data,error}=await supabase.rpc('admin_list_users');
     if(error)setToast('Could not refresh users: '+error.message);else setAdminUsers(data||[]);
     setAdminLoading(false);
   }
   async function deleteManagedUser(userId){
-    if(!cloudReady || !['owner','super_admin'].includes(profile?.role))return;
+    if(!cloudReady){setToast('Built-in demo accounts cannot be deleted.');return;}
+    if(!['owner','super_admin'].includes(profile?.role))return;
     const target=adminUsers.find(u=>u.user_id===userId);
     requestConfirm('Delete user account?', `Delete ${target?.email||'this user'} and all associated Pocket financial records? This cannot be undone.`, async()=>{
       const {error}=await supabase.rpc('admin_delete_user',{p_target_user_id:userId});
@@ -632,7 +677,8 @@ function App(){
     });
   }
   async function updateUserAccess(userId, enabledFeatures, role=null){
-    if(!cloudReady || !['owner','super_admin'].includes(profile?.role))return;
+    if(!cloudReady){setToast('Demo account permissions are fixed for local testing.');return;}
+    if(!['owner','super_admin'].includes(profile?.role))return;
     const {error}=await supabase.rpc('admin_update_user_access',{p_target_user_id:userId,p_enabled_features:enabledFeatures,p_role:role});
     if(error){setToast(error.message||'Could not update user access');return;}
     setToast('User access updated');
@@ -773,12 +819,24 @@ function App(){
   }
 
   const needsAccountSetup=cloudReady ? Boolean(session?.user && accountsLoaded && !accounts.some(a=>!isGoalsAccount(a))) : Boolean(localLoaded && !accounts.some(a=>!isGoalsAccount(a)));
-  const isAdmin=cloudReady && ['owner','super_admin'].includes(profile?.role);
+  const isAdmin=(cloudReady && ['owner','super_admin'].includes(profile?.role)) || (!cloudReady && localDemoUser?.role==='super_admin');
   const allowedFeatures=!cloudReady||isAdmin?FEATURE_OPTIONS.map(f=>f.key):(Array.isArray(profile?.enabled_features)?profile.enabled_features:[]);
   const visibleNavGroups=[{label:'WORKSPACE',items:[['Overview',LayoutDashboard],['Transactions',ArrowLeftRight],['Accounts & wallets',Wallet],['Cash flow calendar',CalendarDays],['Budgets',CreditCard],['Savings goals',Target],['Subscriptions & bills',Repeat2],['Debts & installments',CircleDollarSign]]},{label:'ANALYZE',items:[['Insights & reports',ChartNoAxesCombined]]}].map(g=>({...g,items:g.items.filter(([name])=>allowedFeatures.includes(PAGE_FEATURE[name]))})).filter(g=>g.items.length);
   const canSeeCurrentPage=page==='Admin access'?isAdmin:page==='Access restricted'?true:allowedFeatures.includes(PAGE_FEATURE[page]);
-  if(cloudReady && authLoading) return <div className="auth-loading"><div className="brand-mark"><img className="brand-logo-mark" src="/brand/pocket-mark.svg" alt="" /></div><b>Pocket</b><span>Preparing your secure workspace…</span></div>;
+  if(cloudReady && (authLoading || (session && !profileLoaded))) return <main className="pocket-loading-screen" role="status" aria-live="polite" aria-label="Loading Pocket">
+    <div className="pocket-loading-glow pocket-loading-glow-one" aria-hidden="true"/><div className="pocket-loading-glow pocket-loading-glow-two" aria-hidden="true"/>
+    <section className="pocket-loading-card">
+      <div className="pocket-loading-brand"><span className="pocket-loading-logo"><img src="/brand/pocket-mark.svg" alt=""/></span><span>Pocket<span className="pocket-loading-brand-dot">.</span></span></div>
+      <div className="pocket-loading-orbit" aria-hidden="true"><span className="pocket-loading-orbit-core"><img src="/brand/pocket-mark.svg" alt=""/></span><i/><i/><i/></div>
+      <h1>Getting things ready</h1>
+      <p>Connecting to your secure workspace</p>
+      <div className="pocket-loading-progress" aria-hidden="true"><span/></div>
+      <div className="pocket-loading-foot"><span className="pocket-loading-status-dot"/> Secure sign-in <span className="pocket-loading-separator">·</span> Your data stays protected</div>
+    </section>
+    <span className="pocket-loading-caption">PERSONAL FINANCE, IN ONE PLACE</span>
+  </main>;
   if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
+  if(!cloudReady && !localDemoSignedIn) return <main className="auth-page pocket-auth-page local-demo-auth-page"><section className="auth-visual pocket-auth-visual"><div className="auth-brand pocket-brand"><div className="brand-mark"><img className="brand-logo-mark" src="/brand/pocket-mark.svg" alt="" /></div><span>Pocket</span></div><div className="auth-visual-copy pocket-visual-copy"><span className="eyebrow">LOCAL DEVELOPMENT</span><h1>Your money.<br/><em>Your way.</em></h1><p>Choose a demo account to test the regular-user and super-admin experience. No cloud account is used in this mode.</p></div><small className="auth-copyright">Pocket Finance · Local demo workspace</small></section><section className="auth-panel pocket-auth-panel"><div className="auth-choice-card pocket-auth-choice-card"><div className="auth-mobile-brand pocket-mobile-brand"><div className="brand-mark"><img className="brand-logo-mark" src="/brand/pocket-mark.svg" alt="" /></div><b>Pocket</b></div><span className="pocket-form-kicker">LOCAL WORKSPACE</span><h2>Welcome back.</h2><p className="auth-subtitle">Sign in with one of the local demo accounts.</p><form className="auth-form" onSubmit={enterLocalDemo}><label className="field"><span>Username</span><input autoComplete="username" required value={localDemoUsername} onChange={e=>{setLocalDemoUsername(e.target.value);setLocalDemoAuthError('')}} placeholder="test-user or test-admin"/></label><label className="field"><span>Password</span><input type="password" autoComplete="current-password" required value={localDemoPassword} onChange={e=>{setLocalDemoPassword(e.target.value);setLocalDemoAuthError('')}} placeholder="Enter demo password"/></label>{localDemoAuthError&&<p className="auth-message auth-message-error" role="alert">{localDemoAuthError}</p>}<button className="btn btn-primary auth-submit" type="submit"><LockKeyhole size={16}/> Sign in to demo workspace</button></form><div className="local-demo-credentials"><b>Test accounts</b><button type="button" onClick={()=>{setLocalDemoUsername('test-user');setLocalDemoPassword('12345678');setLocalDemoAuthError('')}}><span><strong>test-user</strong><small>Regular user</small></span><code>12345678</code></button><button type="button" onClick={()=>{setLocalDemoUsername('test-admin');setLocalDemoPassword('12345678');setLocalDemoAuthError('')}}><span><strong>test-admin</strong><small>Super admin</small></span><code>12345678</code></button></div><p className="auth-privacy pocket-privacy"><LockKeyhole size={12}/> Demo accounts are for local testing only.</p></div></section></main>;
   return <div className={`app-shell sidebar-${sidebarSize}`} lang="en" dir="ltr">
     <aside className={`sidebar ${sidebarOpen?'sidebar-open':''}`}>
       <div className="brand"><div className="brand-mark"><img className="brand-logo-mark" src="/brand/pocket-mark.svg" alt="" /></div><span>Pocket</span><button className="icon-btn mobile-close" onClick={()=>setSidebarOpen(false)}><X size={18}/></button></div>
@@ -788,8 +846,11 @@ function App(){
     </aside>
     {sidebarOpen&&<div className="scrim" onClick={()=>setSidebarOpen(false)} />}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="icon-btn menu-toggle" onClick={()=>setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20}/></button><b className="breadcrumb-current">{page}</b></div><div className="topbar-actions"><button type="button" className="icon-btn theme-toggle-btn" onClick={()=>setTheme(current=>current==='dark'?'light':'dark')} title={theme==='dark'?'Switch to light mode':'Switch to dark mode'} aria-label={theme==='dark'?'Switch to light mode':'Switch to dark mode'}>{theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}</button><div className="top-action-wrap"><button className={`icon-btn notification-btn ${notificationsOpen?'is-open':''}`} onClick={()=>{setNotificationsOpen(v=>!v);setAccountMenuOpen(false)}} title="Notifications" aria-label={`Notifications${notificationItems.length?`, ${notificationItems.length} alerts`:''}`} aria-expanded={notificationsOpen}><Bell size={18}/>{notificationItems.length>0&&<span className="notification-count-badge" aria-hidden="true">{notificationItems.length>99?'99+':notificationItems.length}</span>}</button>{notificationsOpen&&<div className="top-popover notification-popover"><div className="popover-heading"><div><b>Notifications</b><span>{notificationItems.length?`${notificationItems.length} alert${notificationItems.length===1?'':'s'}`:'You’re all caught up'}</span></div><span className="popover-icon"><Bell size={16}/></span></div>{notificationItems.length?notificationItems.map(item=><button className="notification-item" key={item.id} onClick={()=>{setPage(item.target);setNotificationsOpen(false)}}><span className="notification-item-icon">{item.kind==='budget'?<ChartNoAxesCombined size={16}/>:item.kind==='debt'?<CreditCard size={16}/>:<CalendarDays size={16}/>}</span><span className="notification-item-copy"><b>{item.name}</b><small>{item.detail}</small></span>{item.amount!==null&&<strong>{fmt(item.amount)}</strong>}</button>):<div className="notification-empty"><span><Check size={18}/></span><b>No alerts right now</b><small>Debt installments, budget limits at 90%, and upcoming recurring payments will appear here.</small></div>}<button className="popover-footer-action" onClick={()=>{setPage('Budgets');setNotificationsOpen(false)}}>Review budgets <ArrowUpRight size={15}/></button></div>}</div><div className="top-action-wrap"><button className={`account-trigger ${accountMenuOpen?'is-open':''}`} onClick={()=>{setAccountMenuOpen(v=>!v);setNotificationsOpen(false)}} aria-label="Open account menu" aria-expanded={accountMenuOpen}><span className="top-avatar avatar-image"><ProfileAvatar value={profileAvatar}/></span><ChevronDown size={14}/></button>{accountMenuOpen&&<div className="top-popover account-popover"><div className="account-popover-identity"><span className="account-large-avatar avatar-image"><ProfileAvatar value={profileAvatar}/></span><div><b>{displayName}</b><span>{session?.user?.email||'Local demo workspace'}</span><small>{profile?.role==='owner'?'Owner':profile?.role==='super_admin'?'Super admin':session?'User':'Local workspace'}</small></div></div><button className="account-menu-item" onClick={e=>{e.preventDefault();e.stopPropagation();setNotificationsOpen(false);setAccountMenuOpen(false);setModal('profile')}}><UserRound size={16}/><span>Account & profile</span></button>{session&&<button className="account-menu-item signout-menu-item" onClick={async()=>{setAccountMenuOpen(false);const {error}=await supabase.auth.signOut();if(error)setToast(error.message);else setToast('Signed out successfully')}}><LogOut size={16}/><span>Sign out</span></button>}</div>}</div></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="icon-btn menu-toggle" onClick={()=>setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20}/></button><b className="breadcrumb-current">{page}</b></div><div className="topbar-actions"><button type="button" className="icon-btn theme-toggle-btn" onClick={()=>setTheme(current=>current==='dark'?'light':'dark')} title={theme==='dark'?'Switch to light mode':'Switch to dark mode'} aria-label={theme==='dark'?'Switch to light mode':'Switch to dark mode'}>{theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}</button><div className="top-action-wrap"><button className={`icon-btn notification-btn ${notificationsOpen?'is-open':''}`} onClick={()=>{setNotificationsOpen(v=>!v);setAccountMenuOpen(false)}} title="Notifications" aria-label={`Notifications${notificationItems.length?`, ${notificationItems.length} alerts`:''}`} aria-expanded={notificationsOpen}><Bell size={18}/>{notificationItems.length>0&&<span className="notification-count-badge" aria-hidden="true">{notificationItems.length>99?'99+':notificationItems.length}</span>}</button>{notificationsOpen&&<div className="top-popover notification-popover"><div className="popover-heading"><div><b>Notifications</b><span>{notificationItems.length?`${notificationItems.length} alert${notificationItems.length===1?'':'s'}`:'You’re all caught up'}</span></div><span className="popover-icon"><Bell size={16}/></span></div>{notificationItems.length?notificationItems.map(item=><button className="notification-item" key={item.id} onClick={()=>{setPage(item.target);setNotificationsOpen(false)}}><span className="notification-item-icon">{item.kind==='budget'?<ChartNoAxesCombined size={16}/>:item.kind==='debt'?<CreditCard size={16}/>:<CalendarDays size={16}/>}</span><span className="notification-item-copy"><b>{item.name}</b><small>{item.detail}</small></span>{item.amount!==null&&<strong>{fmt(item.amount)}</strong>}</button>):<div className="notification-empty"><span><Check size={18}/></span><b>No alerts right now</b><small>Debt installments, budget limits at 90%, and upcoming recurring payments will appear here.</small></div>}<button className="popover-footer-action" onClick={()=>{setPage('Budgets');setNotificationsOpen(false)}}>Review budgets <ArrowUpRight size={15}/></button></div>}</div><div className="top-action-wrap"><button className={`account-trigger ${accountMenuOpen?'is-open':''}`} onClick={()=>{setAccountMenuOpen(v=>!v);setNotificationsOpen(false)}} aria-label="Open account menu" aria-expanded={accountMenuOpen}><span className="top-avatar avatar-image"><ProfileAvatar value={profileAvatar}/></span><ChevronDown size={14}/></button>{accountMenuOpen&&<div className="top-popover account-popover"><div className="account-popover-identity"><span className="account-large-avatar avatar-image"><ProfileAvatar value={profileAvatar}/></span><div><b>{displayName}</b><span>{session?.user?.email||localDemoUser?.username||'Local demo workspace'}</span><small>{profile?.role==='owner'?'Owner':profile?.role==='super_admin'?'Super admin':session||localDemoUser?'User':'Local workspace'}</small></div></div><button className="account-menu-item" onClick={e=>{e.preventDefault();e.stopPropagation();setNotificationsOpen(false);setAccountMenuOpen(false);setModal('profile')}}><UserRound size={16}/><span>Account & profile</span></button>{session&&<button className="account-menu-item signout-menu-item" onClick={async()=>{setAccountMenuOpen(false);const {error}=await supabase.auth.signOut();if(error)setToast(error.message);else setToast('Signed out successfully')}}><LogOut size={16}/><span>Sign out</span></button>}{!cloudReady&&<button className="account-menu-item signout-menu-item" onClick={exitLocalDemo}><LogOut size={16}/><span>Sign out / Return to demo login</span></button>}</div>}</div></div></header>
       <div className="page-wrap">
+        {profileLoadError&&<div className="workspace-error" role="alert"><div><b>Couldn’t verify your access</b><p>{profileLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>{setProfileLoaded(false);setProfileLoadError('');setProfileRetry(v=>v+1)}}>Retry</button></div>}
+        {dataLoadError&&<div className="workspace-error" role="alert"><div><b>Some workspace data didn’t load</b><p>{dataLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>setDataLoadAttempt(v=>v+1)}>Retry loading</button></div>}
+        {cloudReady&&session&&!accountsLoaded?<WorkspaceSkeleton/>: <>
         {!canSeeCurrentPage&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy}/> }
         {page==='Admin access'&&isAdmin&&<AdminAccessPage users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers}/>}
         {canSeeCurrentPage&&page==='Overview'&&<Overview {...{month,setMonth,transactions,accounts,monthTx,income,expenses,net,savingsRate,monthlySeries,categoryData,needs,wants,monthBudgets,totalBudget,totalSaved,goalTarget,upcoming,goals,setPage,setModal,setEditing,setToast,displayName,greeting,profileAvatar}}/>}
@@ -801,6 +862,7 @@ function App(){
         {canSeeCurrentPage&&page==='Budgets'&&<BudgetsPage {...{budgets,transactions,month,setMonth,setModal,setEditing,setToast,removeRecord,setBudgets,requestConfirm}}/>}
         {canSeeCurrentPage&&page==='Savings goals'&&<GoalsPage {...{goals,transactions,accounts,setModal,setEditing,setToast,removeRecord,setGoals,totalSaved,goalTarget,requestConfirm}}/>}
         {canSeeCurrentPage&&(page==='Recurring payments'||page==='Subscriptions & bills')&&<RecurringPage {...{recurring,setModal,setEditing,setToast,removeRecord,setRecurring,markRecurringPaid,paidBusy,deleteRecurringPayment}}/>}
+        </>}
       </div>
       <footer className="footer"><span>Pocket Finance <span className="footer-dot">•</span> Make room for what matters.</span><span>Currency: {currency}</span></footer>
     </main>

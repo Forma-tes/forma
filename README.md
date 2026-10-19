@@ -206,3 +206,14 @@ Before deploying the frontend:
 3. Deploy the updated frontend.
 
 The Edge Function verifies the caller's authenticated user and role on the server. Super Admins can create regular users; only the Owner can create a Super Admin. The User access page includes a Refresh action to reload the current user list without refreshing the entire app.
+
+## Workspace loading and recovery improvements
+
+- The branded Pocket loading screen is reserved for auth/session restoration and access-profile verification.
+- A responsive skeleton is shown while the signed-in user's workspace data loads, rather than rendering empty financial cards.
+- Failed workspace queries are reported with a Retry action; successful tables still render while failed tables can be retried.
+- Access-profile loading errors are shown explicitly and can be retried.
+- Session restoration failures are caught and return the user to sign-in instead of leaving the app on an infinite loader.
+- The last visited page continues to persist in the same browser. Role/feature checks remain in place before protected page content is rendered; database RLS and server-side authorization must still be configured in Supabase for security.
+
+Build note: `npm install` could not complete in the current build environment due to a timeout, so the full Vite production build was not verified here. `src/main.jsx` was checked for JSX/JavaScript syntax errors using the available TypeScript transpiler.
