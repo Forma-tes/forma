@@ -1426,44 +1426,4 @@ function SettingsModal(p){
  return <ModalShell title="Settings" subtitle="Manage your account, preferences, notifications and data." onClose={onClose} wide><div className="settings-redesign-intro"><span className="settings-redesign-icon"><SlidersHorizontal size={20}/></span><div><b>Make Pocket work for you</b><p>Manage the details and controls that shape your workspace.</p></div></div><div className="settings-accordion-list">{sections.map(section=><section className={`settings-card ${open===section.title?'is-expanded':''}`} key={section.title}><button type="button" className="settings-card-trigger" onClick={()=>setOpen(open===section.title?'':section.title)} aria-expanded={open===section.title}><span className="settings-card-icon">{section.icon}</span><span className="settings-card-copy"><b>{section.title}</b><small>{section.desc}</small></span><ChevronDown size={17} className="settings-card-chevron"/></button>{open===section.title&&<div className="settings-card-content">{section.body}</div>}</section>)}</div><div className="modal-actions"><button className="btn btn-primary" onClick={onClose}>Done</button></div></ModalShell>
 }
 
-createRoot(document.getElementById('root')).render(<App/>);   {editingExpenseCat===cat ? (
-         <div className="category-edit-form">
-          <input aria-label="Rename category" value={editingExpenseValue} onChange={e=>setEditingExpenseValue(e.target.value)} maxLength={50}/>
-          <label className="category-subcategory-editor"><span>Subcategories <small>Separate each subcategory with a comma</small></span><textarea value={editingSubcategoryText} onChange={e=>setEditingSubcategoryText(e.target.value)} rows={2}/></label>
-          <div className="category-edit-actions">
-           <button className="btn btn-primary btn-sm" onClick={async()=>{
-            const value=editingExpenseValue.trim();
-            const duplicate=expenseCats.some(c=>{const name=typeof c==='string'?c:c.name;return name!==cat&&name.toLowerCase()===value.toLowerCase()});
-            if(!value||duplicate)return;
-            const ok=await saveExpenseCats(expenseCats.map(c=>(typeof c==='string'?c:c.name)===cat?{name:value,is_enabled:typeof c==='string'?true:c.is_enabled}:c),{rename:{from:cat,to:value}});
-            if(ok){const values=editingSubcategoryText.split(',').map(x=>x.trim()).filter(Boolean);if(supabase&&session?.user?.id){if(value!==cat){const {error:renameError}=await supabase.from('expense_subcategories').update({category_name:value}).eq('user_id',session.user.id).eq('category_name',cat);if(renameError){setCategoryError(renameError.message||'Category renamed, but subcategories could not be renamed in Supabase.');return;}}const {error:deleteError}=await supabase.from('expense_subcategories').delete().eq('user_id',session.user.id).eq('category_name',value);if(deleteError){setCategoryError(deleteError.message||'Could not save subcategories.');return;}if(values.length){const {error:insertError}=await supabase.from('expense_subcategories').insert(values.map(name=>({user_id:session.user.id,category_name:value,name})));if(insertError){setCategoryError(insertError.message||'Could not save subcategories.');return;}}}saveCustomSubcategories(value,values);if(value!==cat){try{const saved=JSON.parse(localStorage.getItem('pocket_subcategories')||'{}');delete saved[cat];localStorage.setItem('pocket_subcategories',JSON.stringify(saved));}catch{}}setEditingExpenseCat('');setExpandedSubcategoryCategory('');}
-           }} disabled={!editingExpenseValue.trim()||categoryBusy}>Save</button>
-           <button className="btn btn-secondary btn-sm" onClick={()=>{setEditingExpenseCat('');setExpandedSubcategoryCategory('')}}>Cancel</button>
-          </div>
-         </div>
-        ) : (
-         <>
-          <span>{cat}</span>
-          <div className="row-actions">
-           <button type="button" className="icon-btn" title="Edit category and subcategories" aria-label={'Edit '+cat+' and subcategories'} onClick={()=>{setEditingExpenseCat(cat);setEditingExpenseValue(cat);setExpandedSubcategoryCategory(cat);setEditingSubcategoryText(getSubcategories('Expense',cat).join(', '));}}><Pencil size={14}/></button>
-           <button type="button" className="icon-btn danger-hover" aria-label={'Delete '+cat} onClick={()=>{
-            const confirmed=window.confirm('Remove this expense category? Existing transactions will keep their saved category name.');
-            if(confirmed){saveExpenseCats(expenseCats.filter(c=>(typeof c==='string'?c:c.name)!==cat),{deleteName:cat});}
-           }}><Trash2 size={14}/></button>
-          </div>
-         </>
-        )}
-       </div>;
-      })}
-     </div>
-     <p className="small-muted">Note: removing a category won’t delete or rewrite historical transactions.</p>
-    </div>
-   )
-  },
-  {title:'Preferences',desc:'Personalize how dates and navigation behave.',icon:<SlidersHorizontal size={18}/>,body:<div className="settings-preference-grid"><label className="field"><span>First page after opening Pocket</span><select value={prefs.firstPage} onChange={e=>update('firstPage',e.target.value)}>{['Overview','Transactions','Accounts','Budgets','Debts','Goals','Recurring payments','Insights & reports'].map(x=><option key={x}>{x}</option>)}</select></label><label className="field"><span>Date format</span><select value={prefs.dateFormat} onChange={e=>update('dateFormat',e.target.value)}><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option><option>YYYY-MM-DD</option></select></label><label className="field"><span>Financial year starts</span><select value={prefs.financialMonth} onChange={e=>update('financialMonth',e.target.value)}>{Array.from({length:12},(_,i)=>i+1).map(m=><option value={String(m)} key={m}>{new Date(2026,m-1,1).toLocaleString('en',{month:'long'})}</option>)}</select></label></div>},
-  ...(isAdmin?[{title:'User Permissions',desc:'Control access to administrative data tools.',icon:<Users size={18}/>,body:<label className="setting-toggle"><span><b>Show Backup & restore to regular users</b><small>When off, only Owner and Super Admins can see these tools.</small></span><input type="checkbox" checked={backupForUsers} onChange={e=>setBackupVisibility(e.target.checked)}/></label>}]:[])
- ];
- return <ModalShell title="Settings" subtitle="Manage your account, preferences, notifications and data." onClose={onClose} wide><div className="settings-redesign-intro"><span className="settings-redesign-icon"><SlidersHorizontal size={20}/></span><div><b>Make Pocket work for you</b><p>Manage the details and controls that shape your workspace.</p></div></div><div className="settings-accordion-list">{sections.map(section=><section className={`settings-card ${open===section.title?'is-expanded':''}`} key={section.title}><button type="button" className="settings-card-trigger" onClick={()=>setOpen(open===section.title?'':section.title)} aria-expanded={open===section.title}><span className="settings-card-icon">{section.icon}</span><span className="settings-card-copy"><b>{section.title}</b><small>{section.desc}</small></span><ChevronDown size={17} className="settings-card-chevron"/></button>{open===section.title&&<div className="settings-card-content">{section.body}</div>}</section>)}</div><div className="modal-actions"><button className="btn btn-primary" onClick={onClose}>Done</button></div></ModalShell>
-}
-
 createRoot(document.getElementById('root')).render(<App/>);
