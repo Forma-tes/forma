@@ -844,7 +844,7 @@ function App(){
     try{
       const {error}=await supabase.functions.invoke('request-access',{body:{}});
       if(error)throw error;
-      setToast('Access request sent to the Pocket administrator.');
+      setToast('Access request submitted. The administrator can review it in Pocket.');
     }catch(err){
       setToast(err?.message||'Could not send your access request. Please try again later.');
     }finally{setAccessRequestBusy(false);}
