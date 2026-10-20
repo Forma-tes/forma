@@ -148,7 +148,7 @@ function App(){
     return () => window.removeEventListener('pagehide', saveCurrentPage);
   },[page]);
   const [transactions,setTransactions] = useState([]);
-  const [,setExpenseCategoryRevision] = useState(0);
+  const [expenseCategoryRevision,setExpenseCategoryRevision] = useState(0);
   useEffect(()=>{const refresh=()=>setExpenseCategoryRevision(v=>v+1);window.addEventListener('pocket-expense-categories-updated',refresh);return()=>window.removeEventListener('pocket-expense-categories-updated',refresh)},[]);
   const [budgets,setBudgets] = useState([]);
   const [goals,setGoals] = useState([]);
@@ -160,6 +160,7 @@ function App(){
   const [search,setSearch] = useState('');
   const [typeFilter,setTypeFilter] = useState('All types');
   const [categoryFilter,setCategoryFilter] = useState('All categories');
+  const [amountSort,setAmountSort] = useState('date');
   const [modal,setModal] = useState(null);
   const [confirmDialog,setConfirmDialog] = useState(null);
   const requestConfirm=(title,description,onConfirm,confirmLabel='Delete',options={})=>setConfirmDialog({title,description,onConfirm,confirmLabel,...options});
@@ -175,7 +176,7 @@ function App(){
   const [localDemoAuthError,setLocalDemoAuthError] = useState('');
   const exitLocalDemo=()=>{try{localStorage.setItem('pocket_local_demo_signed_in','false')}catch{};setLocalDemoSignedIn(false);setLocalDemoUser(null);setProfile(null);setLocalDemoPassword('');setLocalDemoAuthError('');setAccountMenuOpen(false);setNotificationsOpen(false);setModal(null)};
   const enterLocalDemo=(event)=>{event?.preventDefault?.();const username=localDemoUsername.trim().toLowerCase();const account=localDemoAccounts.find(item=>item.username===username&&item.password===localDemoPassword);if(!account){setLocalDemoAuthError('Invalid username or password.');return;}const safeUser={username:account.username,role:account.role,full_name:account.full_name,email:account.email,user_id:account.user_id,enabled_features:account.enabled_features};try{localStorage.setItem('pocket_local_demo_signed_in','true');localStorage.setItem('pocket_local_demo_user',JSON.stringify(safeUser));}catch{}setLocalDemoUser(safeUser);setProfile(safeUser);setAdminUsers(localDemoAccounts.map(({password,...u})=>u));setProfileLoaded(true);setLocalDemoSignedIn(true);setLocalDemoPassword('');setLocalDemoAuthError('');setAuthMsg('');setAuthMode('choice');setPage('Overview');};
-  useEffect(()=>{if(!cloudReady||!session?.user?.id)return;let alive=true;(async()=>{const {data,error}=await supabase.from('expense_categories').select('name').eq('user_id',session.user.id).order('name');if(!alive)return;if(!error&&Array.isArray(data)&&data.length){setExpenseCategoriesOverride(data.map(x=>x.name));}})();return()=>{alive=false}},[session?.user?.id]);
+  useEffect(()=>{if(!cloudReady||!session?.user?.id)return;let alive=true;(async()=>{const {data,error}=await supabase.from('expense_categories').select('name,is_enabled').eq('user_id',session.user.id).order('name');if(!alive)return;if(!error&&Array.isArray(data)&&data.length){setExpenseCategoriesOverride(data.filter(x=>x.is_enabled!==false).map(x=>x.name));}})();return()=>{alive=false}},[session?.user?.id]);
   const [profile,setProfile] = useState(()=>{try{return !cloudReady ? JSON.parse(localStorage.getItem('pocket_local_demo_user')||'null') : null}catch{return null}});
   const [profileLoaded,setProfileLoaded] = useState(false);
   const [profileLoadError,setProfileLoadError] = useState('');
@@ -211,6 +212,7 @@ function App(){
   const [backupForUsers,setBackupForUsers] = useState(false);
   const [paidBusy,setPaidBusy] = useState([]);
   const [localLoaded,setLocalLoaded] = useState(false);
+  const [settingsCloudUserId,setSettingsCloudUserId] = useState('');
   const [accountsLoaded,setAccountsLoaded] = useState(false);
   const [accessRequestBusy,setAccessRequestBusy] = useState(false);
   const isDemo = !cloudReady;
@@ -386,7 +388,43 @@ function App(){
   useEffect(()=>{const t=setInterval(()=>setClock(Date.now()),60000);return()=>clearInterval(t)},[]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),2800);return()=>clearTimeout(t)},[toast]);
 
-  const monthTx=useMemo(()=>transactions.filter(t=>(t.transaction_date||'').slice(0,7)===month),[transactions,month]);
+
+  // Sync account preferences to Supabase; localStorage is only a startup cache, not the source of truth.
+  useEffect(()=>{
+    const uid=session?.user?.id;
+    if(!cloudReady||!uid)return;
+    let alive=true;
+    (async()=>{
+      const {data,error}=await supabase.from('user_settings').select('settings').eq('user_id',uid).maybeSingle();
+      if(!alive)return;
+      if(!error&&data?.settings){
+        const v=data.settings;
+        if(v.currency){setCurrency(v.currency);localStorage.setItem('forma_currency',v.currency)}
+        if(v.timezone){setTimezone(v.timezone);localStorage.setItem('forma_timezone',v.timezone)}
+        if(v.profileName!==undefined){setProfileName(v.profileName||'');localStorage.setItem('forma_profile_name',v.profileName||'')}
+        if(v.theme){setTheme(v.theme);localStorage.setItem('forma_theme',v.theme)}
+        if(v.design){setDesign(v.design);localStorage.setItem('forma_design',v.design)}
+        if(v.sidebarSize){setSidebarSize(v.sidebarSize);localStorage.setItem('forma_sidebar_size',v.sidebarSize)}
+        if(v.profileAvatar){setProfileAvatar(v.profileAvatar);localStorage.setItem('forma_profile_avatar',v.profileAvatar)}
+        if(v.defaultAccountId!==undefined){setDefaultAccountId(v.defaultAccountId||'');localStorage.setItem('pocket_default_account',v.defaultAccountId||'')}
+        if(Array.isArray(v.expenseCategories)){localStorage.setItem('pocket_expense_categories',JSON.stringify(v.expenseCategories));setExpenseCategoriesOverride(v.expenseCategories)}
+        if(v.subcategories&&typeof v.subcategories==='object')localStorage.setItem('pocket_subcategories',JSON.stringify(v.subcategories));
+      }
+      if(alive)setSettingsCloudUserId(uid);
+    })();
+    return()=>{alive=false};
+  },[session?.user?.id,cloudReady]);
+  useEffect(()=>{
+    const uid=session?.user?.id;
+    if(!cloudReady||!uid||settingsCloudUserId!==uid)return;
+    let subcategories={},savedCategories=[];
+    try{subcategories=JSON.parse(localStorage.getItem('pocket_subcategories')||'{}')}catch{}
+    try{savedCategories=JSON.parse(localStorage.getItem('pocket_expense_categories')||'[]')}catch{}
+    const settings={currency,timezone,profileName,theme,design,sidebarSize,profileAvatar,defaultAccountId,
+      expenseCategories:Array.isArray(savedCategories)?savedCategories:[],subcategories};
+    supabase.from('user_settings').upsert({user_id:uid,settings,updated_at:new Date().toISOString()},{onConflict:'user_id'}).then(({error})=>{if(error)console.error('Could not sync settings to Supabase:',error.message)});
+  },[session?.user?.id,cloudReady,settingsCloudUserId,currency,timezone,profileName,theme,design,sidebarSize,profileAvatar,defaultAccountId,expenseCategoryRevision]);
+    const monthTx=useMemo(()=>transactions.filter(t=>(t.transaction_date||'').slice(0,7)===month),[transactions,month]);
   const income=monthTx.filter(t=>t.type==='Income').reduce((s,t)=>s+Number(t.amount||0),0);
   const expenses=monthTx.filter(t=>t.type==='Expense').reduce((s,t)=>s+Number(t.amount||0),0);
   const net=income-expenses, savingsRate=income?net/income*100:0;
@@ -854,11 +892,11 @@ function App(){
         {profileLoadError&&<div className="workspace-error" role="alert"><div><b>Couldn’t verify your access</b><p>{profileLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>{setProfileLoaded(false);setProfileLoadError('');setProfileRetry(v=>v+1)}}>Retry</button></div>}
         {dataLoadError&&<div className="workspace-error" role="alert"><div><b>Some workspace data didn’t load</b><p>{dataLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>setDataLoadAttempt(v=>v+1)}>Retry loading</button></div>}
         {cloudReady&&session&&!accountsLoaded?<WorkspaceSkeleton/>: <>
-        {!canSeeCurrentPage&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy}/> }
+        {!canSeeCurrentPage&&!(isAdmin&&['Expense categories','Admin access'].includes(page))&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy}/> }
         {page==='Expense categories'&&isAdmin&&<ExpenseCategoriesPage session={session} supabase={supabase}/>}
         {page==='Admin access'&&isAdmin&&<AdminAccessPage users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers}/>}
         {canSeeCurrentPage&&page==='Overview'&&<Overview {...{month,setMonth,transactions,accounts,monthTx,income,expenses,net,savingsRate,monthlySeries,categoryData,needs,wants,monthBudgets,totalBudget,totalSaved,goalTarget,upcoming,goals,setPage,setModal,setEditing,setToast,displayName,greeting,profileAvatar}}/>}
-        {canSeeCurrentPage&&page==='Transactions'&&<TransactionsPage {...{transactions,accounts,debts,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,setModal,setEditing,setPage,setToast,removeRecord,setTransactions,handleImport,exportCSV,currency,requestConfirm,recordDebtInstallment}}/>}
+        {canSeeCurrentPage&&page==='Transactions'&&<TransactionsPage {...{transactions,accounts,debts,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,setModal,setEditing,setPage,setToast,removeRecord,setTransactions,handleImport,exportCSV,currency,requestConfirm,recordDebtInstallment,activeCategoryOptions:getExpenseCategories(profile?.gender)}}/>}
         {canSeeCurrentPage&&page==='Accounts'&&<AccountsPage {...{accounts,transactions,setModal,setEditing,removeRecord,setAccounts,currency,requestConfirm,defaultAccountId,setDefaultAccountId}}/>}
         {canSeeCurrentPage&&page==='Cash flow calendar'&&<CashFlowCalendar {...{transactions,recurring,month,setMonth,currency}}/>}
         {canSeeCurrentPage&&page==='Debts & installments'&&<DebtsPage {...{debts,accounts,setModal,setEditing,removeRecord,setDebts,currency,requestConfirm,recordDebtInstallment,setToast}}/>}
@@ -970,14 +1008,14 @@ function Overview(p){
 function EmptyState({icon:Icon,title,text,action,actionLabel}){return <div className="empty-state"><div className="empty-icon"><Icon size={21}/></div><b>{title}</b><p>{text}</p>{action&&<button className="btn btn-secondary btn-sm" onClick={action}>{actionLabel||'Add new'}</button>}</div>}
 function TransactionTable({transactions,onEdit,onDelete,accounts=[]}){
  if(!transactions.length)return <EmptyState icon={ArrowLeftRight} title="No transactions found" text="Your money movements will appear here."/>
- return <div className="table-wrap"><table className="data-table"><thead><tr><th>Transaction</th><th>Category</th><th>Date</th><th>Amount</th>{onEdit&&<th></th>}</tr></thead><tbody>{transactions.map(t=><tr key={t.id}><td><div className="transaction-name"><span className={`tx-avatar ${t.type==='Income'?'tx-income':'tx-expense'}`}>{t.type==='Income'?<ArrowDownRight size={16}/>:t.type==='Transfer'?<ArrowLeftRight size={16}/>:<ArrowUpRight size={16}/>}</span><span><b>{t.description||t.category}</b><small>{t.type==='Transfer'?`${accounts.find(a=>String(a.id)===String(t.account_id))?.name||'Source'} → ${accounts.find(a=>String(a.id)===String(t.to_account_id))?.name||'Destination'}`:(accounts.find(a=>String(a.id)===String(t.account_id))?.name||'No account linked')}</small></span></div></td><td><span className="category-pill">{t.category}</span>{t.type==='Transfer'&&t.goal_id&&<small className="transaction-goal-subcategory"><Target size={11}/>{t.subcategory||'Savings goal'}</small>}</td><td className="date-cell">{shortDate(t.transaction_date)}</td><td><b className={t.type==='Income'?'amount-income':t.type==='Transfer'?'amount-transfer':'amount-expense'}>{t.type==='Income'?'+':t.type==='Transfer'?'↔':'−'}{fmt(t.amount)}</b></td>{onEdit&&<td><div className="row-actions"><button className="icon-btn" onClick={()=>onEdit(t)}><Pencil size={15}/></button><button className="icon-btn danger-hover" onClick={()=>onDelete(t)}><Trash2 size={15}/></button></div></td>}</tr>)}</tbody></table></div>
+ return <div className="table-wrap"><table className="data-table"><thead><tr><th>Transaction</th><th>Category</th><th>Date</th><th>Amount</th>{onEdit&&<th></th>}</tr></thead><tbody>{transactions.map(t=><tr key={t.id}><td><div className="transaction-name"><span className={`tx-avatar ${t.type==='Income'?'tx-income':'tx-expense'}`}>{t.type==='Income'?<ArrowDownRight size={16}/>:t.type==='Transfer'?<ArrowLeftRight size={16}/>:<ArrowUpRight size={16}/>}</span><span><b>{t.description||t.category}</b><small>{t.type==='Transfer'?`${accounts.find(a=>String(a.id)===String(t.account_id))?.name||'Source'} → ${accounts.find(a=>String(a.id)===String(t.to_account_id))?.name||'Destination'}`:(accounts.find(a=>String(a.id)===String(t.account_id))?.name||'No account linked')}</small></span></div></td><td><span className="category-pill">{t.category}</span>{t.type==='Transfer'&&t.goal_id&&<small className="transaction-goal-subcategory"><Target size={11}/>{t.subcategory||'Savings goal'}</small>}</td><td className="date-cell"><span>{shortDate(t.transaction_date)}</span><small className="transaction-time">{(()=>{const raw=t.transaction_time||t.time||t.created_at||t.inserted_at;if(!raw)return '';const d=new Date(raw);return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false})})()}</small></td><td><b className={t.type==='Income'?'amount-income':t.type==='Transfer'?'amount-transfer':'amount-expense'}>{t.type==='Income'?'+':t.type==='Transfer'?'↔':'−'}{fmt(t.amount)}</b></td>{onEdit&&<td><div className="row-actions"><button className="icon-btn" onClick={()=>onEdit(t)}><Pencil size={15}/></button><button className="icon-btn danger-hover" onClick={()=>onDelete(t)}><Trash2 size={15}/></button></div></td>}</tr>)}</tbody></table></div>
 }
 function TransactionsPage(p){
- const {transactions,accounts,debts=[],recordDebtInstallment,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,setModal,setEditing,setToast,removeRecord,setTransactions,handleImport,exportCSV,currency,requestConfirm}=p;
- const rows=[...filtered].sort((a,b)=>(b.transaction_date||'').localeCompare(a.transaction_date||''));
+ const {transactions,accounts,debts=[],recordDebtInstallment,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,setModal,setEditing,setToast,removeRecord,setTransactions,handleImport,exportCSV,currency,requestConfirm,activeCategoryOptions=[]}=p;
+ const rows=[...filtered].sort((a,b)=>amountSort==='high'?Number(b.amount)-Number(a.amount):amountSort==='low'?Number(a.amount)-Number(b.amount):(b.transaction_date||'').localeCompare(a.transaction_date||''));
  return <><PageHeading eyebrow="MONEY MOVEMENTS" title="Transactions" subtitle="Every income and expense, all in one place." actions={<><button className="btn btn-secondary" onClick={exportCSV}><Download size={16}/> Export</button><label className="btn btn-secondary file-btn"><Upload size={16}/> Import Excel<input type="file" accept=".xlsx,.xls,.csv" onChange={handleImport}/></label><button className="btn btn-primary" onClick={()=>{if(!accounts.length){setToast('Add an account or wallet first. Go to Accounts → Add account, then come back to add your transaction.');setPage('Accounts');return;}setEditing(null);setModal('transaction')}}><Plus size={17}/> Add transaction</button></>}/>
  <div className="metric-strip"><div><span>Total transactions</span><b>{transactions.length}</b></div><div><span>Income recorded</span><b className="amount-income">{fmt(transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+Number(t.amount),0))}</b></div><div><span>Expenses recorded</span><b>{fmt(transactions.filter(t=>t.type==='Expense').reduce((s,t)=>s+Number(t.amount),0))}</b></div></div>
- <section className="panel table-panel"><div className="table-toolbar"><div className="search-field"><Search size={17}/><input placeholder="Search transactions..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button className="icon-btn" onClick={()=>setSearch('')}><X size={14}/></button>}</div><div className="filter-group"><SlidersHorizontal size={16}/><select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option>All types</option><option>Income</option><option>Expense</option><option>Transfer</option></select><select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option>All categories</option>{categories.map(c=><option key={c}>{c}</option>)}</select></div></div>
+ <section className="panel table-panel"><div className="table-toolbar"><div className="search-field"><Search size={17}/><input placeholder="Search transactions..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button className="icon-btn" onClick={()=>setSearch('')}><X size={14}/></button>}</div><div className="filter-group"><SlidersHorizontal size={16}/><select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option>All types</option><option>Income</option><option>Expense</option><option>Transfer</option></select><select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option>All categories</option>{activeCategoryOptions.map(c=><option key={c}>{c}</option>)}</select><select aria-label="Sort transactions" value={amountSort} onChange={e=>setAmountSort(e.target.value)}><option value="date">Sort by date</option><option value="high">Amount: high to low</option><option value="low">Amount: low to high</option></select></div></div>
  <TransactionTable transactions={rows} accounts={accounts} onEdit={t=>{setEditing(t);setModal('transaction')}} onDelete={t=>requestConfirm('Delete transaction?', `Delete “${t.description||t.category}”? This cannot be undone.`, ()=>removeRecord('transactions',t.id,setTransactions,transactions))}/>
  <div className="table-bottom"><span>Showing <b>{rows.length}</b> of <b>{transactions.length}</b> transactions</span><span>Amounts in {currency}</span></div></section></>;
 }
