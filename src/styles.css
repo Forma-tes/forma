@@ -1331,3 +1331,61 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 :root[data-theme="dark"] .category-create-wizard select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aab4ca' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
 }
+
+
+/* Password visibility control */
+.password-input-wrap{position:relative;display:block;width:100%;min-width:0}
+.password-input-wrap>input{width:100%;box-sizing:border-box;padding-right:44px!important}
+.password-visibility-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:7px;background:transparent;color:var(--muted,#8993a8);cursor:pointer;padding:0;z-index:2}
+.password-visibility-toggle:hover{background:var(--hover,#eef1f8);color:var(--text,#273149)}
+.password-visibility-toggle:focus-visible{outline:2px solid var(--accent,#6558ff);outline-offset:1px}
+:root[data-theme="dark"] .password-visibility-toggle:hover{background:#273247;color:#f0f3fa}
+
+/* Match Savings Goal type cards to the compact, horizontal Account Wizard cards */
+.goal-create-page .tx-category-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px;max-height:none;overflow:visible;padding:2px 1px 4px}
+.goal-create-page .tx-choice-card{min-height:52px;display:grid;grid-template-columns:30px minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;justify-content:initial;column-gap:9px;row-gap:2px;padding:9px 10px;border-radius:9px}
+.goal-create-page .tx-choice-icon{grid-column:1;grid-row:1 / span 2;width:28px;height:28px;display:grid;place-items:center;margin:0;border-radius:8px}
+.goal-create-page .tx-choice-label{grid-column:2;grid-row:1;align-self:end;font-size:11px;font-weight:650;line-height:1.25}
+.goal-create-page .tx-choice-card small{grid-column:2;grid-row:2;align-self:start;font-size:9px;line-height:1.3;white-space:normal}
+.goal-create-page .tx-choice-check{grid-column:3;grid-row:1 / span 2;position:static;align-self:center}
+:root[data-theme="dark"] .goal-create-page .tx-choice-card{background:#151e2e;border-color:#303b50;color:#e5eaf4}
+:root[data-theme="dark"] .goal-create-page .tx-choice-card.selected{background:#24213f;border-color:#8175e8}
+@media(max-width:620px){.goal-create-page .tx-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.goal-create-page .tx-choice-card{padding:8px;column-gap:7px}.goal-create-page .tx-choice-label{font-size:10px}}
+@media(max-width:420px){.goal-create-page .tx-category-grid{grid-template-columns:1fr!important}}
+
+/* User access hierarchy: super admins can manage regular users only. */
+.admin-user-readonly { cursor: default !important; }
+.admin-user-readonly .admin-mini-open { opacity: .55; }
+.admin-user-readonly .admin-mini-open.muted { font-size: 11px; }
+
+/* Sidebar scrolling fix: keep navigation usable at short and intermediate viewport heights. */
+.sidebar {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+.sidebar > * {
+  flex-shrink: 0;
+}
+.sidebar .sidebar-bottom {
+  margin-top: auto;
+  padding-top: 10px;
+}
+@media (max-height: 760px) {
+  .sidebar { padding-top: 16px; padding-bottom: 10px; }
+  .brand { padding-bottom: 16px; }
+  .nav-group { margin-bottom: 14px; }
+  .nav-item { padding-top: 9px; padding-bottom: 9px; }
+  .nav-label { padding-bottom: 6px; }
+}
+@media (max-height: 620px) {
+  .sidebar { padding-top: 10px; }
+  .brand { padding-bottom: 10px; }
+  .sidebar-navigation-tools { padding-top: 4px; padding-bottom: 6px; }
+  .nav-group { margin-bottom: 8px; }
+  .nav-item { padding-top: 7px; padding-bottom: 7px; margin: 1px 0; }
+}
