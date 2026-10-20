@@ -1187,3 +1187,147 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 :root[data-theme="dark"] .account-wallet-select{background-color:var(--surface,#1b2331)!important;color:var(--text,#e8edf6)!important;border-color:var(--border,#343d4e)!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aab4ca' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important}
 :root[data-theme="dark"] .account-wallet-select option{background:#202939!important;color:#f1f4fa!important}
 @media(max-width:600px){.tx-category-grid{max-height:none!important;overflow:visible!important}}
+
+/* Light-mode polish for Expense Categories admin page */
+:root:not([data-theme="dark"]) .category-admin-card,
+:root:not([data-theme="dark"]) .category-admin-summary span,
+:root:not([data-theme="dark"]) .category-wizard-card {
+  background: #ffffff;
+  border-color: #e2e7f0;
+  color: #20283a;
+  box-shadow: 0 8px 24px rgba(30, 41, 59, .06);
+}
+:root:not([data-theme="dark"]) .category-admin-summary span { color: #687386; }
+:root:not([data-theme="dark"]) .category-admin-summary b,
+:root:not([data-theme="dark"]) .category-name-copy b,
+:root:not([data-theme="dark"]) .category-wizard-card .modal-header h2 { color: #20283a; }
+:root:not([data-theme="dark"]) .category-name-copy small,
+:root:not([data-theme="dark"]) .category-admin-heading p,
+:root:not([data-theme="dark"]) .category-wizard-card .modal-header p,
+:root:not([data-theme="dark"]) .category-admin-edit label,
+:root:not([data-theme="dark"]) .category-wizard-field { color: #687386; }
+:root:not([data-theme="dark"]) .subcategory-chip {
+  color: #354055;
+  background: #f7f8fc;
+  border-color: #e2e7f0;
+}
+:root:not([data-theme="dark"]) .category-admin-edit input,
+:root:not([data-theme="dark"]) .category-admin-edit textarea,
+:root:not([data-theme="dark"]) .category-wizard-field input,
+:root:not([data-theme="dark"]) .category-wizard-field select {
+  background: #fff;
+  color: #20283a;
+  border-color: #d8deea;
+}
+:root:not([data-theme="dark"]) .category-admin-edit,
+:root:not([data-theme="dark"]) .subcategory-chip-list { border-color: #e7ebf2; }
+:root:not([data-theme="dark"]) .category-admin-actions .icon-btn,
+:root:not([data-theme="dark"]) .category-wizard-card .icon-btn { color: #667085; }
+
+/* Match the Savings Goal type choices to the wider, comfortable cards used in the Accounts wizard. */
+.goal-create-page .tx-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px;
+  max-height: none;
+  overflow: visible;
+  padding: 2px;
+}
+.goal-create-page .tx-choice-card {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 112px;
+  padding: 15px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-content: center;
+  justify-content: stretch;
+  align-items: center;
+  gap: 8px 11px;
+  border: 1px solid var(--border, #e2e7f0);
+  background: var(--surface, #fff);
+  color: var(--text, #20283a);
+  text-align: left;
+  white-space: normal;
+}
+.goal-create-page .tx-choice-card .tx-choice-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+}
+.goal-create-page .tx-choice-card .tx-choice-label {
+  grid-column: 2 / span 2;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 750;
+}
+.goal-create-page .tx-choice-card small {
+  grid-column: 2 / span 2;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted, #687386);
+  white-space: normal;
+}
+.goal-create-page .tx-choice-card .tx-choice-check {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+.goal-create-page .tx-choice-card.selected {
+  border-color: #8b80f5;
+  background: rgba(139, 128, 245, .08);
+}
+@media (max-width: 560px) {
+  .goal-create-page .tx-category-grid { grid-template-columns: 1fr !important; }
+  .goal-create-page .tx-choice-card { min-height: 92px; }
+}
+
+/* Transaction category/subcategory creation cards — light mode polish */
+:root:not([data-theme="dark"]) .category-create-wizard {
+  background: linear-gradient(145deg, #ffffff, #f8faff) !important;
+  border-color: #e1e6f0 !important;
+  box-shadow: 0 8px 24px rgba(30, 41, 59, .07) !important;
+}
+:root:not([data-theme="dark"]) .category-create-head strong { color: #20283a !important; }
+:root:not([data-theme="dark"]) .category-create-head small { color: #687386 !important; }
+:root:not([data-theme="dark"]) .category-create-symbol { background: #eeedff !important; color: #6c63d9 !important; }
+:root:not([data-theme="dark"]) .category-create-close { border-color: #e1e6f0 !important; color: #687386 !important; }
+:root:not([data-theme="dark"]) .category-create-label { color: #465166 !important; }
+:root:not([data-theme="dark"]) .category-create-label input {
+  background: #ffffff !important; color: #20283a !important; border-color: #d8deea !important;
+}
+:root:not([data-theme="dark"]) .category-icon-picker button {
+  background: #ffffff !important; border-color: #e1e6f0 !important;
+}
+:root:not([data-theme="dark"]) .category-icon-picker button.active {
+  background: #f0efff !important; border-color: #8d82f5 !important;
+}
+
+/* Use one consistent chevron for custom selects; hide the browser's second arrow. */
+.account-wallet-select,
+.category-wizard-field select,
+.category-admin-edit select,
+.category-create-wizard select {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-repeat: no-repeat !important;
+  background-position: right 13px center !important;
+  padding-right: 40px !important;
+}
+:root:not([data-theme="dark"]) .category-wizard-field select,
+:root:not([data-theme="dark"]) .category-admin-edit select,
+:root:not([data-theme="dark"]) .category-create-wizard select {
+  background-color: #fff !important; color: #20283a !important; border-color: #d8deea !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+}
+:root[data-theme="dark"] .category-wizard-field select,
+:root[data-theme="dark"] .category-admin-edit select,
+:root[data-theme="dark"] .category-create-wizard select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aab4ca' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+}

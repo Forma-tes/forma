@@ -224,3 +224,7 @@ Build note: `npm install` could not complete in the current build environment du
 The Create User wizard now follows Role → Features → Review. First Name and Last Name are required, Gender is optional, names are title-cased, and the full name is used in the workspace greeting. The Accounts navigation/page label is now “Accounts”.
 
 Before deploying this update to Supabase Cloud, apply `supabase/migrations/20261020_user_profile_name_gender.sql`, then deploy the `admin-create-user` Edge Function. Do not expose the service-role key in the frontend.
+
+
+### Opening balance date migration
+For an existing Supabase project, run `supabase/migrations/20261020_add_opening_balance_date.sql` in the Supabase SQL Editor. Existing accounts are backfilled to their original `created_at` date. New and edited accounts save an explicit opening balance date, used by Insights & Reports.
