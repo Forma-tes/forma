@@ -1389,3 +1389,51 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
   .nav-group { margin-bottom: 8px; }
   .nav-item { padding-top: 7px; padding-bottom: 7px; margin: 1px 0; }
 }
+
+/* Savings goal type cards: align the icon beside the copy for a cleaner, roomier choice card. */
+.goal-create-page .tx-category-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px;
+  max-height: none;
+  overflow: visible;
+  padding: 2px;
+}
+.goal-create-page .tx-choice-card {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 4px;
+  padding: 12px 14px;
+}
+.goal-create-page .tx-choice-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 38px;
+  height: 38px;
+  font-size: 19px;
+  border-radius: 11px;
+}
+.goal-create-page .tx-choice-label {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.goal-create-page .tx-choice-card small {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: normal;
+}
+.goal-create-page .tx-choice-check { right: 7px; top: 7px; }
+@media (max-width: 760px) {
+  .goal-create-page .tx-category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 480px) {
+  .goal-create-page .tx-category-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
