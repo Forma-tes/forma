@@ -1090,65 +1090,89 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .category-wizard-error{border:1px solid #e5a34d;background:rgba(229,163,77,.12);color:#f4c27d;padding:11px 12px;border-radius:10px;font-size:12px;line-height:1.5}.category-wizard-card .category-wizard-error{margin-bottom:2px}
 
 
-/* Pocket 3D avatar motion system — shared by the greeting, profile menu, settings and avatar picker. */
-.profile-avatar-image {
-  transform-origin: 50% 78%;
-  will-change: transform, filter;
-  animation: pocket-avatar-idle 5.8s ease-in-out infinite;
-  transition: transform .28s ease, filter .28s ease;
-  backface-visibility: hidden;
-}
+
+/* Pocket avatar motion — keep transforms on wrappers to prevent clipped/split faces. */
 .greeting-avatar-wrap {
-  perspective: 900px;
+  position: relative;
+  overflow: visible;
+  perspective: 1000px;
   transform-style: preserve-3d;
+  animation: pocket-hero-bob 4.8s ease-in-out infinite;
 }
-.greeting-avatar-image {
-  animation: pocket-avatar-hero 4.8s ease-in-out infinite;
-  filter: drop-shadow(0 8px 14px rgba(88, 108, 255, .24));
+.greeting-avatar-wrap > .greeting-avatar-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover !important;
+  object-position: center 38% !important;
+  transform: none !important;
+  animation: none !important;
+  will-change: filter;
+  filter: drop-shadow(0 5px 9px rgba(88,108,255,.18));
+}
+.greeting-avatar-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px solid rgba(143,157,255,.58);
+  box-shadow: 0 0 0 4px rgba(115,132,255,.08), 0 0 20px rgba(112,128,255,.28);
+  pointer-events: none;
+  animation: pocket-hero-ring 3.8s ease-in-out infinite;
 }
 .greeting-avatar-wrap::after {
   content: "";
   position: absolute;
-  inset: 7%;
+  inset: 2px;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 78%, rgba(109, 124, 255, .18), transparent 68%);
-  opacity: .75;
-  animation: pocket-avatar-aura 4.8s ease-in-out infinite;
-  z-index: -1;
+  background: radial-gradient(ellipse at 50% 100%, rgba(109,124,255,.2), transparent 64%);
+  animation: pocket-hero-aura 4.8s ease-in-out infinite;
 }
-.profile-avatar-image:hover {
-  transform: translateY(-3px) rotateY(-5deg) scale(1.025);
-  filter: drop-shadow(0 8px 12px rgba(91, 113, 255, .28));
+.profile-avatar-image {
+  display: block;
+  transform-origin: 50% 80%;
+  backface-visibility: hidden;
+  transition: filter .25s ease;
 }
-.avatar-picker-gender-label ~ * .profile-avatar-image,
-.avatar-picker-grid .profile-avatar-image {
-  animation-duration: 6.4s;
+.top-avatar .profile-avatar-image,
+.account-large-avatar .profile-avatar-image,
+.avatar-choice .profile-avatar-image {
+  animation: pocket-avatar-idle 5.8s ease-in-out infinite;
 }
-.avatar-picker-grid button:hover .profile-avatar-image,
-.avatar-option:hover .profile-avatar-image {
+.greeting-avatar-wrap:hover > .greeting-avatar-image,
+.top-avatar:hover .profile-avatar-image,
+.account-large-avatar:hover .profile-avatar-image {
+  filter: drop-shadow(0 6px 10px rgba(91,113,255,.32));
+}
+.avatar-choice:hover .profile-avatar-image {
   animation-play-state: paused;
-  transform: translateY(-5px) rotateY(-7deg) scale(1.06);
+  filter: saturate(1.08) drop-shadow(0 4px 7px rgba(91,113,255,.3));
+}
+@keyframes pocket-hero-bob {
+  0%,100% { transform: translateY(0) rotateZ(0deg); }
+  22% { transform: translateY(-2px) rotateZ(-.8deg); }
+  48% { transform: translateY(-6px) rotateZ(0deg); }
+  72% { transform: translateY(-2px) rotateZ(.7deg); }
+}
+@keyframes pocket-hero-ring {
+  0%,100% { transform: scale(1); opacity: .72; }
+  50% { transform: scale(1.045); opacity: 1; }
+}
+@keyframes pocket-hero-aura {
+  0%,100% { opacity: .38; transform: scale(.97); }
+  50% { opacity: .82; transform: scale(1.04); }
 }
 @keyframes pocket-avatar-idle {
-  0%, 100% { transform: translate3d(0, 0, 0) rotateZ(0deg) rotateY(0deg); }
-  24% { transform: translate3d(0, -2px, 0) rotateZ(-1deg) rotateY(-2deg); }
-  48% { transform: translate3d(0, -4px, 0) rotateZ(0.5deg) rotateY(1deg); }
-  74% { transform: translate3d(0, -1px, 0) rotateZ(1deg) rotateY(2deg); }
-}
-@keyframes pocket-avatar-hero {
-  0%, 100% { transform: translate3d(0, 0, 0) rotateZ(0deg) rotateY(0deg) scale(1); }
-  18% { transform: translate3d(0, -3px, 0) rotateZ(-1.5deg) rotateY(-3deg) scale(1.008); }
-  38% { transform: translate3d(0, -7px, 0) rotateZ(0deg) rotateY(2deg) scale(1.018); }
-  58% { transform: translate3d(0, -4px, 0) rotateZ(1.2deg) rotateY(3deg) scale(1.012); }
-  78% { transform: translate3d(0, -1px, 0) rotateZ(-.5deg) rotateY(-1deg) scale(1.004); }
-}
-@keyframes pocket-avatar-aura {
-  0%, 100% { transform: scale(.96); opacity: .42; }
-  50% { transform: scale(1.08); opacity: .9; }
+  0%,100% { transform: translateY(0) rotateZ(0deg); }
+  30% { transform: translateY(-1.5px) rotateZ(-.7deg); }
+  65% { transform: translateY(-3px) rotateZ(.6deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .profile-avatar-image, .greeting-avatar-wrap::after {
+  .greeting-avatar-wrap, .greeting-avatar-wrap::before, .greeting-avatar-wrap::after,
+  .top-avatar .profile-avatar-image, .account-large-avatar .profile-avatar-image,
+  .avatar-choice .profile-avatar-image {
     animation: none !important;
     transition: none !important;
   }
