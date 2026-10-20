@@ -217,3 +217,10 @@ The Edge Function verifies the caller's authenticated user and role on the serve
 - The last visited page continues to persist in the same browser. Role/feature checks remain in place before protected page content is rendered; database RLS and server-side authorization must still be configured in Supabase for security.
 
 Build note: `npm install` could not complete in the current build environment due to a timeout, so the full Vite production build was not verified here. `src/main.jsx` was checked for JSX/JavaScript syntax errors using the available TypeScript transpiler.
+
+
+## User Access Wizard Updates (2026-10-20)
+
+The Create User wizard now follows Role → Features → Review. First Name and Last Name are required, Gender is optional, names are title-cased, and the full name is used in the workspace greeting. The Accounts navigation/page label is now “Accounts”.
+
+Before deploying this update to Supabase Cloud, apply `supabase/migrations/20261020_user_profile_name_gender.sql`, then deploy the `admin-create-user` Edge Function. Do not expose the service-role key in the frontend.
