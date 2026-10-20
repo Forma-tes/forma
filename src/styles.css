@@ -1088,3 +1088,68 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .category-delete-confirm .modal-header{margin-bottom:16px}.category-delete-confirm .modal-header p{line-height:1.6}.category-delete-list{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0 18px}.category-delete-list span{border:1px solid var(--border,#39445b);border-radius:9px;background:rgba(255,255,255,.035);padding:7px 10px;font-size:12px;color:var(--text,#f3f5fb)}.category-delete-confirm .btn-danger{background:#d9485f;color:#fff;border:1px solid #d9485f}.category-delete-confirm .btn-danger:hover{background:#bf354b}
 
 .category-wizard-error{border:1px solid #e5a34d;background:rgba(229,163,77,.12);color:#f4c27d;padding:11px 12px;border-radius:10px;font-size:12px;line-height:1.5}.category-wizard-card .category-wizard-error{margin-bottom:2px}
+
+
+/* Pocket 3D avatar motion system — shared by the greeting, profile menu, settings and avatar picker. */
+.profile-avatar-image {
+  transform-origin: 50% 78%;
+  will-change: transform, filter;
+  animation: pocket-avatar-idle 5.8s ease-in-out infinite;
+  transition: transform .28s ease, filter .28s ease;
+  backface-visibility: hidden;
+}
+.greeting-avatar-wrap {
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+.greeting-avatar-image {
+  animation: pocket-avatar-hero 4.8s ease-in-out infinite;
+  filter: drop-shadow(0 8px 14px rgba(88, 108, 255, .24));
+}
+.greeting-avatar-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 78%, rgba(109, 124, 255, .18), transparent 68%);
+  opacity: .75;
+  animation: pocket-avatar-aura 4.8s ease-in-out infinite;
+  z-index: -1;
+}
+.profile-avatar-image:hover {
+  transform: translateY(-3px) rotateY(-5deg) scale(1.025);
+  filter: drop-shadow(0 8px 12px rgba(91, 113, 255, .28));
+}
+.avatar-picker-gender-label ~ * .profile-avatar-image,
+.avatar-picker-grid .profile-avatar-image {
+  animation-duration: 6.4s;
+}
+.avatar-picker-grid button:hover .profile-avatar-image,
+.avatar-option:hover .profile-avatar-image {
+  animation-play-state: paused;
+  transform: translateY(-5px) rotateY(-7deg) scale(1.06);
+}
+@keyframes pocket-avatar-idle {
+  0%, 100% { transform: translate3d(0, 0, 0) rotateZ(0deg) rotateY(0deg); }
+  24% { transform: translate3d(0, -2px, 0) rotateZ(-1deg) rotateY(-2deg); }
+  48% { transform: translate3d(0, -4px, 0) rotateZ(0.5deg) rotateY(1deg); }
+  74% { transform: translate3d(0, -1px, 0) rotateZ(1deg) rotateY(2deg); }
+}
+@keyframes pocket-avatar-hero {
+  0%, 100% { transform: translate3d(0, 0, 0) rotateZ(0deg) rotateY(0deg) scale(1); }
+  18% { transform: translate3d(0, -3px, 0) rotateZ(-1.5deg) rotateY(-3deg) scale(1.008); }
+  38% { transform: translate3d(0, -7px, 0) rotateZ(0deg) rotateY(2deg) scale(1.018); }
+  58% { transform: translate3d(0, -4px, 0) rotateZ(1.2deg) rotateY(3deg) scale(1.012); }
+  78% { transform: translate3d(0, -1px, 0) rotateZ(-.5deg) rotateY(-1deg) scale(1.004); }
+}
+@keyframes pocket-avatar-aura {
+  0%, 100% { transform: scale(.96); opacity: .42; }
+  50% { transform: scale(1.08); opacity: .9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-avatar-image, .greeting-avatar-wrap::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
