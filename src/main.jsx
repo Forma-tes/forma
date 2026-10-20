@@ -114,7 +114,7 @@ const FEATURE_OPTIONS = [
 ];
 const PAGE_FEATURE = {'Overview':'overview','Transactions':'transactions','Accounts':'accounts','Cash Flow Calendar':'calendar','Budgets':'budgets','Savings Goals':'goals','Subscriptions & Bills':'subscriptions','Recurring payments':'subscriptions','Debts & Installments':'debts','Insights & forecast':'insights','Reports':'insights','Insights & Reports':'insights'};
 
-const POCKET_VALID_PAGES = new Set(['Overview','Transactions','Accounts','Cash Flow Calendar','Budgets','Savings Goals','Subscriptions & Bills','Recurring payments','Debts & Installments','Insights & forecast','Insights & Reports','Reports','Admin access']);
+const POCKET_VALID_PAGES = new Set(['Overview','Transactions','Accounts','Cash Flow Calendar','Budgets','Savings Goals','Subscriptions & Bills','Recurring payments','Debts & Installments','Insights & forecast','Insights & Reports','Reports','Admin Access']);
 function readPocketStartupPage(){
   try {
     const lastPage = localStorage.getItem('pocket_current_page');
@@ -822,7 +822,7 @@ function App(){
   const isAdmin=(cloudReady && ['owner','super_admin'].includes(profile?.role)) || (!cloudReady && localDemoUser?.role==='super_admin');
   const allowedFeatures=!cloudReady||isAdmin?FEATURE_OPTIONS.map(f=>f.key):(Array.isArray(profile?.enabled_features)?profile.enabled_features:[]);
   const visibleNavGroups=[{label:'WORKSPACE',items:[['Overview',LayoutDashboard],['Transactions',ArrowLeftRight],['Accounts',Wallet],['Cash Flow Calendar',CalendarDays],['Budgets',CreditCard],['Savings Goals',Target],['Subscriptions & Bills',Repeat2],['Debts & Installments',CircleDollarSign]]},{label:'ANALYZE',items:[['Insights & Reports',ChartNoAxesCombined]]}].map(g=>({...g,items:g.items.filter(([name])=>allowedFeatures.includes(PAGE_FEATURE[name]))})).filter(g=>g.items.length);
-  const canSeeCurrentPage=page==='Admin access'?isAdmin:page==='Access restricted'?true:allowedFeatures.includes(PAGE_FEATURE[page]);
+  const canSeeCurrentPage=page==='Admin Access'?isAdmin:page==='Access restricted'?true:allowedFeatures.includes(PAGE_FEATURE[page]);
   if(cloudReady && (authLoading || (session && !profileLoaded))) return <main className="pocket-loading-screen" role="status" aria-live="polite" aria-label="Loading Pocket">
     <div className="pocket-loading-glow pocket-loading-glow-one" aria-hidden="true"/><div className="pocket-loading-glow pocket-loading-glow-two" aria-hidden="true"/>
     <section className="pocket-loading-card">
@@ -842,7 +842,7 @@ function App(){
       <div className="brand"><div className="brand-mark"><img className="brand-logo-mark" src="/brand/pocket-mark.svg" alt="" /></div><span>Pocket</span><button className="icon-btn mobile-close" onClick={()=>setSidebarOpen(false)}><X size={18}/></button></div>
       <div className="sidebar-navigation-tools"><button className="nav-item sidebar-size-toggle" onClick={()=>setSidebarSize(v=>v==='compact'?'comfortable':'compact')} title={sidebarSize==='compact'?'Expand sidebar':'Compact sidebar'} aria-label={sidebarSize==='compact'?'Expand sidebar':'Compact sidebar'}><Menu size={18}/></button></div>
       {visibleNavGroups.map(group=><div className="nav-group" key={group.label}><div className="nav-label">{group.label}</div>{group.items.map(([name,Icon])=><button key={name} className={`nav-item ${page===name?'active':''}`} onClick={()=>{setPage(name);setSidebarOpen(false)}}><Icon size={18}/><span>{name}</span>{name==='Transactions'&&<span className="nav-count">{transactions.length}</span>}</button>)}</div>)}
-      {isAdmin&&<div className="nav-group admin-nav-group"><div className="nav-label">ADMINISTRATION</div><button className={`nav-item ${page==='Admin access'?'active':''}`} onClick={()=>{setPage('Admin access');setSidebarOpen(false)}}><ShieldCheck size={18}/><span>User Access</span></button></div>}<div className="sidebar-bottom"><button className="nav-item" onClick={()=>setModal('app-settings')}><Settings size={18}/><span>Settings</span></button></div>
+      {isAdmin&&<div className="nav-group admin-nav-group"><div className="nav-label">ADMINISTRATION</div><button className={`nav-item ${page==='Admin Access'?'active':''}`} onClick={()=>{setPage('Admin Access');setSidebarOpen(false)}}><ShieldCheck size={18}/><span>User Access</span></button></div>}<div className="sidebar-bottom"><button className="nav-item" onClick={()=>setModal('app-settings')}><Settings size={18}/><span>Settings</span></button></div>
     </aside>
     {sidebarOpen&&<div className="scrim" onClick={()=>setSidebarOpen(false)} />}
     <main className="main-area">
@@ -852,7 +852,7 @@ function App(){
         {dataLoadError&&<div className="workspace-error" role="alert"><div><b>Some workspace data didn’t load</b><p>{dataLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>setDataLoadAttempt(v=>v+1)}>Retry loading</button></div>}
         {cloudReady&&session&&!accountsLoaded?<WorkspaceSkeleton/>: <>
         {!canSeeCurrentPage&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy}/> }
-        {page==='Admin access'&&isAdmin&&<AdminAccessPage users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers}/>}
+        {page==='Admin Access'&&isAdmin&&<AdminAccessPage users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers}/>}
         {canSeeCurrentPage&&page==='Overview'&&<Overview {...{month,setMonth,transactions,accounts,monthTx,income,expenses,net,savingsRate,monthlySeries,categoryData,needs,wants,monthBudgets,totalBudget,totalSaved,goalTarget,upcoming,goals,setPage,setModal,setEditing,setToast,displayName,greeting,profileAvatar}}/>}
         {canSeeCurrentPage&&page==='Transactions'&&<TransactionsPage {...{transactions,accounts,debts,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,setModal,setEditing,setPage,setToast,removeRecord,setTransactions,handleImport,exportCSV,currency,requestConfirm,recordDebtInstallment}}/>}
         {canSeeCurrentPage&&page==='Accounts'&&<AccountsPage {...{accounts,transactions,setModal,setEditing,removeRecord,setAccounts,currency,requestConfirm,defaultAccountId,setDefaultAccountId}}/>}
