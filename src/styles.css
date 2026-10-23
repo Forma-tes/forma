@@ -1506,19 +1506,13 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 :root[data-theme="light"] select,:root[data-theme="light"] option,:root[data-theme="light"] optgroup{color-scheme:light;background-color:#fff;color:#1b2433}
 @media(max-width:900px){.vehicle-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.vehicle-list-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.vehicle-heading{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){.vehicle-list-grid{grid-template-columns:1fr}.vehicle-tabs{width:100%}.vehicle-tabs button{padding:9px 10px}.vehicle-form-grid{grid-template-columns:1fr}.vehicle-record-row{align-items:flex-start}.vehicle-record-due{max-width:120px}.vehicle-heading-actions{width:100%}.vehicle-heading-actions .btn{flex:1;justify-content:center}}
-/* Pocket navigation dropdown and vehicle selector refinements */
-.nav-label-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:0;background:transparent;cursor:pointer;text-align:left;font:inherit}
-.nav-label-toggle svg{flex-shrink:0;transition:transform .18s;color:var(--muted,#a0a5b1)}
-.nav-label-toggle[aria-expanded="false"] svg{transform:rotate(-90deg)}
-.nav-dropdown-content.is-collapsed{display:none}
-.vehicle-tabs-dropdowns{display:flex;gap:10px;align-items:center;width:max-content;max-width:100%;overflow:visible}
-.vehicle-tab-select{position:relative;display:flex;align-items:center;gap:10px;padding:0 10px 0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-height:42px;color:var(--ink)}
-.vehicle-tab-select>span{font-size:11px;color:var(--muted);white-space:nowrap}
-.vehicle-tab-select select{appearance:none;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:700;padding:8px 20px 8px 0;max-width:190px;cursor:pointer}
-.vehicle-tab-select svg{position:absolute;right:10px;pointer-events:none;color:var(--muted)}
-.vehicle-tab-select select option{background:var(--panel);color:var(--ink)}
-.vehicle-mini-modal{width:min(440px,calc(100vw - 28px))}
-.vehicle-mini-modal .modal-header{padding:22px 22px 16px;margin-bottom:0}
-.vehicle-mini-modal .vehicle-form{padding-top:0}
-.vehicle-form label{font-size:12px}
-@media(max-width:560px){.vehicle-tabs-dropdowns{width:100%;display:grid;grid-template-columns:1fr 1fr}.vehicle-tab-select{min-width:0}.vehicle-tab-select select{max-width:100%;min-width:0}.vehicle-tab-select>span{display:none}}
+/* Pocket-aligned Add Vehicle wizard */
+.vehicle-add-wizard{width:min(760px,calc(100vw - 28px));max-height:min(90vh,900px);overflow:auto}.vehicle-wizard-form{display:flex;flex-direction:column;min-height:0}.vehicle-wizard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.vehicle-wizard-grid .field{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:12px;font-weight:600}.vehicle-wizard-grid .field>span{display:flex;gap:5px;align-items:center}.vehicle-wizard-grid .field input,.vehicle-wizard-grid .field select{width:100%;min-width:0;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:13px;outline:none}.vehicle-wizard-grid .field input:focus,.vehicle-wizard-grid .field select:focus{border-color:#7c8cff;box-shadow:0 0 0 3px color-mix(in srgb,#6478ff 17%,transparent)}.vehicle-wizard-grid .field select:disabled{opacity:.55;cursor:not-allowed}.vehicle-review-card{display:flex;align-items:center;gap:14px;padding:15px;border:1px solid var(--line);border-radius:13px;background:var(--panel);margin-bottom:18px}.vehicle-review-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:color-mix(in srgb,#6478ff 14%,var(--panel));color:#8290ff}.vehicle-review-card b{font-size:14px;color:var(--ink)}.vehicle-review-card p{margin:4px 0;color:var(--muted);font-size:12px}.vehicle-review-card small{font-size:11px;color:var(--muted)}.vehicle-catalog-modal{width:min(460px,calc(100vw - 28px))}.vehicle-catalog-modal .modal-header{padding-bottom:16px}.vehicle-catalog-modal form{display:flex;flex-direction:column;gap:14px;padding:0 22px 22px}.vehicle-catalog-modal .category-wizard-field input[readonly]{opacity:.75;cursor:default}
+@media(max-width:560px){.vehicle-add-wizard .admin-wizard-content{padding:18px}.vehicle-wizard-grid{grid-template-columns:1fr}.vehicle-add-wizard .admin-wizard-actions{flex-wrap:wrap}.vehicle-add-wizard .admin-wizard-step-label{display:none}}
+
+/* Vehicle Management pages are navigated from the sidebar, matching Pocket's nested navigation pattern. */
+.vehicle-nav-parent{margin-top:2px}
+.vehicle-nav-subitem{margin-left:12px!important;width:calc(100% - 12px)!important;padding-left:15px!important;border-left:1px solid var(--border,rgba(140,150,170,.2))!important;border-radius:0 10px 10px 0!important;min-height:38px!important;font-size:13px!important}
+.vehicle-nav-subitem svg{width:16px;height:16px;opacity:.85;flex-shrink:0}
+.vehicle-nav-subitem.active{border-left:2px solid var(--accent,#7887ff)!important;background:var(--panel-soft,rgba(120,135,255,.1))!important}
+.vehicle-nav-subitem span{white-space:normal}
