@@ -228,3 +228,11 @@ Before deploying this update to Supabase Cloud, apply `supabase/migrations/20261
 
 ### Opening balance date migration
 For an existing Supabase project, run `supabase/migrations/20261020_add_opening_balance_date.sql` in the Supabase SQL Editor. Existing accounts are backfilled to their original `created_at` date. New and edited accounts save an explicit opening balance date, used by Insights & Reports.
+
+
+## Access Management UI refinements (2026-10-23)
+- Added live Total/Pending request badges in the Administration sidebar using the existing `admin_list_access_requests` RPC.
+- Added a refresh event after request-list loads so counters update after approvals/status changes.
+- Changed Users cards into a compact responsive list.
+- Styled request filter dropdown and native options for light/dark themes.
+- Kept existing schema and migrations unchanged.
