@@ -1664,3 +1664,7 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
  .app-shell.sidebar-compact .nav-item { justify-content:flex-start; gap:10px; padding:11px 12px; }
  .app-shell.sidebar-compact .nav-item > span { display:inline !important; }
 }
+
+/* Icons for My Space and Analyze sidebar groups */
+.nav-label > svg:first-child { flex:0 0 18px; width:18px; height:18px; color:var(--sidebar-muted, #858b99); }
+.app-shell.sidebar-compact .nav-label > svg:first-child { display:block !important; margin:0; }
