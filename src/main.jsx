@@ -1035,7 +1035,96 @@ function VehicleManagementPage({session,supabase,transactions,setTransactions,ac
   {(tab==='overview'||tab==='history')&&<section className="panel vehicle-section"><div className="panel-header"><div><h2><History size={18}/> Service history</h2><p>Completed maintenance and repair records.</p></div><button className="btn btn-primary btn-sm" onClick={()=>{setServiceForm(f=>({...f,vehicle_id:f.vehicle_id||vehicles[0]?.id}));setServiceOpen(true)}}><Plus size={14}/> Log service</button></div>{!services.length?<div className="vehicle-inline-empty">No service records yet.</div>:<div className="vehicle-record-list">{services.map(s=>{const v=vehicles.find(x=>x.id===s.vehicle_id);return <article className="vehicle-record-row" key={s.id}><span className="vehicle-record-icon"><Wrench size={17}/></span><div className="vehicle-record-main"><b>{s.title}</b><small>{v?.name||'Vehicle'} · {s.service_type} · {s.provider||'No service provider'}</small></div><div className="vehicle-record-due"><b>{money(s.cost)}</b><small>{s.service_date}</small></div></article>})}</div>}</section>}
   </>}
   {vehicleOpen&&<div className="modal-backdrop admin-wizard-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setVehicleOpen(false)}}><section className="modal modal-wide admin-access-wizard vehicle-add-wizard" role="dialog" aria-modal="true" aria-labelledby="add-vehicle-title"><div className="modal-head"><div><div className="eyebrow">VEHICLE MANAGEMENT</div><h2 id="add-vehicle-title">{editTarget?'Edit vehicle':'Add vehicle'}</h2><p>{editTarget?'Update your vehicle details and current odometer.':'Add your vehicle details to keep maintenance and expenses organized.'}</p></div><button type="button" className="icon-btn" disabled={busy} onClick={()=>setVehicleOpen(false)}><X size={19}/></button></div><div className="admin-wizard-steps">{[{n:1,label:'Vehicle details'},{n:2,label:editTarget?'Review changes':'Usage & review'}].map(x=><div key={x.n} className={vehicleStep===x.n?'active':vehicleStep>x.n?'complete':''}><span>{vehicleStep>x.n?<Check size={13}/>:x.n}</span><b>{x.label}</b></div>)}</div><form onSubmit={e=>{if(vehicleStep===1){e.preventDefault();if(!vehicleForm.name.trim()||!vehicleForm.make||!vehicleForm.model)return;setVehicleStep(2)}else saveVehicle(e)}} className="vehicle-wizard-form">{vehicleStep===1?<div className="admin-wizard-content"><div className="admin-wizard-title"><h3>What vehicle are you adding?</h3><p>Choose a make and model, then give it a name you’ll recognize.</p></div><div className="vehicle-wizard-grid"><label className="field"><span>Vehicle name *</span><input required value={vehicleForm.name} onChange={e=>setVehicleForm(f=>({...f,name:e.target.value}))} placeholder="e.g. My daily driver"/></label><label className="field"><span>Make *</span><select required value={vehicleForm.make} onChange={e=>{if(e.target.value==='__add_make'){setMakeModal(true);return}setVehicleForm(f=>({...f,make:e.target.value,model:''}))}}><option value="">Select make</option>{vehicleMakes.map(m=><option key={m} value={m}>{m}</option>)}<option value="__add_make">+ Add make</option></select></label><label className="field"><span>Model *</span><select required disabled={!vehicleForm.make} value={vehicleForm.model} onChange={e=>{if(e.target.value==='__add_model'){setModelModal(true);return}setVehicleForm(f=>({...f,model:e.target.value}))}}><option value="">{vehicleForm.make?'Select model':'Choose a make first'}</option>{vehicleModels.map(m=><option key={m} value={m}>{m}</option>)}<option value="__add_model">+ Add model</option></select></label><label className="field"><span>Model year</span><input type="number" min="1900" max="2100" value={vehicleForm.year} onChange={e=>setVehicleForm(f=>({...f,year:e.target.value}))} placeholder="e.g. 2022"/></label><label className="field"><span>Plate number <small>(optional)</small></span><input value={vehicleForm.plate} onChange={e=>setVehicleForm(f=>({...f,plate:e.target.value}))} placeholder="Enter plate number"/></label></div></div>:<div className="admin-wizard-content"><div className="admin-wizard-title"><h3>Usage & review</h3><p>Enter the current odometer reading to calculate maintenance due dates.</p></div><div className="vehicle-review-card"><span className="vehicle-review-icon"><CarFront size={22}/></span><div><b>{vehicleForm.name}</b><p>{[vehicleForm.make,vehicleForm.model,vehicleForm.year].filter(Boolean).join(' · ')}</p>{vehicleForm.plate&&<small>Plate: {vehicleForm.plate}</small>}</div></div><div className="vehicle-wizard-grid"><label className="field"><span>Current odometer *</span><input type="number" min="0" required value={vehicleForm.odometer} onChange={e=>setVehicleForm(f=>({...f,odometer:e.target.value}))} placeholder="e.g. 48500"/></label><label className="field"><span>Odometer unit</span><select value={vehicleForm.odometer_unit} onChange={e=>setVehicleForm(f=>({...f,odometer_unit:e.target.value}))}><option value="km">Kilometers (km)</option><option value="mi">Miles (mi)</option></select></label></div></div>}<div className="admin-wizard-actions"><button type="button" className="btn btn-secondary" disabled={busy} onClick={()=>vehicleStep===1?setVehicleOpen(false):setVehicleStep(1)}>{vehicleStep===1?(editTarget?'Cancel':'Cancel'):<><ChevronLeft size={15}/> Back</>}</button><span className="admin-wizard-step-label">Step {vehicleStep} of 2</span>{vehicleStep===1?<button type="submit" className="btn btn-primary" disabled={!vehicleForm.name.trim()||!vehicleForm.make||!vehicleForm.model}>{editTarget?'Review changes':<>Continue <ArrowUpRight size={15}/></>}</button>:<button type="submit" className="btn btn-primary" disabled={busy||!vehicleForm.odometer}>{busy?<LoaderCircle size={16} className="spin"/>:<Check size={16}/>} {busy?(editTarget?'Saving…':'Saving…'):(editTarget?'Save changes':'Save vehicle')}</button>}</div></form></section></div>}
-{(makeModal||modelModal)&&<div className="modal-backdrop" onMouseDown={e=>e.target===e.currentTarget&&!busy&&(setMakeModal(false),setModelModal(false))}><section className="modal-shell category-wizard-card vehicle-catalog-modal" role="dialog" aria-modal="true"><div className="modal-header"><div><div className="eyebrow">VEHICLE CATALOG</div><h2>{makeModal?'Add make':'Add model'}</h2><p>{makeModal?'Add a vehicle manufacturer to your personal list.':`Add a model under ${vehicleForm.make}.`}</p></div><button className="icon-btn" onClick={()=>{setMakeModal(false);setModelModal(false)}}><X size={18}/></button></div><form onSubmit={async e=>{e.preventDefault();if(!uid||busy)return;setBusy(true);setError('');try{const make=makeModal?newMake.trim():vehicleForm.make;const model=modelModal?newModel.trim():'';if(makeModal&&make){const {data,error:insertError}=await supabase.from('vehicle_makes').upsert({user_id:uid,name:make},{onConflict:'user_id,name'}).select('id,name').single();if(insertError)throw insertError;setCatalogMakes(old=>[...old.filter(x=>x.name.toLowerCase()!==make.toLowerCase()),data]);setVehicleForm(f=>({...f,make:data.name,model:''}));setNewMake('');setMakeModal(false)}else if(modelModal&&model){const selectedMake=catalogMakes.find(x=>x.name===make);if(!selectedMake)throw new Error('Select a valid make first.');const {data,error:insertError}=await supabase.from('vehicle_models').upsert({user_id:uid,make_id:selectedMake.id,name:model},{onConflict:'user_id,make_id,name'}).select('id,name,make_id').single();if(insertError)throw insertError;setCatalogModels(old=>[...old.filter(x=>!(x.make_id===data.make_id&&x.name.toLowerCase()===data.name.toLowerCase())),{...data,make_name:make}]);setVehicleForm(f=>({...f,model:data.name}));setNewModel('');setModelModal(false)}}catch(e){setError(e.message||'Could not save vehicle catalog item');}finally{setBusy(false)}}}><label className="category-wizard-field"><span>Make</span>{makeModal?<input autoFocus required value={newMake} onChange={e=>setNewMake(e.target.value)} placeholder="e.g. Toyota"/>:<input value={vehicleForm.make} readOnly/></label>{modelModal&&<label className="category-wizard-field"><span>Model name</span><input autoFocus required value={newModel} onChange={e=>setNewModel(e.target.value)} placeholder="e.g. Corolla Cross"/></label>}<div className="category-wizard-actions"><button type="button" className="btn btn-secondary" onClick={()=>{setMakeModal(false);setModelModal(false)}}>Cancel</button><button type="submit" className="btn btn-primary" disabled={busy||(makeModal?!newMake.trim():!newModel.trim())}>{busy?<LoaderCircle size={15} className="spin"/>:<Plus size={15}/>} {busy?'Saving…':makeModal?'Add make':'Add model'}</button></div></form></section></div>}
+{(makeModal || modelModal) && (
+    <div
+      className="modal-backdrop"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget && !busy) {
+          setMakeModal(false);
+          setModelModal(false);
+        }
+      }}
+    >
+      <section className="modal-shell category-wizard-card vehicle-catalog-modal" role="dialog" aria-modal="true">
+        <div className="modal-header">
+          <div>
+            <div className="eyebrow">VEHICLE CATALOG</div>
+            <h2>{makeModal ? 'Add make' : 'Add model'}</h2>
+            <p>{makeModal ? 'Add a vehicle manufacturer to your personal list.' : `Add a model under ${vehicleForm.make}.`}</p>
+          </div>
+          <button type="button" className="icon-btn" onClick={() => { setMakeModal(false); setModelModal(false); }}>
+            <X size={18} />
+          </button>
+        </div>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!uid || busy) return;
+            setBusy(true);
+            setError('');
+            try {
+              const make = makeModal ? newMake.trim() : vehicleForm.make;
+              const model = modelModal ? newModel.trim() : '';
+              if (makeModal && make) {
+                const { data, error: insertError } = await supabase
+                  .from('vehicle_makes')
+                  .upsert({ user_id: uid, name: make }, { onConflict: 'user_id,name' })
+                  .select('id,name')
+                  .single();
+                if (insertError) throw insertError;
+                setCatalogMakes((old) => [...old.filter((x) => x.name.toLowerCase() !== make.toLowerCase()), data]);
+                setVehicleForm((f) => ({ ...f, make: data.name, model: '' }));
+                setNewMake('');
+                setMakeModal(false);
+              } else if (modelModal && model) {
+                const selectedMake = catalogMakes.find((x) => x.name === make);
+                if (!selectedMake) throw new Error('Select a valid make first.');
+                const { data, error: insertError } = await supabase
+                  .from('vehicle_models')
+                  .upsert({ user_id: uid, make_id: selectedMake.id, name: model }, { onConflict: 'user_id,make_id,name' })
+                  .select('id,name,make_id')
+                  .single();
+                if (insertError) throw insertError;
+                setCatalogModels((old) => [
+                  ...old.filter((x) => !(x.make_id === data.make_id && x.name.toLowerCase() === data.name.toLowerCase())),
+                  { ...data, make_name: make },
+                ]);
+                setVehicleForm((f) => ({ ...f, model: data.name }));
+                setNewModel('');
+                setModelModal(false);
+              }
+            } catch (err) {
+              setError(err.message || 'Could not save vehicle catalog item');
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <label className="category-wizard-field">
+            <span>Make</span>
+            {makeModal ? (
+              <input autoFocus required value={newMake} onChange={(e) => setNewMake(e.target.value)} placeholder="e.g. Toyota" />
+            ) : (
+              <input value={vehicleForm.make} readOnly />
+            )}
+          </label>
+          {modelModal && (
+            <label className="category-wizard-field">
+              <span>Model name</span>
+              <input autoFocus required value={newModel} onChange={(e) => setNewModel(e.target.value)} placeholder="e.g. Corolla Cross" />
+            </label>
+          )}
+          <div className="category-wizard-actions">
+            <button type="button" className="btn btn-secondary" onClick={() => { setMakeModal(false); setModelModal(false); }}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={busy || (makeModal ? !newMake.trim() : !newModel.trim())}>
+              {busy ? <LoaderCircle size={15} className="spin" /> : <Plus size={15} />}
+              {' '}{busy ? 'Saving…' : makeModal ? 'Add make' : 'Add model'}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  )}
   {planOpen&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setPlanOpen(false)}}><section className="modal-shell vehicle-modal" role="dialog" aria-modal="true"><div className="modal-header"><div><h2>Add maintenance plan</h2><p>Set a date interval, mileage interval, or both.</p></div><button className="icon-btn" onClick={()=>setPlanOpen(false)}><X size={18}/></button></div><form onSubmit={savePlan} className="vehicle-form"><label>Vehicle<select required value={planForm.vehicle_id} onChange={e=>setPlanForm(f=>({...f,vehicle_id:e.target.value}))}>{vehicles.map(v=><option value={v.id} key={v.id}>{v.name}</option>)}</select></label><label>Maintenance task<input required value={planForm.title} onChange={e=>setPlanForm(f=>({...f,title:e.target.value}))} placeholder="Oil change"/></label><div className="vehicle-form-grid"><label>Repeat every (km)<input type="number" min="1" value={planForm.interval_km} onChange={e=>setPlanForm(f=>({...f,interval_km:e.target.value}))}/></label><label>Repeat every (months)<input type="number" min="1" value={planForm.interval_months} onChange={e=>setPlanForm(f=>({...f,interval_months:e.target.value}))}/></label><label>Last service date<input type="date" value={planForm.last_service_date} onChange={e=>setPlanForm(f=>({...f,last_service_date:e.target.value}))}/></label><label>Odometer at last service<input type="number" min="0" value={planForm.last_service_odometer} onChange={e=>setPlanForm(f=>({...f,last_service_odometer:e.target.value}))}/></label></div><label>Notes<textarea value={planForm.notes} onChange={e=>setPlanForm(f=>({...f,notes:e.target.value}))}/></label><div className="vehicle-form-actions"><button type="button" className="btn btn-secondary" onClick={()=>setPlanOpen(false)}>Cancel</button><button className="btn btn-primary" disabled={busy||!planForm.vehicle_id}>{busy?'Saving…':'Save plan'}</button></div></form></section></div>}
   {serviceOpen&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setServiceOpen(false)}}><section className="modal-shell vehicle-modal" role="dialog" aria-modal="true"><div className="modal-header"><div><h2>Log service or repair</h2><p>Record the service and optionally connect its cost to Pocket transactions.</p></div><button className="icon-btn" onClick={()=>setServiceOpen(false)}><X size={18}/></button></div><form onSubmit={saveService} className="vehicle-form"><label>Vehicle<select required value={serviceForm.vehicle_id} onChange={e=>setServiceForm(f=>({...f,vehicle_id:e.target.value}))}>{vehicles.map(v=><option value={v.id} key={v.id}>{v.name}</option>)}</select></label><div className="vehicle-form-grid"><label>Service type<select value={serviceForm.service_type} onChange={e=>setServiceForm(f=>({...f,service_type:e.target.value}))}><option>Routine maintenance</option><option>Repair</option><option>Inspection</option><option>Tires</option><option>Battery</option><option>Brakes</option><option>Other</option></select></label><label>Date<input required type="date" value={serviceForm.service_date} onChange={e=>setServiceForm(f=>({...f,service_date:e.target.value}))}/></label><label>Service title<input required value={serviceForm.title} onChange={e=>setServiceForm(f=>({...f,title:e.target.value}))} placeholder="Oil and filter change"/></label><label>Odometer<input type="number" min="0" value={serviceForm.odometer} onChange={e=>setServiceForm(f=>({...f,odometer:e.target.value}))}/></label><label>Cost<input type="number" min="0" step="0.01" value={serviceForm.cost} onChange={e=>setServiceForm(f=>({...f,cost:e.target.value}))}/></label><label>Service provider<input value={serviceForm.provider} onChange={e=>setServiceForm(f=>({...f,provider:e.target.value}))} placeholder="Garage / mechanic"/></label></div><label>Financial transaction<select value={serviceForm.transaction_mode} onChange={e=>setServiceForm(f=>({...f,transaction_mode:e.target.value}))}><option value="none">Do not link a transaction</option><option value="create">Create an expense transaction</option><option value="link">Link an existing expense</option></select></label>{serviceForm.transaction_mode==='link'&&<label>Existing expense<select required value={serviceForm.transaction_id} onChange={e=>setServiceForm(f=>({...f,transaction_id:e.target.value}))}><option value="">Select an expense</option>{transactions.filter(t=>t.type==='Expense').map(t=><option key={t.id} value={t.id}>{t.transaction_date} · {t.description||t.category} · {money(t.amount)}</option>)}</select></label>}<label>Notes<textarea value={serviceForm.notes} onChange={e=>setServiceForm(f=>({...f,notes:e.target.value}))}/></label><div className="vehicle-form-actions"><button type="button" className="btn btn-secondary" onClick={()=>setServiceOpen(false)}>Cancel</button><button className="btn btn-primary" disabled={busy||!serviceForm.vehicle_id}>{busy?'Saving…':'Save service'}</button></div></form></section></div>}
   {deleteTarget&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setDeleteTarget(null)}}><section className="modal-shell category-wizard-card category-delete-confirm vehicle-delete-confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-vehicle-title"><div className="modal-header"><div><h2 id="delete-vehicle-title">Delete vehicle?</h2><p>Delete <b>{deleteTarget.name}</b> and its maintenance plans and service history? This action cannot be undone.</p></div><button className="icon-btn" disabled={busy} onClick={()=>setDeleteTarget(null)}><X size={18}/></button></div>{error&&<div className="workspace-error">{error}</div>}<div className="vehicle-form-actions"><button className="btn btn-secondary" disabled={busy} onClick={()=>setDeleteTarget(null)}>Cancel</button><button className="btn btn-danger" disabled={busy} onClick={removeVehicle}>{busy?<><LoaderCircle size={15} className="spin"/> Deleting…</>:<><Trash2 size={15}/> Delete vehicle</>}</button></div></section></div>}
