@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
 import * as XLSX from 'xlsx';
 import {
-  LayoutDashboard, ArrowLeftRight, Wallet, Target, Repeat2, ChartNoAxesCombined, CarFront, Wrench, Gauge, CalendarClock, History, Fuel, AlertTriangle,
+  LayoutDashboard, ArrowLeftRight, Wallet, Target, Repeat2, ChartNoAxesCombined, Layers, CarFront, Wrench, Gauge, CalendarClock, History, Fuel, AlertTriangle,
   Settings, Search, Plus, Bell, BellRing, Database, ChevronDown, ChevronLeft, ChevronRight, ArrowUpRight, UserRound, ShieldCheck, FileJson,
   ArrowDownRight, TrendingUp, Download, Upload, CalendarDays, SlidersHorizontal,
   MoreHorizontal, X, Check, XCircle, CircleHelp, PiggyBank, CreditCard, Sparkles, LogOut,
