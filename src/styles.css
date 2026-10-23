@@ -1628,3 +1628,39 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
     display: inline !important;
   }
 }
+
+/* Sidebar administration dropdown + compact mode alignment fix */
+.admin-section-label { cursor:pointer; }
+.admin-section-label > span, .nav-parent-label > span { flex:1; min-width:0; }
+.admin-nav-group > .admin-access-dropdown { margin-left:8px; }
+.admin-nav-group .nav-subitem { padding-left:30px; }
+.app-shell.sidebar-compact .sidebar { padding:18px 8px 14px; overflow-x:hidden; }
+.app-shell.sidebar-compact .brand { justify-content:center; padding:0 0 20px; width:100%; }
+.app-shell.sidebar-compact .brand-mark { margin:0 auto; flex:0 0 30px; }
+.app-shell.sidebar-compact .nav-group { width:100%; min-width:0; margin:4px 0; }
+.app-shell.sidebar-compact .nav-label,
+.app-shell.sidebar-compact .nav-parent-label { display:flex !important; align-items:center; justify-content:center; gap:0; width:100%; min-height:42px; padding:10px 0; font-size:0; }
+.app-shell.sidebar-compact .nav-label > span,
+.app-shell.sidebar-compact .nav-parent-label > span,
+.app-shell.sidebar-compact .nav-label > svg:last-child,
+.app-shell.sidebar-compact .nav-parent-label > svg:last-child,
+.app-shell.sidebar-compact .workspace-section-edit { display:none !important; }
+.app-shell.sidebar-compact .nav-item { width:100%; min-width:0; min-height:42px; display:flex; justify-content:center; align-items:center; padding:10px 0; margin:3px 0; gap:0; }
+.app-shell.sidebar-compact .nav-item > svg { width:19px; height:19px; flex:0 0 19px; margin:0; }
+.app-shell.sidebar-compact .nav-item > span,
+.app-shell.sidebar-compact .am-sidebar-counts { display:none !important; }
+.app-shell.sidebar-compact .admin-nav-group .admin-access-dropdown { margin:0; }
+.app-shell.sidebar-compact .admin-nav-group .nav-subitem { padding:10px 0; }
+.app-shell.sidebar-compact .sidebar-bottom { margin-top:auto; width:100%; }
+.app-shell.sidebar-compact .profile { justify-content:center; width:100%; padding:10px 0; }
+.app-shell.sidebar-compact[dir="rtl"] .main-area { margin-left:0; margin-right:88px; width:calc(100% - 88px); }
+@media(max-width:680px) {
+ .app-shell.sidebar-compact .nav-label,
+ .app-shell.sidebar-compact .nav-parent-label { justify-content:flex-start; gap:8px; font-size:inherit; padding:10px; }
+ .app-shell.sidebar-compact .nav-label > span,
+ .app-shell.sidebar-compact .nav-parent-label > span,
+ .app-shell.sidebar-compact .nav-label > svg:last-child,
+ .app-shell.sidebar-compact .nav-parent-label > svg:last-child { display:initial !important; }
+ .app-shell.sidebar-compact .nav-item { justify-content:flex-start; gap:10px; padding:11px 12px; }
+ .app-shell.sidebar-compact .nav-item > span { display:inline !important; }
+}
