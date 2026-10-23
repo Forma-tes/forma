@@ -1516,3 +1516,115 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .vehicle-nav-subitem svg{width:16px;height:16px;opacity:.85;flex-shrink:0}
 .vehicle-nav-subitem.active{border-left:2px solid var(--accent,#7887ff)!important;background:var(--panel-soft,rgba(120,135,255,.1))!important}
 .vehicle-nav-subitem span{white-space:normal}
+
+/* Sidebar dropdown refinements */
+.sidebar-dropdown > summary { list-style: none; cursor: pointer; }
+.sidebar-dropdown > summary::-webkit-details-marker { display: none; }
+.sidebar-dropdown > summary { display: flex; align-items: center; gap: 10px; }
+.sidebar-dropdown > summary > span { flex: 1; min-width: 0; }
+.sidebar-dropdown > summary > svg:last-child { margin-left: auto; opacity: .65; transition: transform .18s ease; flex-shrink: 0; }
+.sidebar-dropdown[open] > summary > svg:last-child { transform: rotate(180deg); }
+.sidebar-dropdown > summary:hover { color: var(--accent,#7887ff); }
+.vehicle-nav-label > svg:first-child { width:18px; height:18px; flex-shrink:0; }
+.admin-access-dropdown { margin-bottom: 5px; }
+
+/* Editable MY SPACE sidebar section title */
+.nav-label { display:flex; align-items:center; gap:7px; }
+.nav-label > span { flex:1; min-width:0; }
+.workspace-section-edit { display:inline-grid; place-items:center; width:22px; height:22px; flex-shrink:0; border:0; border-radius:6px; color:#9aa1b2; background:transparent; opacity:0; transition:opacity .15s, background .15s, color .15s; }
+.nav-label:hover .workspace-section-edit, .workspace-section-edit:focus-visible { opacity:1; }
+.workspace-section-edit:hover { color:#6676f3; background:#f0f1ff; }
+.workspace-section-editor { display:flex; align-items:center; gap:4px; padding:0 9px 9px; }
+.workspace-section-editor input { flex:1; min-width:0; width:100%; height:30px; border:1px solid #e3e6ef; border-radius:7px; padding:0 8px; color:#414858; background:#fff; font-size:10px; outline:none; }
+.workspace-section-editor input:focus { border-color:#8994f6; box-shadow:0 0 0 2px #6c7cf514; }
+.workspace-section-save, .workspace-section-cancel { display:grid; place-items:center; width:26px; height:26px; flex-shrink:0; border:0; border-radius:6px; background:#f0f1ff; color:#6676f3; }
+.workspace-section-cancel { background:#f5f6f8; color:#858c9b; }
+.app-shell.sidebar-compact .workspace-section-edit, .app-shell.sidebar-compact .workspace-section-editor { display:none; }
+
+/* Compact sidebar layout refinement */
+.app-shell.sidebar-compact .sidebar {
+  box-sizing: border-box;
+  align-items: stretch;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.app-shell.sidebar-compact .brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  min-height: 54px;
+}
+.app-shell.sidebar-compact .brand img,
+.app-shell.sidebar-compact .brand svg {
+  flex-shrink: 0;
+}
+.app-shell.sidebar-compact .sidebar-nav,
+.app-shell.sidebar-compact .nav-groups,
+.app-shell.sidebar-compact .nav-group {
+  min-width: 0;
+  width: 100%;
+}
+.app-shell.sidebar-compact .nav-group {
+  margin: 5px 0;
+}
+.app-shell.sidebar-compact .nav-label {
+  display: none !important;
+}
+.app-shell.sidebar-compact .nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  box-sizing: border-box;
+  margin: 3px 0;
+  gap: 0;
+  border-radius: 10px;
+}
+.app-shell.sidebar-compact .nav-item > svg {
+  display: block;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+.app-shell.sidebar-compact .nav-item > span,
+.app-shell.sidebar-compact .nav-count {
+  display: none !important;
+}
+.app-shell.sidebar-compact .sidebar-bottom {
+  width: 100%;
+  margin-top: auto;
+}
+.app-shell.sidebar-compact .profile {
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+  padding: 10px 0;
+}
+.app-shell.sidebar-compact .profile .avatar {
+  flex: 0 0 34px;
+}
+.app-shell.sidebar-compact[dir="rtl"] .main-area {
+  margin-left: 0;
+  margin-right: 88px;
+  width: calc(100% - 88px);
+}
+@media (max-width: 680px) {
+  .app-shell.sidebar-compact .sidebar {
+    align-items: stretch;
+  }
+  .app-shell.sidebar-compact .nav-label {
+    display: flex !important;
+  }
+  .app-shell.sidebar-compact .nav-item {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  .app-shell.sidebar-compact .nav-item > span {
+    display: inline !important;
+  }
+}
