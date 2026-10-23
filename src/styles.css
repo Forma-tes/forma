@@ -1506,3 +1506,19 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 :root[data-theme="light"] select,:root[data-theme="light"] option,:root[data-theme="light"] optgroup{color-scheme:light;background-color:#fff;color:#1b2433}
 @media(max-width:900px){.vehicle-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.vehicle-list-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.vehicle-heading{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){.vehicle-list-grid{grid-template-columns:1fr}.vehicle-tabs{width:100%}.vehicle-tabs button{padding:9px 10px}.vehicle-form-grid{grid-template-columns:1fr}.vehicle-record-row{align-items:flex-start}.vehicle-record-due{max-width:120px}.vehicle-heading-actions{width:100%}.vehicle-heading-actions .btn{flex:1;justify-content:center}}
+/* Pocket navigation dropdown and vehicle selector refinements */
+.nav-label-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:0;background:transparent;cursor:pointer;text-align:left;font:inherit}
+.nav-label-toggle svg{flex-shrink:0;transition:transform .18s;color:var(--muted,#a0a5b1)}
+.nav-label-toggle[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.nav-dropdown-content.is-collapsed{display:none}
+.vehicle-tabs-dropdowns{display:flex;gap:10px;align-items:center;width:max-content;max-width:100%;overflow:visible}
+.vehicle-tab-select{position:relative;display:flex;align-items:center;gap:10px;padding:0 10px 0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-height:42px;color:var(--ink)}
+.vehicle-tab-select>span{font-size:11px;color:var(--muted);white-space:nowrap}
+.vehicle-tab-select select{appearance:none;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:700;padding:8px 20px 8px 0;max-width:190px;cursor:pointer}
+.vehicle-tab-select svg{position:absolute;right:10px;pointer-events:none;color:var(--muted)}
+.vehicle-tab-select select option{background:var(--panel);color:var(--ink)}
+.vehicle-mini-modal{width:min(440px,calc(100vw - 28px))}
+.vehicle-mini-modal .modal-header{padding:22px 22px 16px;margin-bottom:0}
+.vehicle-mini-modal .vehicle-form{padding-top:0}
+.vehicle-form label{font-size:12px}
+@media(max-width:560px){.vehicle-tabs-dropdowns{width:100%;display:grid;grid-template-columns:1fr 1fr}.vehicle-tab-select{min-width:0}.vehicle-tab-select select{max-width:100%;min-width:0}.vehicle-tab-select>span{display:none}}
