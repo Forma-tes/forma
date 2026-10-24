@@ -589,7 +589,7 @@ function App(){
   async function saveDebt(form){
     const principal=Number(form.original_amount||0), installment=Number(form.monthly_payment||0), term=Math.max(0,Number(form.term_months||0));
     const totalRepayment=term>0&&installment>0?Number((installment*term).toFixed(2)):Number(form.total_repayment||principal);
-    const startDate=form.start_date||null,dueDate=form.due_date||null;let paidCount=Math.max(0,Number(form.paid_installments??editing?.paid_installments??0));if(!editing&&startDate&&dueDate){const a=new Date(`${startDate}T12:00:00`),b=new Date(`${dueDate}T12:00:00`);if(!Number.isNaN(a.getTime())&&!Number.isNaN(b.getTime())){let months=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());if(b.getDate()<a.getDate())months--;paidCount=Math.max(0,Math.min(term||600,months));}}
+    const startDate=form.start_date||null,dueDate=form.due_date||null;const paidCount=Math.max(0,Math.min(term||600,Number(form.paid_installments??editing?.paid_installments??0)||0));
     const amountPaid=Math.min(totalRepayment,Math.max(0,Number((paidCount*installment).toFixed(2))));
     const remaining=Math.max(0,Number((totalRepayment-amountPaid).toFixed(2)));
     const interestRate=principal>0&&totalRepayment>0?Number((((totalRepayment-principal)/principal)*100).toFixed(2)):0;
