@@ -1750,3 +1750,6 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .am-request-area .access-request-toolbar{min-height:76px;align-items:center}
 .am-request-area .am-request-layout{align-items:start}
 @media(max-width:640px){.am-request-area{gap:14px}.am-request-area .access-request-toolbar{align-items:stretch;min-height:0}}
+
+/* Required-field labels across data-entry popups */
+.modal label.field:has(input:required, select:required, textarea:required) > span::after{content:" *";color:#e05b68;font-weight:800}
