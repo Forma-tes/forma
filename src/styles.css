@@ -1753,3 +1753,118 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 
 /* Required-field labels across data-entry popups */
 .modal label.field:has(input:required, select:required, textarea:required) > span::after{content:" *";color:#e05b68;font-weight:800}
+
+/* Pocket global responsive restoration: keep every workspace usable across desktop, tablet and mobile. */
+.app-shell,.main-area,.page-wrap,.page-wrap *{min-width:0}
+.page-wrap{width:100%;}
+img,svg,canvas,video{max-width:100%;}
+input,select,textarea{max-width:100%;}
+.table-wrap,.data-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.dashboard-grid,.content-grid,.report-charts,.budget-grid,.goal-grid,.metric-grid,.metric-strip,.vehicle-list-grid,.debt-card-grid,.category-admin-list,.access-request-stats{min-width:0;}
+.panel,.metric-card,.debt-card,.vehicle-card,.goal-card,.budget-card,.category-admin-card,.access-request-panel{min-width:0;max-width:100%;}
+.page-heading,.category-admin-heading,.vehicle-heading,.access-request-toolbar,.table-toolbar{flex-wrap:wrap;}
+.page-heading>* ,.category-admin-heading>* ,.vehicle-heading>*{min-width:0;}
+.modal-backdrop,.modal-overlay,.popup-backdrop{padding:clamp(8px,2vw,24px);}
+.modal,.modal-card,.modal-content,.tx-wizard-card,.category-wizard-card{max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;}
+.form-grid,.tx-form-grid,.debt-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+.form-grid>* ,.tx-form-grid>* ,.debt-form-grid>*{min-width:0;}
+.field input,.field select,.field textarea,.form-field input,.form-field select,.form-field textarea{width:100%;min-width:0;}
+@media(max-width:1250px){
+  .page-wrap{padding-left:clamp(16px,2.5vw,28px);padding-right:clamp(16px,2.5vw,28px)}
+  .topbar{padding-left:clamp(16px,2.5vw,28px);padding-right:clamp(16px,2.5vw,28px)}
+  .top-charts,.lower-grid,.report-charts{grid-template-columns:minmax(0,1fr)}
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:950px){
+  .app-shell:not(.sidebar-compact):not(.sidebar-wide) .sidebar{width:225px}
+  .app-shell:not(.sidebar-compact):not(.sidebar-wide) .main-area{margin-left:225px;width:calc(100% - 225px)}
+  .app-shell.sidebar-compact .main-area{margin-left:88px;width:calc(100% - 88px)}
+  .app-shell.sidebar-wide .sidebar{width:245px}
+  .app-shell.sidebar-wide .main-area{margin-left:245px;width:calc(100% - 245px)}
+  .bottom-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bottom-grid .panel:last-child{grid-column:1/-1}
+  .overview-vehicle-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .skeleton-columns{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .page-wrap{padding:22px 16px 20px}
+  .page-heading{align-items:flex-start;flex-direction:column;gap:12px}
+  .heading-actions,.vehicle-heading-actions,.tx-heading-actions{width:100%;flex-wrap:wrap}
+  .dashboard-grid,.top-charts,.lower-grid,.bottom-grid,.content-grid,.report-charts,.budget-grid,.goal-grid{grid-template-columns:minmax(0,1fr)}
+  .bottom-grid .panel:last-child{grid-column:auto}
+  .category-admin-list,.vehicle-list-grid{grid-template-columns:minmax(0,1fr)}
+  .access-request-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .table-toolbar,.access-request-toolbar{align-items:stretch;flex-direction:column}
+  .table-toolbar>* ,.access-request-toolbar>*{max-width:100%;width:100%}
+  .table-toolbar input,.table-toolbar select,.access-request-controls select{min-width:0;max-width:100%;}
+  .filter-group,.access-request-controls{flex-wrap:wrap;max-width:100%;}
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .modal-backdrop,.modal-overlay,.popup-backdrop{align-items:center;padding:12px;}
+  .modal,.modal-card,.modal-content,.tx-wizard-card,.category-wizard-card{width:100%;max-width:560px;max-height:calc(100dvh - 24px);}
+  .form-grid,.tx-form-grid,.debt-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .modal-actions,.tx-wizard-actions,.category-wizard-actions{flex-wrap:wrap;}
+  .modal-actions .btn,.tx-wizard-actions .btn{min-width:0;}
+  .data-table{min-width:640px;}
+}
+@media(max-width:680px){
+  .app-shell .sidebar,.app-shell.sidebar-compact .sidebar,.app-shell.sidebar-wide .sidebar{width:min(290px,86vw);}
+  .app-shell .main-area,.app-shell.sidebar-compact .main-area,.app-shell.sidebar-wide .main-area{margin-left:0;margin-right:0;width:100%;}
+  .app-shell[dir="rtl"] .main-area,.app-shell.sidebar-compact[dir="rtl"] .main-area,.app-shell.sidebar-wide[dir="rtl"] .main-area{margin-left:0;margin-right:0;width:100%;}
+  .topbar{height:auto;min-height:58px;padding:10px 14px;gap:8px;}
+  .topbar-left,.topbar-actions{gap:7px;min-width:0;}
+  .topbar-actions{margin-left:auto;}
+  .page-wrap{padding:20px 13px 18px;}
+  .page-heading h1{font-size:clamp(21px,6vw,26px);overflow-wrap:anywhere;}
+  .panel{padding:14px;}
+  .metric-grid,.metric-grid.three{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .metric-grid.three .metric-card:last-child{grid-column:1/-1;}
+  .bottom-grid{grid-template-columns:minmax(0,1fr);}
+  .form-grid,.tx-form-grid,.debt-form-grid{grid-template-columns:minmax(0,1fr);}
+  .form-grid .field[style*="grid-column"],.tx-form-grid .field[style*="grid-column"],.debt-form-grid .field[style*="grid-column"]{grid-column:auto!important;}
+  .modal-backdrop,.modal-overlay,.popup-backdrop{align-items:flex-end;padding:8px;}
+  .modal,.modal-card,.modal-content,.tx-wizard-card,.category-wizard-card{width:100%;max-width:none;max-height:calc(100dvh - 16px);padding:16px;border-radius:16px 16px 10px 10px;}
+  .modal-header,.modal-actions,.tx-wizard-actions{gap:8px;}
+  .modal-actions .btn,.tx-wizard-actions .btn{flex:1;white-space:normal;}
+  .footer{padding-left:13px;padding-right:13px;}
+  .chart-legend{flex-wrap:wrap;}
+  .category-legend{grid-template-columns:minmax(0,1fr);}
+  .access-request-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:420px){
+  .page-wrap{padding-left:10px;padding-right:10px;}
+  .topbar{padding-left:10px;padding-right:10px;}
+  .topbar-actions{gap:3px;}
+  .metric-grid,.metric-grid.three{gap:8px;}
+  .metric-card{padding:11px;}
+  .metric-value{font-size:clamp(16px,5vw,20px);}
+  .panel{padding:12px;}
+  .heading-actions .btn{flex:1;white-space:normal;}
+  .access-request-stats{gap:8px;}
+  .access-request-stat{padding:12px;}
+  .access-request-stat strong{font-size:24px;}
+  .tx-category-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .category-icon-picker{grid-template-columns:repeat(6,minmax(0,1fr));}
+}
+@media(prefers-reduced-motion:reduce){.sidebar,.btn,.progress-track span{transition:none!important;}}
+
+/* Debt installment payment modal: clearer hierarchy and responsive layout */
+.debt-payment-modal{width:min(680px,calc(100vw - 32px));max-width:680px;padding:28px;border:1px solid var(--line,#30394c);border-radius:20px;background:var(--panel,#1d2534);color:var(--ink,#f3f5fb);box-shadow:0 28px 90px rgba(0,0,0,.38)}
+.debt-payment-modal .modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 24px;padding:0 0 20px;border-bottom:1px solid var(--line,#30394c)}
+.debt-payment-modal .modal-header h2{margin:0 0 8px;font-size:clamp(21px,3vw,27px);line-height:1.2;letter-spacing:-.7px;color:var(--ink,#f3f5fb)}
+.debt-payment-modal .modal-header .eyebrow{color:#9aa6bd;margin:0 0 9px}
+.debt-payment-modal .modal-header .small-muted{margin:0;color:var(--muted,#a0abc0);font-size:12px;line-height:1.5}
+.debt-payment-modal .debt-payment-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 16px;margin:0}
+.debt-payment-modal .field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.debt-payment-modal .field label{font-size:12px;font-weight:700;color:var(--ink,#e7ebf5)}
+.debt-payment-modal .field input,.debt-payment-modal .field select{width:100%;min-width:0;height:44px;padding:0 12px;border:1px solid var(--line,#39445b);border-radius:11px;background:var(--input-bg,#141b28);color:var(--ink,#f3f5fb);font-size:13px;outline:none}
+.debt-payment-modal .field input:focus,.debt-payment-modal .field select:focus{border-color:#667cff;box-shadow:0 0 0 3px rgba(102,124,255,.16)}
+.debt-payment-modal .field small{font-size:11px;line-height:1.5;color:var(--muted,#a0abc0)}
+.debt-payment-modal .payment-summary{grid-column:1/-1;display:flex;align-items:flex-start;gap:13px;padding:16px;border:1px solid var(--line,#30394c);border-radius:14px;background:color-mix(in srgb,var(--input-bg,#141b28) 82%,transparent)}
+.debt-payment-modal .payment-summary-icon{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:11px;background:rgba(91,113,255,.16);color:#8b9aff}
+.debt-payment-modal .payment-summary-copy{min-width:0;flex:1}
+.debt-payment-modal .payment-summary-copy b{display:block;font-size:13px;line-height:1.5;color:var(--ink,#f3f5fb)}
+.debt-payment-modal .payment-summary-copy p{margin:4px 0 0;font-size:11px;line-height:1.55;color:var(--muted,#a0abc0)}
+.debt-payment-modal .modal-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:10px;margin:4px 0 0;padding:18px 0 0;border-top:1px solid var(--line,#30394c)}
+.debt-payment-modal .modal-actions .btn{min-height:42px;padding-inline:18px}
+@media(max-width:620px){.debt-payment-modal{width:100%;max-width:520px;padding:22px 18px;border-radius:20px 20px 12px 12px;max-height:calc(100dvh - 16px);overflow:auto}.debt-payment-modal .modal-header{gap:8px;margin-bottom:18px;padding-bottom:16px}.debt-payment-modal .modal-header h2{font-size:21px}.debt-payment-modal .debt-payment-form{grid-template-columns:minmax(0,1fr);gap:15px}.debt-payment-modal .payment-summary,.debt-payment-modal .modal-actions{grid-column:1}.debt-payment-modal .field input,.debt-payment-modal .field select{height:46px}.debt-payment-modal .modal-actions{position:sticky;bottom:-1px;background:var(--panel,#1d2534);padding-top:14px}.debt-payment-modal .modal-actions .btn{flex:1}}
+@media(min-width:621px) and (max-width:900px){.debt-payment-modal{width:min(620px,calc(100vw - 40px));padding:24px}.debt-payment-modal .debt-payment-form{gap:16px 13px}}
