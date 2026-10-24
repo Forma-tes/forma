@@ -1737,3 +1737,11 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea{background:var(--panel);color:var(--ink);border-color:var(--line)}
 .vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea::placeholder{color:var(--muted);opacity:.8}
 .vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea:focus{border-color:var(--accent,#7887ff);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#7887ff) 17%,transparent)}
+
+/* Requests inbox spacing: keep the inbox below the summary cards with clear separation. */
+.am-request-area{display:flex;flex-direction:column;gap:20px;min-width:0;position:relative;isolation:isolate}
+.am-request-area .access-request-stats{margin:0}
+.am-request-area .am-inbox-panel{margin:0;position:relative;clear:both;min-width:0}
+.am-request-area .access-request-toolbar{min-height:76px;align-items:center}
+.am-request-area .am-request-layout{align-items:start}
+@media(max-width:640px){.am-request-area{gap:14px}.am-request-area .access-request-toolbar{align-items:stretch;min-height:0}}
