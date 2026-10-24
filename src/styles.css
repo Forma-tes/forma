@@ -1719,3 +1719,13 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .am-request-area .access-request-controls select{min-height:40px;border-radius:10px;background:var(--input-bg,var(--panel,#171d29));border-color:var(--border,rgba(150,160,180,.2));color:var(--text,#edf0f8);font:inherit;font-size:13px}
 .am-request-area .access-request-controls .btn{min-height:40px;border-radius:10px}
 @media(max-width:800px){.am-request-area .access-request-toolbar{padding:15px;gap:12px}.am-request-area .access-request-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%}.am-request-area .access-request-search{grid-column:1/-1;max-width:none;min-width:0}.am-request-area .access-request-controls select{width:100%;max-width:none;min-width:0}.am-request-area .access-request-controls .btn{grid-column:1/-1;justify-content:center}}
+
+/* Pocket-aligned workspace navigation and fuel-entry refinements */
+.overview-account-metrics{display:grid;grid-template-columns:minmax(240px,360px);gap:12px;margin:0 0 10px}
+.overview-account-metrics .metric-card{min-width:0}
+.fuel-notes-field>span{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fuel-notes-field>span small,.field-hint{font-size:11px;font-weight:400;color:var(--text-muted,#858b99)}
+.vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea{display:block;width:100%;min-height:92px;padding:12px 14px;border:1px solid var(--border,#e5e7eb);border-radius:10px;background:var(--surface,#fff);color:var(--text,#202431);font:inherit;font-size:13px;line-height:1.5;outline:none;resize:vertical;box-shadow:none}
+.vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea:focus{border-color:var(--primary,#6c7cf5);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary,#6c7cf5) 14%,transparent)}
+.vehicle-wizard-form .field-hint{display:block;margin-top:2px;line-height:1.4}
+@media(max-width:760px){.overview-account-metrics{grid-template-columns:minmax(0,1fr)}}
