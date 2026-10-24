@@ -1868,3 +1868,41 @@ input,select,textarea{max-width:100%;}
 .debt-payment-modal .modal-actions .btn{min-height:42px;padding-inline:18px}
 @media(max-width:620px){.debt-payment-modal{width:100%;max-width:520px;padding:22px 18px;border-radius:20px 20px 12px 12px;max-height:calc(100dvh - 16px);overflow:auto}.debt-payment-modal .modal-header{gap:8px;margin-bottom:18px;padding-bottom:16px}.debt-payment-modal .modal-header h2{font-size:21px}.debt-payment-modal .debt-payment-form{grid-template-columns:minmax(0,1fr);gap:15px}.debt-payment-modal .payment-summary,.debt-payment-modal .modal-actions{grid-column:1}.debt-payment-modal .field input,.debt-payment-modal .field select{height:46px}.debt-payment-modal .modal-actions{position:sticky;bottom:-1px;background:var(--panel,#1d2534);padding-top:14px}.debt-payment-modal .modal-actions .btn{flex:1}}
 @media(min-width:621px) and (max-width:900px){.debt-payment-modal{width:min(620px,calc(100vw - 40px));padding:24px}.debt-payment-modal .debt-payment-form{gap:16px 13px}}
+
+/* Mobile layout hardening: prevent desktop-width children from pushing the app off-screen. */
+html,body,#root{width:100%;max-width:100%;min-height:100%;}
+body{overflow-x:clip;}
+.app-shell{width:100%;max-width:100%;overflow-x:clip;}
+.main-area{min-width:0;max-width:100%;}
+.page-wrap{min-width:0;max-width:100%;}
+.page-wrap :is(h1,h2,h3,h4,p,span,b,strong,small,label){overflow-wrap:anywhere;}
+.page-wrap :is(.panel-header,.metric-top,.metric-foot,.page-heading,.heading-actions){min-width:0;}
+@media(max-width:680px){
+  .app-shell,.main-area,.topbar,.page-wrap{max-width:100vw;}
+  .topbar{padding-top:env(safe-area-inset-top,0px);}
+  .topbar-left{flex:1;overflow:hidden;}
+  .topbar-left .breadcrumb-current{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .topbar-actions{flex:0 0 auto;}
+  .page-wrap{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));}
+  .page-heading,.page-heading>*,.heading-actions>*{max-width:100%;}
+  .heading-actions .btn{flex:1 1 auto;min-width:0;}
+  .metric-grid,.metric-grid.three{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .metric-card,.metric-card *{min-width:0;}
+  .metric-value{max-width:100%;font-size:clamp(15px,4.7vw,20px);}
+  .panel-header{flex-wrap:wrap;}
+  .panel-header>div{min-width:0;max-width:100%;}
+  .table-panel>.table-wrap{max-width:100%;}
+  .toast,.notification-toast{right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));}
+}
+@media(max-width:380px){
+  .topbar{padding-left:9px;padding-right:9px;}
+  .topbar-actions{gap:2px;}
+  .topbar-left{gap:4px;}
+  .page-wrap{padding-left:10px;padding-right:10px;}
+  .metric-grid,.metric-grid.three{gap:7px;}
+  .metric-card{padding:10px;}
+  .metric-top{align-items:flex-start;font-size:9px;}
+  .metric-icon{width:27px;height:27px;}
+  .metric-value{font-size:15px;letter-spacing:-.4px;}
+  .panel{padding:11px;}
+}
