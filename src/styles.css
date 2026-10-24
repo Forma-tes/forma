@@ -1729,3 +1729,11 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea:focus{border-color:var(--primary,#6c7cf5);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary,#6c7cf5) 14%,transparent)}
 .vehicle-wizard-form .field-hint{display:block;margin-top:2px;line-height:1.4}
 @media(max-width:760px){.overview-account-metrics{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Fuel log actions and theme-safe notes field */
+.vehicle-record-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:7px}
+.vehicle-record-actions .btn{min-height:28px;padding:6px 8px}
+.vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea::placeholder{color:var(--muted);opacity:.8}
+.vehicle-wizard-form .fuel-notes-field textarea.pocket-textarea:focus{border-color:var(--accent,#7887ff);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#7887ff) 17%,transparent)}
