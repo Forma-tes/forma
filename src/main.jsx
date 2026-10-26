@@ -141,6 +141,37 @@ function PasswordInput({ className = '', ...props }) {
 }
 
 function App(){
+  // Track the visual viewport so mobile sheets resize above the on-screen keyboard.
+  useEffect(()=>{
+    const viewport = window.visualViewport;
+    const updateViewport = () => {
+      const height = viewport?.height || window.innerHeight;
+      const offsetTop = viewport?.offsetTop || 0;
+      document.documentElement.style.setProperty('--pocket-visual-viewport-height', `${Math.round(height)}px`);
+      document.documentElement.style.setProperty('--pocket-visual-viewport-top', `${Math.round(offsetTop)}px`);
+    };
+    updateViewport();
+    viewport?.addEventListener('resize', updateViewport);
+    viewport?.addEventListener('scroll', updateViewport);
+    window.addEventListener('resize', updateViewport);
+    const onFocusIn = event => {
+      const field = event.target;
+      if (!(field instanceof HTMLElement) || !field.matches('input, textarea, select, [contenteditable="true"]')) return;
+      window.setTimeout(() => {
+        updateViewport();
+        field.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+      }, 180);
+    };
+    document.addEventListener('focusin', onFocusIn);
+    return () => {
+      viewport?.removeEventListener('resize', updateViewport);
+      viewport?.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('resize', updateViewport);
+      document.removeEventListener('focusin', onFocusIn);
+      document.documentElement.style.removeProperty('--pocket-visual-viewport-height');
+      document.documentElement.style.removeProperty('--pocket-visual-viewport-top');
+    };
+  },[]);
   // Restore the last visited page on refresh and on the next visit in this browser.
   const [page,setPage] = useState(readPocketStartupPage);
   const [vehicleSidebarTab,setVehicleSidebarTab] = useState('vehicles');

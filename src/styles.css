@@ -1798,7 +1798,7 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .sidebar .nav-count{margin-left:auto;background:#edf0f8;color:#40485d;border-radius:999px;padding:3px 9px;min-width:28px;text-align:center;font-size:10px;}
 .sidebar-bottom{margin-top:auto!important;padding-top:8px;border-top:1px solid var(--line);background:var(--panel,#fff);position:sticky;bottom:0;flex-shrink:0;}
 
-.sidebar-profile{display:flex;align-items:center;gap:10px;padding:10px 0 12px;border-top:1px solid var(--line);min-width:0;}
+.sidebar-profile{display:flex;align-items:center;gap:10px;padding:10px 0 12px;border-top:0;min-width:0;}
 .sidebar-profile-avatar{display:grid;width:40px;height:40px;flex:0 0 40px;border-radius:50%;overflow:hidden;background:#3157f6;}
 .sidebar-profile-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;text-align:left;background:transparent;border:0;padding:0;color:var(--ink,#242b3d);}
 .sidebar-profile-copy b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1829,6 +1829,9 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
     padding: 0 !important;
     overflow: hidden !important;
     overscroll-behavior: contain;
+    top: var(--pocket-visual-viewport-top, 0px) !important;
+    height: var(--pocket-visual-viewport-height, 100dvh) !important;
+    bottom: auto !important;
   }
   .modal-backdrop:not(.settings-modal-backdrop) > .modal,
   .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell,
@@ -1838,7 +1841,7 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
     flex-direction: column;
     width: 100% !important;
     max-width: none !important;
-    max-height: min(88dvh, 900px) !important;
+    max-height: min(calc(var(--pocket-visual-viewport-height, 100dvh) - 8px), 900px) !important;
     min-height: 0;
     margin: 0 !important;
     border-radius: 22px 22px 0 0 !important;
@@ -1890,7 +1893,7 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
   .auth-modal-backdrop .auth-choice-card {
     width: 100%;
     max-width: none;
-    max-height: 88dvh;
+    max-height: min(calc(var(--pocket-visual-viewport-height, 100dvh) - 8px), 900px);
     overflow-y: auto;
     border-radius: 22px 22px 0 0;
     padding-bottom: max(24px, env(safe-area-inset-bottom));
@@ -1963,4 +1966,27 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
   .sidebar-profile-copy b { font-size: 12px; line-height: 1.25; }
   .sidebar-profile-copy span { font-size: 10px; line-height: 1.3; }
   .sidebar .sidebar-settings-button { width: 40px; height: 40px; flex-basis: 40px; flex-shrink: 0; }
+}
+
+
+/* Keyboard-aware mobile sheet sizing and scroll containment. */
+@media (max-width: 680px) {
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="dialog"],
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"],
+  .settings-modal-backdrop > .settings-bottom-sheet {
+    max-height: calc(var(--pocket-visual-viewport-height, 100dvh) - 8px) !important;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal > form,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell > form,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal > .modal-body,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell > .modal-body,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell > .category-wizard-card-content,
+  .settings-modal-backdrop > .settings-bottom-sheet > .settings-accordion-list {
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: 120px;
+  }
 }
