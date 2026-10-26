@@ -2036,3 +2036,52 @@ body, button, input, select, textarea, table, h1, h2, h3, h4, .page-title, .sect
   .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions,
   .settings-bottom-sheet > .modal-actions { position:sticky !important; bottom:0 !important; z-index:5; flex-shrink:0 !important; }
 }
+
+/* Final mobile layering + keyboard-aware sheet correction. The drawer must sit above
+   the fixed topbar (which has its own z-index), not slide underneath it. */
+@media (max-width: 680px) {
+  .sidebar,
+  .sidebar.sidebar-open { z-index: 120 !important; }
+  .scrim { z-index: 110 !important; }
+  .topbar,
+  .topbar-actions { z-index: 80; }
+
+  /* Let the visual viewport define the usable sheet height while the keyboard is open;
+     only the content pane scrolls, while the action row stays pinned inside the sheet. */
+  .modal-backdrop:not(.settings-modal-backdrop) {
+    position: fixed !important;
+    inset: var(--pocket-visual-viewport-top, 0px) 0 auto 0 !important;
+    height: var(--pocket-visual-viewport-height, 100dvh) !important;
+    min-height: 0 !important;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="dialog"],
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"],
+  .settings-modal-backdrop > .settings-bottom-sheet {
+    max-height: calc(var(--pocket-visual-viewport-height, 100dvh) - 6px) !important;
+    min-height: 0 !important;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions,
+  .settings-bottom-sheet > .modal-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    flex: 0 0 auto !important;
+    margin-top: auto !important;
+    padding: 12px 18px max(14px, env(safe-area-inset-bottom)) !important;
+    gap: 10px !important;
+    background: var(--panel, #fff) !important;
+    z-index: 8 !important;
+  }
+  .modal-backdrop input,
+  .modal-backdrop select,
+  .modal-backdrop textarea,
+  .settings-bottom-sheet input,
+  .settings-bottom-sheet select,
+  .settings-bottom-sheet textarea {
+    font-size: 16px !important;
+    scroll-margin-block: 24px;
+  }
+}

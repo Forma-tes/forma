@@ -157,10 +157,21 @@ function App(){
     const onFocusIn = event => {
       const field = event.target;
       if (!(field instanceof HTMLElement) || !field.matches('input, textarea, select, [contenteditable="true"]')) return;
+      // Scroll only the modal's content area. scrollIntoView() can move the page
+      // behind a fixed sheet on mobile and makes the sheet jump when the keyboard opens.
       window.setTimeout(() => {
         updateViewport();
-        field.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-      }, 180);
+        const sheet = field.closest('.modal, .modal-shell, section[role="dialog"], section[role="alertdialog"], .settings-bottom-sheet, .auth-popup-card');
+        const scrollArea = field.closest('.modal-body, .category-wizard-card-content, .vehicle-wizard-form, .vehicle-form, .settings-accordion-list, form') || sheet;
+        if (!scrollArea) return;
+        const fieldRect = field.getBoundingClientRect();
+        const areaRect = scrollArea.getBoundingClientRect();
+        const keyboardTop = window.visualViewport ? window.visualViewport.offsetTop + window.visualViewport.height : window.innerHeight;
+        const visibleBottom = Math.min(areaRect.bottom, keyboardTop) - 24;
+        const visibleTop = Math.max(areaRect.top, window.visualViewport?.offsetTop || 0) + 16;
+        if (fieldRect.bottom > visibleBottom) scrollArea.scrollTop += fieldRect.bottom - visibleBottom;
+        else if (fieldRect.top < visibleTop) scrollArea.scrollTop -= visibleTop - fieldRect.top;
+      }, 220);
     };
     document.addEventListener('focusin', onFocusIn);
     return () => {
