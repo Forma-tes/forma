@@ -1898,3 +1898,69 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 }
 @keyframes pocket-global-sheet-enter { from { transform: translateY(24px); opacity: .7; } to { transform: translateY(0); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .modal-backdrop > .modal, .modal-backdrop > .modal-shell, .auth-modal-backdrop .auth-popup-card { animation: none !important; } }
+
+/* Mobile bottom-sheet polish: prevent iOS input zoom, improve action spacing, and keep profile footer contained. */
+@media (max-width: 680px) {
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="dialog"],
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"],
+  .settings-bottom-sheet {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  /* iOS Safari zooms the page when a focused form control is smaller than 16px. */
+  .modal-backdrop input,
+  .modal-backdrop select,
+  .modal-backdrop textarea,
+  .settings-bottom-sheet input,
+  .settings-bottom-sheet select,
+  .settings-bottom-sheet textarea {
+    font-size: 16px !important;
+    scroll-margin-block: 18px;
+  }
+
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0;
+    padding: 14px 18px max(16px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line, #e5e8ef);
+    box-sizing: border-box;
+  }
+
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-actions > *,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-actions > *,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions > * {
+    min-width: 0;
+  }
+
+  .sidebar-bottom {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 8px max(10px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line, #e5e8ef);
+    background: var(--panel, #fff);
+  }
+
+  .sidebar-profile {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 58px;
+    padding: 2px 0;
+    gap: 10px;
+    border-top: 0;
+    align-items: center;
+  }
+
+  .sidebar-profile-avatar { width: 38px; height: 38px; flex-basis: 38px; }
+  .sidebar-profile-copy { min-width: 0; overflow: hidden; gap: 4px; }
+  .sidebar-profile-copy b { font-size: 12px; line-height: 1.25; }
+  .sidebar-profile-copy span { font-size: 10px; line-height: 1.3; }
+  .sidebar .sidebar-settings-button { width: 40px; height: 40px; flex-basis: 40px; flex-shrink: 0; }
+}
