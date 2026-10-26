@@ -1990,3 +1990,49 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
     scroll-padding-bottom: 120px;
   }
 }
+
+/* Unified Pocket UI typography: keep all routes consistent with Transactions. */
+:root { --font-display: 'Manrope', Arial, sans-serif; --font-ui: 'Manrope', Arial, sans-serif; }
+body, button, input, select, textarea, table, h1, h2, h3, h4, .page-title, .section-title, .auth-title, .welcome-title {
+  font-family: 'Manrope', Arial, sans-serif !important;
+}
+/* Keep the complete brand row inside the drawer and make it a home shortcut. */
+.sidebar { z-index: 80 !important; }
+.sidebar .brand { position: relative; z-index: 2; display:flex; align-items:center; justify-content:space-between; }
+.sidebar .brand-home { display:flex; align-items:center; gap:10px; min-width:0; padding:0; border:0; background:transparent; color:inherit; cursor:pointer; }
+.sidebar .brand-home > span { font-family:'Manrope',Arial,sans-serif; font-weight:800; }
+.sidebar .brand-home:focus-visible { outline:2px solid var(--blue,#6c7cf5); outline-offset:4px; border-radius:8px; }
+@media(max-width:680px){
+  .sidebar { top:0 !important; height:100dvh !important; max-height:100dvh !important; padding-top:18px !important; }
+  .sidebar .brand { min-height:48px; padding:0 8px 20px !important; }
+  .sidebar .brand-home { gap:9px; }
+  .sidebar .brand-home .brand-mark { flex-shrink:0; }
+}
+/* Stable modal sheet layout: body scrolls, action row stays in the visible bottom area. */
+@media(max-width:680px){
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="dialog"],
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"],
+  .settings-modal-backdrop > .settings-bottom-sheet { display:flex !important; flex-direction:column !important; min-height:0 !important; }
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-body,
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-shell > form,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal > form,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-card-content,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-wizard-form,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form { flex:1 1 auto; min-height:0 !important; overflow-y:auto !important; }
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions,
+  .settings-bottom-sheet > .modal-actions { position:relative !important; inset:auto !important; flex:0 0 auto !important; margin-top:0 !important; padding:14px 18px max(16px,env(safe-area-inset-bottom)) !important; gap:10px !important; border-top:1px solid var(--line,#e5e8ef); background:var(--panel,#fff); }
+}
+.auth-login-options { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:-3px; }
+.stay-logged-in { display:inline-flex; align-items:center; gap:8px; color:#c3d0c6; font-size:11px; cursor:pointer; }
+.stay-logged-in input { width:15px; height:15px; margin:0; accent-color:#a5eeb3; }
+.auth-login-options .forgot-link { margin-left:auto; }
+@media(max-width:680px){
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions,
+  .settings-bottom-sheet > .modal-actions { position:sticky !important; bottom:0 !important; z-index:5; flex-shrink:0 !important; }
+}

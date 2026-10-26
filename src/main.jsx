@@ -230,9 +230,27 @@ function App(){
   const [authName,setAuthName] = useState('');
   const [authGender,setAuthGender] = useState('');
   const [authPassword,setAuthPassword] = useState('');
+  const [stayLoggedIn,setStayLoggedIn] = useState(false);
+  const [sessionExpiredNotice,setSessionExpiredNotice] = useState(false);
   const [authConfirmPassword,setAuthConfirmPassword] = useState('');
   const [busy,setBusy] = useState(false);
   const [authLoading,setAuthLoading] = useState(true);
+  // If Stay logged in is unchecked, sign out after 15 minutes without user activity.
+  useEffect(()=>{
+    if(!cloudReady || !session?.user || stayLoggedIn) return;
+    let timer;
+    const expire = async () => {
+      setSessionExpiredNotice(true);
+      await supabase.auth.signOut();
+      setAuthMsg('You were signed out after 15 minutes of inactivity. Sign in again to continue.');
+      setAuthMode('signin');
+    };
+    const reset = () => { window.clearTimeout(timer); timer = window.setTimeout(expire, 15 * 60 * 1000); };
+    const events = ['pointerdown','pointermove','keydown','touchstart','scroll'];
+    events.forEach(event=>window.addEventListener(event,reset,{passive:true}));
+    reset();
+    return ()=>{window.clearTimeout(timer);events.forEach(event=>window.removeEventListener(event,reset));};
+  },[cloudReady,session?.user?.id,stayLoggedIn]);
   const [sidebarOpen,setSidebarOpen] = useState(false);
   const [accountMenuOpen,setAccountMenuOpen] = useState(false);
   const [notificationsOpen,setNotificationsOpen] = useState(false);
@@ -660,7 +678,7 @@ function App(){
 
   async function signIn(e){
     e.preventDefault(); if(!supabase)return;
-    setBusy(true);setAuthMsg('');
+    setBusy(true);setAuthMsg('');setSessionExpiredNotice(false);
     const loginId=authEmail.trim();
     const loginEmail=loginId.includes('@')?loginId:`${loginId.toLowerCase().replace(/[^a-z0-9._-]/g,'-')}@users.pocket.local`;
     const {error}=await supabase.auth.signInWithPassword({email:loginEmail,password:authPassword});
@@ -923,11 +941,11 @@ function App(){
     </section>
     <span className="pocket-loading-caption">PERSONAL FINANCE, IN ONE PLACE</span>
   </main>;
-  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
+  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,stayLoggedIn,setStayLoggedIn,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
   if(!cloudReady) return <main className="auth-page pocket-auth-page"><section className="auth-panel pocket-auth-panel"><div className="auth-choice-card pocket-auth-choice-card"><div className="auth-mobile-brand pocket-mobile-brand"><b>Pocket</b></div><h2>Connect Pocket to Supabase</h2><p className="auth-subtitle">Local and browser-based data storage is disabled. Configure <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your deployment environment, then redeploy.</p></div></section></main>;
   return <div className={`app-shell sidebar-${sidebarSize}`} lang="en" dir="ltr">
     <aside className={`sidebar ${sidebarOpen?'sidebar-open':''}`}>
-      <div className="brand"><div className="brand-mark"><img className="brand-logo-mark" src="/brand/pocket-mark.svg" alt="" /></div><span>Pocket</span><button className="icon-btn mobile-close" onClick={()=>setSidebarOpen(false)}><X size={18}/></button></div>
+      <div className="brand"><button type="button" className="brand-home" onClick={()=>{setPage('Overview');setSidebarOpen(false);}} aria-label="Pocket home — Overview"><div className="brand-mark"><img className="brand-logo-mark" src="/brand/pocket-mark.svg" alt="" /></div><span>Pocket</span></button><button className="icon-btn mobile-close" onClick={()=>setSidebarOpen(false)} aria-label="Close navigation"><X size={18}/></button></div>
       <div className="sidebar-navigation-tools"><span className="sidebar-section-title">MONEY</span></div>
       {visibleNavGroups.filter(group=>group.label==='WORKSPACE').map(group=><div className="nav-group sidebar-flat-group" key={group.label}>{group.items.filter(([name])=>['Overview','Transactions','Accounts'].includes(name)).map(([name,Icon])=><button key={name} className={`nav-item ${page===name?'active':''}`} onClick={()=>{setPage(name);setSidebarOpen(false)}}><Icon size={18}/><span>{name}</span>{name==='Transactions'&&<span className="nav-count">{transactions.length}</span>}</button>)}</div>)}
       {visibleNavGroups.filter(group=>group.label==='ANALYZE').map(group=><div className="nav-group sidebar-flat-group" key={group.label}>{group.items.map(([name,Icon])=><button key={name} className={`nav-item ${page===name?'active':''}`} onClick={()=>{setPage(name);setSidebarOpen(false)}}><Icon size={18}/><span>{name}</span></button>)}</div>)}
@@ -1704,7 +1722,7 @@ function CategoryGlyph({name}){const icons={'house':<Wallet size={17}/>, 'shoppi
 
 function ImportModal({rows,onClose,onConfirm}){return <ModalShell title="Import transactions" subtitle="Review the first rows before importing them." onClose={onClose} wide><div className="import-summary"><FileSpreadsheet size={22}/><div><b>{rows.length} transactions ready</b><span>Imported records will be added to your ledger.</span></div></div><div className="table-wrap import-table"><table className="data-table"><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead><tbody>{rows.slice(0,8).map((r,i)=><tr key={i}><td>{r.transaction_date}</td><td>{r.type}</td><td>{r.category}</td><td>{r.description}</td><td>{fmt(r.amount)}</td></tr>)}</tbody></table></div>{rows.length>8&&<p className="small-muted">Showing first 8 rows of {rows.length}.</p>}<div className="modal-actions"><button className="btn btn-secondary" onClick={onClose}>Cancel</button><button className="btn btn-primary" onClick={onConfirm}><Upload size={16}/>Import {rows.length} rows</button></div></ModalShell>}
 function AuthScreen(p){
- const {authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}=p;
+ const {authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,stayLoggedIn,setStayLoggedIn,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}=p;
  const isChoice=authMode==='choice', isSignup=authMode==='signup', isForgot=authMode==='forgot', isUpdatePassword=authMode==='update-password';
  const submit=isSignup?signUp:isForgot?resetPassword:isUpdatePassword?updatePassword:signIn;
  const closeAuth=()=>{setAuthMode('choice');setAuthMsg('')};
@@ -1751,7 +1769,7 @@ function AuthScreen(p){
       {!isUpdatePassword&&<label className="auth-field"><span>{authMode==='signin'?'Email or username':'Email address'}</span><input type={authMode==='signin'?'text':'email'} autoComplete={authMode==='signin'?'username':'email'} required value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="you@example.com"/></label>}
       {!isForgot&&<label className="auth-field"><span>{isUpdatePassword?'New password':'Password'}</span><PasswordInput autoComplete={isSignup||isUpdatePassword?'new-password':'current-password'} minLength={isSignup||isUpdatePassword?8:1} required value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder={isSignup||isUpdatePassword?'At least 8 characters':'Enter your password'}/></label>}
       {isUpdatePassword&&<label className="auth-field"><span>Confirm new password</span><PasswordInput autoComplete="new-password" minLength={8} required value={authConfirmPassword} onChange={e=>setAuthConfirmPassword(e.target.value)} placeholder="Enter the new password again"/></label>}
-      {!isSignup&&!isForgot&&!isUpdatePassword&&<button type="button" className="auth-text-link forgot-link" onClick={()=>{setAuthMode('forgot');setAuthMsg('')}}>Forgot password?</button>}
+      {!isSignup&&!isForgot&&!isUpdatePassword&&<div className="auth-login-options"><label className="stay-logged-in"><input type="checkbox" checked={stayLoggedIn} onChange={e=>setStayLoggedIn(e.target.checked)}/><span>Stay logged in</span></label><button type="button" className="auth-text-link forgot-link" onClick={()=>{setAuthMode('forgot');setAuthMsg('')}}>Forgot password?</button></div>}
       <button className="btn btn-primary auth-submit pocket-auth-submit" type="submit" disabled={busy}>{busy?<LoaderCircle size={17} className="spin"/>:null}{busy?'Please wait…':isSignup?'Create account':isForgot?'Send reset link':isUpdatePassword?'Update password':'Sign in'}<span aria-hidden="true">↗</span></button>
       {!isForgot&&!isUpdatePassword&&<><div className="pocket-form-divider pocket-google-divider"><span/><small>OR CONTINUE WITH</small><span/></div><button type="button" className="pocket-google-button" onClick={signInWithGoogle} disabled={busy}><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 38.05 46.98 31.95 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.45-4.88 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Continue with Google</span></button></>}
       {authMsg&&<p className={`auth-message ${/check your email|link has been sent|created successfully|confirmation email has been sent/i.test(authMsg)?'auth-message-success':'auth-message-error'}`} role="status">{authMsg}</p>}
