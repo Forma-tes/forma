@@ -1797,15 +1797,104 @@ input, textarea, select, code, pre, .admin-mini-email, .account-email, [type="em
 .sidebar .nav-item.active svg,.sidebar .nav-item:hover svg{color:#3157f6;}
 .sidebar .nav-count{margin-left:auto;background:#edf0f8;color:#40485d;border-radius:999px;padding:3px 9px;min-width:28px;text-align:center;font-size:10px;}
 .sidebar-bottom{margin-top:auto!important;padding-top:8px;border-top:1px solid var(--line);background:var(--panel,#fff);position:sticky;bottom:0;flex-shrink:0;}
-.sidebar-settings-link{margin-bottom:5px!important;}
+
 .sidebar-profile{display:flex;align-items:center;gap:10px;padding:10px 0 12px;border-top:1px solid var(--line);min-width:0;}
 .sidebar-profile-avatar{display:grid;width:40px;height:40px;flex:0 0 40px;border-radius:50%;overflow:hidden;background:#3157f6;}
 .sidebar-profile-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;text-align:left;background:transparent;border:0;padding:0;color:var(--ink,#242b3d);}
 .sidebar-profile-copy b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sidebar-profile-copy span{font-size:10px;color:var(--muted,#73798b);}
-.sidebar .sidebar-theme-toggle{width:38px;height:38px;border:1px solid var(--line);border-radius:12px;color:var(--ink);}
-.sidebar .sidebar-theme-toggle:hover{background:#f1f4ff;color:#3157f6;}
+.sidebar .sidebar-settings-button{width:38px;height:38px;flex:0 0 38px;border:1px solid var(--line);border-radius:12px;color:var(--ink);}
+.sidebar .sidebar-settings-button:hover{background:#f1f4ff;color:#3157f6;}
 :root[data-theme="dark"] .sidebar .nav-item.active{background:#293455;color:#cbd4ff;}
 :root[data-theme="dark"] .sidebar .nav-item:hover{background:#252d40;}
 :root[data-theme="dark"] .sidebar .nav-count{background:#30394c;color:#e1e6f3;}
-@media(max-width:680px){.sidebar{width:min(316px,86vw)!important;padding:20px 12px 0!important;transform:translateX(-105%);transition:transform .24s ease;box-shadow:none;z-index:60;}.sidebar.sidebar-open{transform:translateX(0);box-shadow:20px 0 50px #10172b24;}.sidebar .brand .mobile-close{display:inline-grid;}.sidebar .sidebar-bottom{position:sticky;bottom:0;}.scrim{position:fixed;inset:0;background:rgba(20,27,45,.48);backdrop-filter:blur(2px);z-index:55;}.app-shell.sidebar-compact .sidebar,.app-shell.sidebar-wide .sidebar{width:min(316px,86vw)!important;}.app-shell.sidebar-compact .brand>span,.app-shell.sidebar-compact .nav-item>span,.app-shell.sidebar-compact .sidebar-profile-copy,.app-shell.sidebar-compact .sidebar-theme-toggle{display:initial;}.app-shell.sidebar-compact .nav-item{justify-content:flex-start;padding:10px 12px;}.sidebar-section-heading{padding-top:9px;}}
+@media(max-width:680px){.sidebar{width:min(316px,86vw)!important;padding:20px 12px 0!important;transform:translateX(-105%);transition:transform .24s ease;box-shadow:none;z-index:60;}.sidebar.sidebar-open{transform:translateX(0);box-shadow:20px 0 50px #10172b24;}.sidebar .brand .mobile-close{display:inline-grid;}.sidebar .sidebar-bottom{position:sticky;bottom:0;}.scrim{position:fixed;inset:0;background:rgba(20,27,45,.48);backdrop-filter:blur(2px);z-index:55;}.app-shell.sidebar-compact .sidebar,.app-shell.sidebar-wide .sidebar{width:min(316px,86vw)!important;}.app-shell.sidebar-compact .brand>span,.app-shell.sidebar-compact .nav-item>span,.app-shell.sidebar-compact .sidebar-profile-copy,.app-shell.sidebar-compact .sidebar-settings-button{display:initial;}.app-shell.sidebar-compact .nav-item{justify-content:flex-start;padding:10px 12px;}.sidebar-section-heading{padding-top:9px;}}
+
+
+/* Settings modal: mobile bottom sheet with independently scrolling content and pinned actions. */
+.settings-modal-backdrop{align-items:flex-end!important;justify-content:center!important;padding:0!important;}
+.settings-bottom-sheet{display:flex;flex-direction:column;max-height:min(88dvh,900px);min-height:0;overflow:hidden;}
+.settings-bottom-sheet>.modal-head{flex:0 0 auto;}
+.settings-bottom-sheet>.settings-accordion-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:18px;}
+.settings-bottom-sheet>.modal-actions{flex:0 0 auto;position:sticky;bottom:0;z-index:2;background:var(--panel,#fff);padding:14px 0 max(14px,env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:0;}
+@media(max-width:680px){.settings-modal-backdrop{align-items:flex-end!important;padding:0!important;}.settings-bottom-sheet{width:100%!important;max-width:none!important;max-height:88dvh!important;height:auto!important;margin:0!important;border-radius:22px 22px 0 0!important;padding-bottom:env(safe-area-inset-bottom);animation:settings-sheet-enter .22s ease-out;}.settings-bottom-sheet>.modal-head{padding:20px 18px 14px;}.settings-bottom-sheet>.settings-accordion-list{padding:0 18px 20px;}.settings-bottom-sheet>.modal-actions{padding:12px 18px max(14px,env(safe-area-inset-bottom));}.settings-bottom-sheet>.modal-actions .btn{width:100%;justify-content:center;}}
+@keyframes settings-sheet-enter{from{transform:translateY(24px);opacity:.7}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.settings-bottom-sheet{animation:none!important;}}
+
+/* Global mobile bottom-sheet behavior for Pocket system dialogs and popups. */
+@media (max-width: 680px) {
+  .modal-backdrop:not(.settings-modal-backdrop) {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="dialog"],
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"] {
+    display: flex;
+    flex-direction: column;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: min(88dvh, 900px) !important;
+    min-height: 0;
+    margin: 0 !important;
+    border-radius: 22px 22px 0 0 !important;
+    overflow: hidden !important;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: pocket-global-sheet-enter .22s ease-out;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal > .modal-head,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell > .modal-header,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="dialog"] > .modal-head,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"] > .modal-head,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"] > .modal-header {
+    flex: 0 0 auto;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal > .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) > .modal-shell > .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="dialog"] > .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) > section[role="alertdialog"] > .modal-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-actions,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions {
+    flex: 0 0 auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin-top: auto;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    background: var(--panel, #fff);
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-actions .btn,
+  .modal-backdrop:not(.settings-modal-backdrop) .category-wizard-actions .btn,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form-actions .btn {
+    min-height: 44px;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) .modal > form,
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-shell > form,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-wizard-form,
+  .modal-backdrop:not(.settings-modal-backdrop) .vehicle-form {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-backdrop:not(.settings-modal-backdrop) .modal-shell.category-wizard-card,
+  .modal-backdrop:not(.settings-modal-backdrop) .modal.category-wizard-card {
+    overflow-y: auto !important;
+  }
+  .auth-modal-backdrop { align-items: flex-end; padding: 0; }
+  .auth-modal-backdrop .auth-popup-card,
+  .auth-modal-backdrop .auth-choice-card {
+    width: 100%;
+    max-width: none;
+    max-height: 88dvh;
+    overflow-y: auto;
+    border-radius: 22px 22px 0 0;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+}
+@keyframes pocket-global-sheet-enter { from { transform: translateY(24px); opacity: .7; } to { transform: translateY(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .modal-backdrop > .modal, .modal-backdrop > .modal-shell, .auth-modal-backdrop .auth-popup-card { animation: none !important; } }
