@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { localDemoAccounts, coreExpenseCategories, womenExpenseCategories, menExpenseCategories, defaultExpenseCategories, expenseCategoriesOverride, setExpenseCategoriesOverride, readExpenseCategories, getExpenseCategories, expenseCategories, incomeCategories, zones, categories, getCategoriesForType, categoryHierarchy, incomeSubcategories, uniqueOptions, customSubcategoriesOverride, getCustomSubcategories, setCustomSubcategoriesOverride, saveCustomSubcategories, getSubcategories, palette, demoTransactions, starterGoals, starterRecurring, isGoalsAccount, localISODate, monthNow, fmt, firstName, getGreeting, PROFILE_AVATARS, defaultAvatarForGender, avatarsForGender, addFrequency, shortDate, monthLabel, monthStart, uid, FEATURE_OPTIONS, PAGE_FEATURE, POCKET_VALID_PAGES } from '../../lib/domain.js';
 import { ProfileAvatar, PageHeading, MonthPicker, MetricCard, EmptyState, WizardProgress, ChoiceCards, Field, CategoryGlyph } from '../../components/SharedUI.jsx';
 import { supabase, cloudReady, authRedirectUrl } from '../../lib/supabase.js';
+import { VehicleOverviewSummary } from '../admin/AccessAndVehicles.jsx';
 import * as XLSX from 'xlsx';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Target, Repeat2, ChartNoAxesCombined, Layers, CarFront, Wrench, Gauge, CalendarClock, History, Fuel, AlertTriangle,
