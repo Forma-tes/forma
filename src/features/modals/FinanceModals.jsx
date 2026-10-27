@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { localDemoAccounts, coreExpenseCategories, womenExpenseCategories, menExpenseCategories, defaultExpenseCategories, expenseCategoriesOverride, setExpenseCategoriesOverride, readExpenseCategories, getExpenseCategories, expenseCategories, incomeCategories, zones, categories, getCategoriesForType, categoryHierarchy, incomeSubcategories, uniqueOptions, customSubcategoriesOverride, getCustomSubcategories, setCustomSubcategoriesOverride, saveCustomSubcategories, getSubcategories, palette, demoTransactions, starterGoals, starterRecurring, isGoalsAccount, localISODate, monthNow, fmt, firstName, getGreeting, PROFILE_AVATARS, defaultAvatarForGender, avatarsForGender, addFrequency, shortDate, monthLabel, monthStart, uid, FEATURE_OPTIONS, PAGE_FEATURE, POCKET_VALID_PAGES } from '../../lib/domain.js';
 import { ProfileAvatar, PageHeading, MonthPicker, MetricCard, EmptyState, WizardProgress, ChoiceCards, Field, CategoryGlyph } from '../../components/SharedUI.jsx';
-import { createClient } from '@supabase/supabase-js';
+import { supabase, cloudReady, authRedirectUrl } from '../../lib/supabase.js';
 import * as XLSX from 'xlsx';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, Target, Repeat2, ChartNoAxesCombined, Layers, CarFront, Wrench, Gauge, CalendarClock, History, Fuel, AlertTriangle,
@@ -14,14 +14,6 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-// Prefer the canonical production URL so auth emails never redirect to a temporary Vercel preview URL.
-const authRedirectUrl = () => String(import.meta.env.VITE_SITE_URL || window.location.origin).trim().replace(/\/+$/, '');
-const cloudReady = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('YOUR_PROJECT') && !supabaseKey.includes('YOUR_SUPABASE'));
-const supabase = cloudReady ? createClient(supabaseUrl, supabaseKey) : null;
-
 
 function PasswordInput({ className = '', ...props }) {
   const [visible, setVisible] = useState(false);
