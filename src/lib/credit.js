@@ -11,8 +11,8 @@ export const isProvider = a => Boolean(a && a.type === PROVIDER_TYPE);
 export const isLiability = a => isCard(a) || isProvider(a);
 // Real money accounts: bank, cash, wallets, savings. Used for "pay from" and transfer sources.
 export const isMoneyAccount = a => Boolean(a) && !isGoalsAccount(a) && !isLiability(a);
-// Accounts an expense can be charged to: money accounts and credit cards.
-export const isChargeable = a => Boolean(a) && !isGoalsAccount(a) && !isProvider(a);
+// Accounts an expense can be charged to: money accounts, credit cards and installment apps.
+export const isChargeable = a => Boolean(a) && !isGoalsAccount(a);
 
 const DAY = 864e5;
 const num = v => Number(v || 0);
@@ -95,11 +95,12 @@ export function cardPayOptions(summary) {
 }
 
 /** Installment app: the plans are debts linked by provider_account_id. Limit used = what is still owed on them. */
-export function providerSummary(provider, debts = [], today = localISODate()) {
+export function providerSummary(provider, debts = [], today = localISODate(), transactions = []) {
   const plans = debts.filter(d => String(d.provider_account_id) === String(provider.id));
   const active = plans.filter(d => num(d.remaining_amount) > 0);
   const limit = num(provider.credit_limit);
-  const used = active.reduce((s, d) => s + num(d.remaining_amount), 0);
+  const looseOwed = Math.max(0, -accountFlows(provider, transactions).balance);
+  const used = active.reduce((s, d) => s + num(d.remaining_amount), 0) + looseOwed;
   const byDue = new Map();
   for (const d of active) {
     const due = d.due_date || '';
@@ -107,8 +108,30 @@ export function providerSummary(provider, debts = [], today = localISODate()) {
     const g = byDue.get(due); g.plans.push(d); g.amount += Math.min(num(d.monthly_payment), num(d.remaining_amount));
   }
   const groups = [...byDue.values()].filter(g => g.due).sort((a, b) => a.due.localeCompare(b.due)).map(g => ({ ...g, days: daysUntil(g.due, today) }));
-  return { plans, active, done: plans.filter(d => num(d.remaining_amount) <= 0), limit, used, available: Math.max(0, limit - used), usedPct: limit > 0 ? Math.min(100, used / limit * 100) : 0, groups, next: groups[0] || null, monthly: active.reduce((s, d) => s + Math.min(num(d.monthly_payment), num(d.remaining_amount)), 0) };
+  return { looseOwed, plans, active, done: plans.filter(d => num(d.remaining_amount) <= 0), limit, used, available: Math.max(0, limit - used), usedPct: limit > 0 ? Math.min(100, used / limit * 100) : 0, groups, next: groups[0] || null, monthly: active.reduce((s, d) => s + Math.min(num(d.monthly_payment), num(d.remaining_amount)), 0) };
 }
 
 export const money = (currency = 'EGP', digits = 0) => n => new Intl.NumberFormat('en-EG', { style: 'currency', currency, maximumFractionDigits: digits }).format(Number(n) || 0);
 export const providerOwner = (debt, accounts = []) => accounts.find(a => String(a.id) === String(debt.provider_account_id));
+
+/**
+ * Transactions as REPORTS should see them (totals, budgets, charts).
+ * - A purchase on a credit card or installment app is only recorded: it is not an expense yet.
+ * - Paying the card / the app (a transfer into it) IS the expense, so it is counted then.
+ * - Refunds into a card are not income.
+ */
+export function reportView(transactions = [], accounts = []) {
+  const byId = new Map(accounts.map(a => [String(a.id), a]));
+  const out = [];
+  for (const t of transactions) {
+    const from = byId.get(String(t.account_id)), to = byId.get(String(t.to_account_id));
+    if (t.type === 'Expense' && isLiability(from)) continue;
+    if (t.type === 'Income' && isLiability(from)) continue;
+    if (t.type === 'Transfer' && isLiability(to) && !isLiability(from) && !isGoalsAccount(from)) {
+      out.push({ ...t, type: 'Expense', category: 'Savings & Debt', subcategory: isCard(to) ? 'Credit card payment' : 'Installment app payment', need_want: 'Need', counted_from_transfer: true });
+      continue;
+    }
+    out.push(t);
+  }
+  return out;
+}

@@ -12,7 +12,7 @@ export function AccountsPage({accounts,transactions,debts=[],setModal,setEditing
  const view=accountsView==='list'?'list':'grid';
  const rows=accounts.filter(a=>!isLiability(a)).map(a=>{const f=accountFlows(a,transactions);const linked=transactions.filter(t=>String(t.account_id)===String(a.id)||String(t.to_account_id)===String(a.id)).length;return {...a,balance:f.balance,inflow:f.inflow,outflow:f.outflow,linkedCount:linked}});
  const total=rows.reduce((s,a)=>s+a.balance,0);
- const liabilities=accounts.filter(isLiability).map(a=>isCard(a)?{account:a,card:true,s:cardSummary(a,transactions)}:{account:a,card:false,s:providerSummary(a,debts)});
+ const liabilities=accounts.filter(isLiability).map(a=>isCard(a)?{account:a,card:true,s:cardSummary(a,transactions)}:{account:a,card:false,s:providerSummary(a,debts,undefined,transactions)});
  const owedTotal=liabilities.reduce((sum,x)=>sum+(x.card?x.s.owed:x.s.used),0);
  const askDelete=a=>requestConfirm(isLiability(a)?(isCard(a)?'Delete this credit card?':'Delete this installment app?'):'Delete account or wallet?',isLiability(a)?`Delete “${a.name}”? ${isCard(a)?'Your purchases stay in Transactions, but they will no longer be tracked on a card.':'Its installment plans stay, but they will no longer be grouped under this app.'}`:`Delete “${a.name}”? Existing transactions will remain but will no longer contribute to this balance.`,()=>removeRecord('financial_accounts',a.id,setAccounts,accounts));
  const edit=a=>{if(isLiability(a)){creditActions.editAccount?.(a);return}setEditing(a);setModal('account')};

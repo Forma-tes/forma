@@ -53,7 +53,7 @@ export function CardPayModal({ card, summary, accounts = [], transactions = [], 
       <div><span>{source?.name} after</span><b>{fmt(balance - amount)}</b></div>
       <div><span>Available credit after</span><b>{fmt(summary.available + amount)}</b></div>
     </div>}
-    <p className="small-muted" style={{ margin: '6px 0 0' }}>This is saved as a transfer to your card, so it is not counted as a new expense.</p>
+    <p className="small-muted" style={{ margin: '6px 0 0' }}>Purchases on the card are not expenses. This payment is the one that counts as an expense.</p>
     <div className="modal-actions" style={{ marginTop: 16 }}><button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button><button type="button" className="btn btn-primary" disabled={Boolean(error) || busy} onClick={submit}>{busy ? 'Saving…' : `Pay ${fmt(amount)}`}</button></div>
   </ModalShell>;
 }
