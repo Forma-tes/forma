@@ -143,6 +143,7 @@ function App(){
   const [authMsg,setAuthMsg] = useState('');
   const [authMode,setAuthMode] = useState('choice');
   const [authName,setAuthName] = useState('');
+  const [authUsername,setAuthUsername] = useState('');
   const [authGender,setAuthGender] = useState('');
   const [authPassword,setAuthPassword] = useState('');
   const [stayLoggedIn,setStayLoggedIn] = useState(false);
@@ -662,6 +663,16 @@ function App(){
     e.preventDefault(); if(!supabase)return;
     if(authPassword.length<8){setAuthMsg('Use a password with at least 8 characters.');return;}
     setBusy(true);setAuthMsg('');
+    if(!authEmail.trim()){
+      const username=authUsername.trim();
+      if(!/^[a-zA-Z0-9._-]{3,32}$/.test(username)){setBusy(false);setAuthMsg('Choose a username (3–32 characters: letters, numbers, dots, underscores or hyphens) or add an email.');return;}
+      const {error:fnError}=await supabase.functions.invoke('public-signup',{body:{full_name:authName.trim(),gender:authGender,avatar:defaultAvatarForGender(authGender),username,password:authPassword}});
+      if(fnError){let msg=fnError.message;try{const j=await fnError.context?.json?.();if(j?.error)msg=j.error;}catch{}setBusy(false);setAuthMsg(msg||'Could not create the account.');return;}
+      const {error:inError}=await supabase.auth.signInWithPassword({email:`${username.toLowerCase().replace(/[^a-z0-9._-]/g,'-')}@users.pocket.local`,password:authPassword});
+      setBusy(false);
+      if(inError){setAuthMode('signin');setAuthMsg('Account created! Sign in with your username.');}
+      return;
+    }
     const {data,error}=await supabase.auth.signUp({
       email:authEmail.trim(),
       password:authPassword,
@@ -671,6 +682,17 @@ function App(){
     if(error){setAuthMsg(error.message);return;}
     if(data.session){setAuthMsg('Account created successfully.');}
     else {setAuthMode('signin');setAuthMsg('Account created! Check your email to confirm your address, then sign in.');}
+  }
+  async function sendEmailVerification(){
+    const email=session?.user?.email;if(!supabase||!email)return false;
+    const {error}=await supabase.auth.resend({type:'signup',email,options:{emailRedirectTo:authRedirectUrl()}});
+    setToast(error?error.message:`Verification email sent to ${email}. Check your inbox and spam folder.`);return !error;
+  }
+  async function addAccountEmail(email){
+    const clean=String(email||'').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)){setToast('Enter a valid email address.');return false;}
+    const {error}=await supabase.auth.updateUser({email:clean},{emailRedirectTo:authRedirectUrl()});
+    setToast(error?error.message:`We sent a confirmation link to ${clean}. After you confirm it, you can also sign in with this email.`);return !error;
   }
   async function resetPassword(e){
     e.preventDefault(); if(!supabase)return;
@@ -902,7 +924,7 @@ function App(){
     </section>
     <span className="pocket-loading-caption">PERSONAL FINANCE, IN ONE PLACE</span>
   </main>;
-  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,stayLoggedIn,setStayLoggedIn,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
+  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authUsername,setAuthUsername,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,stayLoggedIn,setStayLoggedIn,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
   if(!cloudReady) return <main className="auth-page pocket-auth-page"><section className="auth-panel pocket-auth-panel"><div className="auth-choice-card pocket-auth-choice-card"><div className="auth-mobile-brand pocket-mobile-brand"><b>Pocket</b></div><h2>Connect Pocket to Supabase</h2><p className="auth-subtitle">Local and browser-based data storage is disabled. Configure <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your deployment environment, then redeploy.</p></div></section></main>;
   return <div className={`app-shell sidebar-${isDesktopNav?sidebarSize:'comfortable'}`} lang="en" dir="ltr">
     <aside className={`sidebar ${sidebarOpen?'sidebar-open':''}`} onMouseOver={e=>{if(!(isDesktopNav&&sidebarSize==='compact')){if(navTip)setNavTip(null);return}const el=e.target.closest('[data-label]');if(!el){if(navTip)setNavTip(null);return}const r=el.getBoundingClientRect();setNavTip({label:el.dataset.label,top:r.top+r.height/2,left:r.right+10})}} onMouseLeave={()=>setNavTip(null)}>
@@ -948,7 +970,7 @@ function App(){
     {modal==='recurring'&&<RecurringModal currency={currency} accounts={accounts} initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={addRecurring}/>}
     {modal==='budget'&&<BudgetModal currency={currency} initial={editing} month={month} onClose={()=>{setModal(null);setEditing(null)}} onSave={addBudget}/>}
      {modal==='app-settings'&&<SettingsModal {...{onClose:()=>setModal(null),design,setDesign,sidebarSize,setSidebarSize,isAdmin,backupForUsers,setBackupVisibility,exportCSV,exportBackup,handleImport,restoreBackup,session,supabase,onOpenProfile:()=>setModal('profile')}}/>}
-    {modal==='profile'&&<AccountProfileModal {...{onClose:()=>setModal(null),openAvatarPicker:gender=>{setAvatarPickerGender(gender||session?.user?.user_metadata?.gender||'prefer_not_to_say');setModal('avatar-picker')},session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
+    {modal==='profile'&&<AccountProfileModal {...{sendEmailVerification,addAccountEmail,onClose:()=>setModal(null),openAvatarPicker:gender=>{setAvatarPickerGender(gender||session?.user?.user_metadata?.gender||'prefer_not_to_say');setModal('avatar-picker')},session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
     {modal==='avatar-picker'&&<AvatarPickerModal current={profileAvatar} gender={avatarPickerGender} onClose={()=>setModal('profile')} onChoose={avatar=>{setProfileAvatar(avatar);setModal('profile')}} />}
     {modal==='account'&&<AccountModal initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveAccount}/> }
     {modal==='account-from-transaction'&&<AccountModal initial={null} onClose={()=>setModal('transaction')} onSave={async form=>{const payload={name:form.name.trim(),type:form.type,opening_balance:Number(form.opening_balance||0),opening_balance_date:form.opening_balance_date||localISODate(),color:form.color||'#6c7cf5'};const saved=await saveRecord('financial_accounts',payload);if(!saved)return;setAccounts(old=>[saved,...old]);setModal('transaction');setToast('Account added. Select it for your transaction.')}}/>}
