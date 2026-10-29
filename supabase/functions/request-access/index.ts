@@ -29,6 +29,10 @@ Deno.serve(async (req) => {
   if (userError || !user) return json({ ok: false, error: 'Sign in is required.' }, 401);
 
   const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  // Admins can turn access requests off from the Access requests page.
+  const { data: intake } = await service.from('app_settings').select('value').eq('key', 'access_requests_enabled').maybeSingle();
+  if (intake?.value === false) return json({ ok: false, error: 'Access requests are turned off right now. Please contact the administrator.' }, 403);
+
   const name = String(user.user_metadata?.full_name || user.user_metadata?.name || '').slice(0, 160);
   const email = String(user.email || '').slice(0, 320);
 

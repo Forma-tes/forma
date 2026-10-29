@@ -188,6 +188,7 @@ function App(){
   const [profileAvatar,setProfileAvatar] = useState(()=>{const saved=null;return PROFILE_AVATARS.some(a=>a.id===saved)?saved:'avatar-01'});
   const [avatarPickerGender,setAvatarPickerGender] = useState('prefer_not_to_say');
   const [backupForUsers,setBackupForUsers] = useState(false);
+  const [accessRequestsOpen,setAccessRequestsOpen] = useState(true);
   const [paidBusy,setPaidBusy] = useState([]);
   const [localLoaded,setLocalLoaded] = useState(false);
   const [settingsCloudUserId,setSettingsCloudUserId] = useState('');
@@ -275,6 +276,8 @@ function App(){
         setProfile(data);
         const {data:settingData}=await supabase.from('app_settings').select('value').eq('key','backup_restore_for_users').maybeSingle();
         if(alive)setBackupForUsers(settingData?.value===true);
+        const {data:intakeData}=await supabase.from('app_settings').select('value').eq('key','access_requests_enabled').maybeSingle();
+        if(alive)setAccessRequestsOpen(intakeData?.value!==false);
         if(['owner','super_admin'].includes(data.role)){
           setAdminLoading(true);
           const {data:users,error:usersError}=await supabase.rpc('admin_list_users');
@@ -831,7 +834,7 @@ function App(){
       if(error)throw error;
       setToast('Access request submitted. The administrator can review it in Pocket.');
     }catch(err){
-      setToast(err?.message||'Could not send your access request. Please try again later.');
+      setToast(err?.context?.status===403?'Access requests are turned off right now. Please contact the administrator.':(err?.message||'Could not send your access request. Please try again later.'));
     }finally{setAccessRequestBusy(false);}
   }
 
@@ -923,7 +926,7 @@ function App(){
         {profileLoadError&&<div className="workspace-error" role="alert"><div><b>Couldn’t verify your access</b><p>{profileLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>{setProfileLoaded(false);setProfileLoadError('');setProfileRetry(v=>v+1)}}>Retry</button></div>}
         {dataLoadError&&<div className="workspace-error" role="alert"><div><b>Some workspace data didn’t load</b><p>{dataLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>setDataLoadAttempt(v=>v+1)}>Retry loading</button></div>}
         {cloudReady&&session&&!accountsLoaded?<WorkspaceSkeleton/>: <>
-        {!canSeeCurrentPage&&!(isAdmin&&['Expense categories','Admin access','Access requests','Access management'].includes(page))&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy}/> }
+        {!canSeeCurrentPage&&!(isAdmin&&['Expense categories','Admin access','Access requests','Access management'].includes(page))&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy} requestsOpen={accessRequestsOpen}/> }
         {page==='Expense categories'&&(isAdmin||allowedFeatures.includes('expense_categories'))&&<ExpenseCategoriesPage session={session} supabase={supabase}/>}
         {canSeeCurrentPage&&page==='Vehicle Management'&&<VehicleManagementPage session={session} supabase={supabase} transactions={transactions} setTransactions={setTransactions} accounts={accounts} currency={currency} onToast={setToast} requestedTab={vehicleSidebarTab}/>}
         {['Access management','Admin access','Access requests'].includes(page)&&isAdmin&&<AccessManagementPage supabase={supabase} onToast={setToast} users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers} initialTab={page==='Admin access'?'users':'requests'}/>}
