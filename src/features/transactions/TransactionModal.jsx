@@ -33,7 +33,7 @@ export function TransactionModal({initial,onClose,onSave,currency='EGP',accounts
  const destinationAccount=accounts.find(a=>String(a.id)===String(form.to_account_id));
  const involvesGoals=form.type==='Transfer'&&(isGoalsAccount(sourceAccount)||isGoalsAccount(destinationAccount));
  useEffect(()=>{if(!involvesGoals&&form.goal_id)setForm(f=>({...f,goal_id:''}));},[involvesGoals,form.goal_id]);
- const cardInfo=isCard(sourceAccount)&&form.type==='Expense'?(()=>{const cyc=cardCycle(form.transaction_date||localISODate(),sourceAccount);const owed=cardSummary(sourceAccount,transactions.filter(t=>String(t.id)!==String(initial?.id)),localISODate()).owed;const limit=Number(sourceAccount.credit_limit||0);return {cyc,limit,after:limit>0?limit-owed-Number(form.amount||0):null}})():null;
+ const cardInfo=isCard(sourceAccount)&&form.type==='Expense'?(()=>{const cyc=cardCycle(form.transaction_date||localISODate(),sourceAccount);const owed=cardSummary(sourceAccount,transactions.filter(t=>String(t.id)!==String(initial?.id)),localISODate(),debts).owed;const limit=Number(sourceAccount.credit_limit||0);return {cyc,limit,after:limit>0?limit-owed-Number(form.amount||0):null}})():null;
  const providerInfo=isProvider(sourceAccount)&&form.type==='Expense'?(()=>{const used=providerSummary(sourceAccount,debts,undefined,transactions.filter(t=>String(t.id)!==String(initial?.id))).used;const limit=Number(sourceAccount.credit_limit||0);return {limit,after:limit>0?limit-used-Number(form.amount||0):null}})():null;
  const overLimit=Boolean((cardInfo&&cardInfo.after!==null&&cardInfo.after<0)||(providerInfo&&providerInfo.after!==null&&providerInfo.after<0));
  const onCredit=Boolean(cardInfo||providerInfo);

@@ -57,16 +57,24 @@ export function dueLabel(dateISO, today = localISODate()) {
  * Purchases = expenses charged to the card. Payments = transfers into the card, plus refunds (income).
  * Payments are applied to the oldest statement first, so you always know what is due next.
  */
-export function cardSummary(card, transactions = [], today = localISODate()) {
+export function cardSummary(card, transactions = [], today = localISODate(), debts = []) {
   const id = String(card.id);
   const limit = num(card.credit_limit);
   const { balance } = accountFlows(card, transactions);
-  const owed = Math.max(0, -balance);
+  // A purchase turned into installments leaves the statement: the plan carries what is still owed.
+  const planIds = new Set(debts.map(d => String(d.id)));
+  const isConverted = t => Boolean(t.debt_id && planIds.has(String(t.debt_id)));
+  const converted = transactions.filter(t => t.type === 'Expense' && String(t.account_id) === id && isConverted(t));
+  const convertedTotal = converted.reduce((s, t) => s + num(t.amount), 0);
+  const plans = debts.filter(d => String(d.provider_account_id) === id);
+  const activePlans = plans.filter(d => num(d.remaining_amount) > 0);
+  const planOwed = activePlans.reduce((s, d) => s + num(d.remaining_amount), 0);
+  const owed = Math.max(0, -balance - convertedTotal) + planOwed;
 
   const charges = [];
   if (num(card.opening_balance) < 0) charges.push({ id: 'opening', date: card.opening_balance_date || (card.created_at ? String(card.created_at).slice(0, 10) : today), description: 'Balance before Pocket', amount: -num(card.opening_balance), opening: true });
   for (const t of transactions) {
-    if (String(t.account_id) === id && (t.type === 'Expense' || t.type === 'Transfer')) charges.push({ id: t.id, date: t.transaction_date, description: t.description || t.category || 'Purchase', amount: num(t.amount), tx: t });
+    if (String(t.account_id) === id && (t.type === 'Expense' || t.type === 'Transfer') && !isConverted(t)) charges.push({ id: t.id, date: t.transaction_date, description: t.description || t.category || 'Purchase', amount: num(t.amount), tx: t });
   }
   const payments = transactions
     .filter(t => (t.type === 'Transfer' && String(t.to_account_id) === id) || (t.type === 'Income' && String(t.account_id) === id))
@@ -85,7 +93,7 @@ export function cardSummary(card, transactions = [], today = localISODate()) {
   const all = [...groupsMap.values()].sort((a, b) => a.due.localeCompare(b.due)).map(g => ({ ...g, days: daysUntil(g.due, today) }));
   const groups = all.filter(g => g.remaining > 0.004);
   const next = groups[0] || null;
-  return { limit, balance, owed, available: Math.max(0, limit - owed), usedPct: limit > 0 ? Math.min(100, owed / limit * 100) : 0, groups, next, settled: all.filter(g => g.remaining <= 0.004), payments, needsSetup: !card.statement_day || !limit };
+  return { plans, activePlans, planOwed, limit, balance, owed, available: Math.max(0, limit - owed), usedPct: limit > 0 ? Math.min(100, owed / limit * 100) : 0, groups, next, settled: all.filter(g => g.remaining <= 0.004), payments, needsSetup: !card.statement_day || !limit };
 }
 
 // Pay-now choices: each option clears everything due up to and including that due date.
@@ -99,7 +107,11 @@ export function providerSummary(provider, debts = [], today = localISODate(), tr
   const plans = debts.filter(d => String(d.provider_account_id) === String(provider.id));
   const active = plans.filter(d => num(d.remaining_amount) > 0);
   const limit = num(provider.credit_limit);
-  const looseOwed = Math.max(0, -accountFlows(provider, transactions).balance);
+  const planIds = new Set(debts.map(d => String(d.id)));
+  const id = String(provider.id);
+  const loosePurchases = transactions.filter(t => t.type === 'Expense' && String(t.account_id) === id && !(t.debt_id && planIds.has(String(t.debt_id)))).sort((a, b) => String(b.transaction_date).localeCompare(String(a.transaction_date)));
+  const paidLoose = transactions.filter(t => t.type === 'Transfer' && String(t.to_account_id) === id).reduce((s, t) => s + num(t.amount), 0);
+  const looseOwed = Math.max(0, loosePurchases.reduce((s, t) => s + num(t.amount), 0) - paidLoose);
   const used = active.reduce((s, d) => s + num(d.remaining_amount), 0) + looseOwed;
   const byDue = new Map();
   for (const d of active) {
@@ -108,7 +120,7 @@ export function providerSummary(provider, debts = [], today = localISODate(), tr
     const g = byDue.get(due); g.plans.push(d); g.amount += Math.min(num(d.monthly_payment), num(d.remaining_amount));
   }
   const groups = [...byDue.values()].filter(g => g.due).sort((a, b) => a.due.localeCompare(b.due)).map(g => ({ ...g, days: daysUntil(g.due, today) }));
-  return { looseOwed, plans, active, done: plans.filter(d => num(d.remaining_amount) <= 0), limit, used, available: Math.max(0, limit - used), usedPct: limit > 0 ? Math.min(100, used / limit * 100) : 0, groups, next: groups[0] || null, monthly: active.reduce((s, d) => s + Math.min(num(d.monthly_payment), num(d.remaining_amount)), 0) };
+  return { looseOwed, loosePurchases, plans, active, done: plans.filter(d => num(d.remaining_amount) <= 0), limit, used, available: Math.max(0, limit - used), usedPct: limit > 0 ? Math.min(100, used / limit * 100) : 0, groups, next: groups[0] || null, monthly: active.reduce((s, d) => s + Math.min(num(d.monthly_payment), num(d.remaining_amount)), 0) };
 }
 
 export const money = (currency = 'EGP', digits = 0) => n => new Intl.NumberFormat('en-EG', { style: 'currency', currency, maximumFractionDigits: digits }).format(Number(n) || 0);
@@ -134,4 +146,9 @@ export function reportView(transactions = [], accounts = []) {
     out.push(t);
   }
   return out;
+}
+
+// How much limit is left on a card or an installment app (counts plans and recorded purchases once).
+export function limitLeft(account, debts = [], transactions = []) {
+  return isCard(account) ? cardSummary(account, transactions, undefined, debts).available : providerSummary(account, debts, undefined, transactions).available;
 }

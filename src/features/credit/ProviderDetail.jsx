@@ -6,7 +6,7 @@ import { CardVisual, DueChip, LimitBar } from './CreditSummary.jsx';
 import { ShoppingBag } from 'lucide-react';
 
 // Installment app page (Valu, Aman, Halan...): limit, what is due next, and every plan under the app.
-export function ProviderDetail({ provider, summary, accounts = [], currency, onBack, onPay, onPayPlan, onAddPlan, onEdit, onDelete, onEditPlan, onDeletePlan }) {
+export function ProviderDetail({ provider, summary, accounts = [], currency, onBack, onPay, onPayPlan, onAddPlan, onConvert, onEdit, onDelete, onEditPlan, onDeletePlan }) {
   const fmt = money(currency);
   const [tab, setTab] = useState('active');
   const next = summary.next;
@@ -27,7 +27,9 @@ export function ProviderDetail({ provider, summary, accounts = [], currency, onB
         {next && <div className="cc-actions"><button className="btn btn-primary" onClick={() => onPay(provider, next)}>Pay {fmt(next.amount)}</button></div>}
       </section>
     </div>
-    {summary.looseOwed > 0.004 && <section className="panel cc-plan"><div className="cc-plan-top"><div><h3>Purchases without a plan</h3><p>Bought with {provider.name} from Add transaction. They count as an expense when you pay.</p></div></div><div className="cc-plan-nums"><div><span>To pay</span><b>{fmt(summary.looseOwed)}</b></div></div><div className="cc-row-between"><span className="cc-sub">&nbsp;</span><button className="btn btn-primary btn-sm" onClick={() => onPay(provider, { due: '', plans: [{ id: 'loose', name: 'Purchases on ' + provider.name }], amount: summary.looseOwed, looseAmount: summary.looseOwed })}>Pay {fmt(summary.looseOwed)}</button></div></section>}
+    {summary.looseOwed > 0.004 && <section className="panel cc-plan"><div className="cc-plan-top"><div><h3>Purchases without a plan</h3><p>Bought with {provider.name} from Add transaction. They count as an expense when you pay, or turn one into installments.</p></div></div><div className="cc-plan-nums"><div><span>To pay</span><b>{fmt(summary.looseOwed)}</b></div></div>
+      <div className="tx-review-details" style={{ margin: '10px 0' }}>{summary.loosePurchases.map(t => <div key={t.id}><span>{t.description || t.category || 'Purchase'} · {shortDate(t.transaction_date)}</span><b>{fmt(t.amount)} {onConvert && <button type="button" className="btn btn-secondary btn-sm" style={{ marginLeft: 8 }} onClick={() => onConvert(provider, t)}>Make installments</button>}</b></div>)}</div>
+      <div className="cc-row-between"><span className="cc-sub">&nbsp;</span><button className="btn btn-primary btn-sm" onClick={() => onPay(provider, { due: '', plans: [{ id: 'loose', name: 'Purchases on ' + provider.name }], amount: summary.looseOwed, looseAmount: summary.looseOwed })}>Pay {fmt(summary.looseOwed)}</button></div></section>}
     <section className="panel" style={{ padding: '16px 20px' }}><LimitBar used={summary.used} limit={summary.limit} usedLabel="committed" currency={currency} /></section>
 
     <div className="cc-tabs" role="tablist" aria-label="Installment app sections">

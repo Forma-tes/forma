@@ -1,0 +1,6 @@
+
+
+# Local environment variables; configure these in Vercel separately
+.env
+.env.*
+!.env.example
