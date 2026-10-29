@@ -16,6 +16,8 @@ export const isChargeable = a => Boolean(a) && !isGoalsAccount(a);
 
 const DAY = 864e5;
 const num = v => Number(v || 0);
+// A plan uses limit for the money financed (the price), not for interest/fees. Shrinks as it is repaid.
+export const planLimitUse = d => { const total = num(d.total_repayment) || num(d.original_amount); return total > 0 ? num(d.original_amount) * Math.min(1, num(d.remaining_amount) / total) : num(d.remaining_amount); };
 const iso = ms => new Date(ms).toISOString().slice(0, 10);
 const utc = s => { const [y, m, d] = String(s).slice(0, 10).split('-').map(Number); return Date.UTC(y, m - 1, d); };
 
@@ -69,7 +71,8 @@ export function cardSummary(card, transactions = [], today = localISODate(), deb
   const plans = debts.filter(d => String(d.provider_account_id) === id);
   const activePlans = plans.filter(d => num(d.remaining_amount) > 0);
   const planOwed = activePlans.reduce((s, d) => s + num(d.remaining_amount), 0);
-  const owed = Math.max(0, -balance - convertedTotal) + planOwed;
+  const planLimit = activePlans.reduce((s, d) => s + planLimitUse(d), 0);
+  const owed = Math.max(0, -balance - convertedTotal) + planLimit;
 
   const charges = [];
   if (num(card.opening_balance) < 0) charges.push({ id: 'opening', date: card.opening_balance_date || (card.created_at ? String(card.created_at).slice(0, 10) : today), description: 'Balance before Pocket', amount: -num(card.opening_balance), opening: true });
@@ -112,7 +115,7 @@ export function providerSummary(provider, debts = [], today = localISODate(), tr
   const loosePurchases = transactions.filter(t => t.type === 'Expense' && String(t.account_id) === id && !(t.debt_id && planIds.has(String(t.debt_id)))).sort((a, b) => String(b.transaction_date).localeCompare(String(a.transaction_date)));
   const paidLoose = transactions.filter(t => t.type === 'Transfer' && String(t.to_account_id) === id).reduce((s, t) => s + num(t.amount), 0);
   const looseOwed = Math.max(0, loosePurchases.reduce((s, t) => s + num(t.amount), 0) - paidLoose);
-  const used = active.reduce((s, d) => s + num(d.remaining_amount), 0) + looseOwed;
+  const used = active.reduce((s, d) => s + planLimitUse(d), 0) + looseOwed;
   const byDue = new Map();
   for (const d of active) {
     const due = d.due_date || '';

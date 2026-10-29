@@ -38,7 +38,7 @@ import { authRedirectUrl, cloudReady, supabase } from './lib/supabase.js';
 import { CardPayModal } from './features/credit/CardPayModal.jsx';
 import { CreditAccountModal } from './features/credit/CreditAccountModal.jsx';
 import { ProviderPayModal } from './features/credit/ProviderPayModal.jsx';
-import { CARD_TYPE, PROVIDER_TYPE, accountFlows, cardSummary, isCard, isLiability, isMoneyAccount, isProvider, providerSummary, reportView, limitLeft } from './lib/credit.js';
+import { CARD_TYPE, PROVIDER_TYPE, accountFlows, cardSummary, isCard, isLiability, isMoneyAccount, isProvider, providerSummary, reportView, limitLeft, planLimitUse } from './lib/credit.js';
 
 function readPocketStartupPage(){ return 'Overview'; }
 
@@ -586,7 +586,7 @@ function App(){
     const interestRate=principal>0&&totalRepayment>0?Number((((totalRepayment-principal)/principal)*100).toFixed(2)):0;
     const providerId=['Installment','Buy now, pay later'].includes(form.debt_type)?(form.provider_account_id||null):null;
     const providerAcc=providerId?accounts.find(a=>String(a.id)===String(providerId)):null;
-    if(providerAcc&&Number(providerAcc.credit_limit)>0){const avail=limitLeft(providerAcc,debts,transactions)+(convertTx&&String(convertTx.account_id)===String(providerAcc.id)?Number(convertTx.amount||0):0)+(editing&&String(editing.provider_account_id)===String(providerAcc.id)?Number(editing.remaining_amount||0):0);if(remaining>avail+0.005){setToast(`Could not save: only ${fmt(avail)} is left on ${providerAcc.name}.`);return;}}
+    if(providerAcc&&Number(providerAcc.credit_limit)>0){const avail=limitLeft(providerAcc,debts,transactions)+(convertTx&&String(convertTx.account_id)===String(providerAcc.id)?Number(convertTx.amount||0):0)+(editing&&String(editing.provider_account_id)===String(providerAcc.id)?planLimitUse(editing):0);const need=totalRepayment>0?Math.max(0,principal-Number(form.down_payment||0))*Math.min(1,remaining/totalRepayment):remaining;if(need>avail+0.005){setToast(`Could not save: only ${fmt(avail)} is left on ${providerAcc.name}.`);return;}}
     const payload={provider_account_id:providerId,name:form.name.trim(),debt_type:form.debt_type||'Other',lender:form.lender||'',account_id:form.account_id||null,original_amount:principal,remaining_amount:remaining,monthly_payment:installment,due_date:form.due_date||null,frequency:'Monthly',notes:form.notes||'',start_date:form.start_date||null,term_months:term||null,total_repayment:totalRepayment,interest_rate:interestRate,paid_installments:paidCount,amount_paid:amountPaid};
     const saved=await saveRecord('debts',payload,editing?.id);if(!saved)return;
     setDebts(old=>editing?old.map(x=>x.id===editing.id?saved:x):[saved,...old]);if(convertTx&&!editing){const t=await saveRecord('transactions',{...convertTx,debt_id:saved.id},convertTx.id);if(t)setTransactions(old=>old.map(x=>x.id===t.id?t:x));}setConvertTx(null);setModal(null);setEditing(null);setDebtPresetProvider('');setToast(convertTx&&!editing?'Purchase turned into installments':'Debt saved');
