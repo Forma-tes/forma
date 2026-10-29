@@ -282,7 +282,7 @@ function App(){
         if(['owner','super_admin'].includes(data.role)){
           setAdminLoading(true);
           const {data:users,error:usersError}=await supabase.rpc('admin_list_users');
-          if(alive){if(usersError)setToast('Could not load user access list: '+usersError.message);else setAdminUsers(users||[]);setAdminLoading(false);}
+          if(alive){if(usersError)setToast('Could not load user access list: '+usersError.message);else setAdminUsers(await withEmailStatus(users||[]));setAdminLoading(false);}
         } else {setAdminUsers([]);setAdminLoading(false);}
       } catch (error) {
         if(alive)setProfileLoadError(error?.message||'Could not load your access profile.');
@@ -727,7 +727,7 @@ function App(){
     if(!['owner','super_admin'].includes(profile?.role))return;
     setAdminLoading(true);
     const {data,error}=await supabase.rpc('admin_list_users');
-    if(error)setToast('Could not refresh users: '+error.message);else setAdminUsers(data||[]);
+    if(error)setToast('Could not refresh users: '+error.message);else setAdminUsers(await withEmailStatus(data||[]));
     setAdminLoading(false);
   }
   async function deleteManagedUser(userId){
@@ -845,6 +845,10 @@ function App(){
       setToast('Payment recorded and next due date updated');
     }catch(err){setToast(err.message||'Could not mark payment as paid');}
     finally{setPaidBusy(old=>old.filter(id=>id!==r.id));}
+  }
+
+  async function withEmailStatus(users){
+    try{const {data}=await supabase.rpc('admin_list_user_email_status');const m=new Map((data||[]).map(r=>[r.user_id,r.email_verified]));return users.map(u=>({...u,email_verified:m.has(u.user_id)?m.get(u.user_id):undefined}));}catch{return users;}
   }
 
   async function requestAccess(){

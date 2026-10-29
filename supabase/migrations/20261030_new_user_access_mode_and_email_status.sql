@@ -40,42 +40,17 @@ begin
 end;
 $$;
 
--- 2) Admin user list also reports whether the email is verified.
-drop function if exists public.admin_list_users();
-create function public.admin_list_users()
-returns table(user_id uuid, email text, username text, full_name text, first_name text, last_name text, gender text, role text, enabled_features text[], created_at timestamptz, email_verified boolean)
+-- 2) Admin-only email status lookup (new function; existing admin_list_users is left untouched).
+create or replace function public.admin_list_user_email_status()
+returns table(user_id uuid, email_verified boolean)
 language plpgsql
 security definer
 set search_path to ''
 as $$
 begin
   if not public.is_forma_admin() then raise exception 'Admin access required'; end if;
-  return query
-    select p.id, p.email, p.username, p.full_name, p.first_name, p.last_name, p.gender, p.role, p.enabled_features, p.created_at,
-           (u.email_confirmed_at is not null) as email_verified
-    from public.profiles p
-    left join auth.users u on u.id = p.id
-    order by p.created_at desc nulls last, p.username asc nulls last, p.email asc;
+  return query select u.id, (u.email_confirmed_at is not null) from auth.users u;
 end;
 $$;
-revoke all on function public.admin_list_users() from public, anon;
-grant execute on function public.admin_list_users() to authenticated;
-
--- 3) Keep profiles.email in step when a user adds / changes a real email later.
-create or replace function public.sync_profile_email()
-returns trigger
-language plpgsql
-security definer
-set search_path to ''
-as $$
-begin
-  if new.email is distinct from old.email and coalesce(new.email,'') not like '%@users.pocket.local' then
-    update public.profiles set email = coalesce(new.email,''), updated_at = now() where id = new.id;
-  end if;
-  return new;
-end;
-$$;
-revoke all on function public.sync_profile_email() from public, anon, authenticated;
-drop trigger if exists on_auth_user_email_updated on auth.users;
-create trigger on_auth_user_email_updated after update of email on auth.users
-  for each row execute procedure public.sync_profile_email();
+revoke all on function public.admin_list_user_email_status() from public, anon;
+grant execute on function public.admin_list_user_email_status() to authenticated;
