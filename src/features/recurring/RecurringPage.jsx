@@ -1,0 +1,15 @@
+import { CalendarDays, CreditCard, Pencil, Plus, Repeat2, Trash2 } from 'lucide-react';
+import { MetricCard } from '../../components/ui/MetricCard.jsx';
+import { PageHeading } from '../../components/ui/PageHeading.jsx';
+import { fmt, localISODate, shortDate } from '../../lib/format.js';
+
+export function RecurringPage(p){
+ const {recurring,setModal,setEditing,removeRecord,markRecurringPaid,paidBusy,deleteRecurringPayment}=p;
+ const total=recurring.reduce((s,r)=>s+Number(r.amount||0)*(r.frequency==='Weekly'?52/12:r.frequency==='Quarterly'?1/3:r.frequency==='Yearly'?1/12:1),0);
+ const today=localISODate();
+ const isPaid=r=>Boolean(r.last_paid_date&&r.next_due_date&&r.last_paid_date<r.next_due_date&&today<r.next_due_date) || Boolean(r.paid_this_cycle&&!r.next_due_date);
+ const awaiting=recurring.filter(r=>!isPaid(r)).length;
+ return <><PageHeading eyebrow="RECURRING COMMITMENTS" title="Subscriptions & bills" subtitle="Track subscriptions, recurring bills, renewals, and what is coming next." actions={<button className="btn btn-primary" onClick={()=>{setEditing(null);setModal('recurring')}}><Plus size={17}/> Add payment</button>}/>
+ <div className="metric-grid three"><MetricCard label="Monthly commitments" value={fmt(total)} icon={Repeat2} tone="blue" note="estimated monthly equivalent"/><MetricCard label="Active payments" value={recurring.length} icon={CreditCard} tone="purple" note="tracked recurring items"/><MetricCard label="Awaiting payment" value={awaiting} icon={CalendarDays} tone="orange" note="this cycle"/></div>
+ <section className="panel table-panel"><div className="panel-header section-header"><div><h2>All recurring payments</h2><p>Mark each item paid when you complete it. Auto-pay is a tracker only; Pocket does not move money.</p></div></div><div className="table-wrap"><table className="data-table"><thead><tr><th>Payment</th><th>Frequency</th><th>Next due</th><th>Amount</th><th>Auto-pay</th><th>Status</th><th>Actions</th></tr></thead><tbody>{recurring.map(r=><tr key={r.id}><td><div className="transaction-name"><span className="tx-avatar tx-expense"><Repeat2 size={16}/></span><span><b>{r.name}</b><small>{r.category}{r.essential?' · Essential':' · Optional'}</small></span></div></td><td>{r.frequency}</td><td>{shortDate(r.next_due_date)}</td><td><b>{fmt(r.amount)}</b></td><td>{r.auto_pay?<span className="status-tag status-good">Enabled</span>:<span className="text-muted">Manual</span>}</td><td><span className={`status-tag ${isPaid(r)?'status-good':'status-pending'}`}>{isPaid(r)?'Paid':'Due'}</span></td><td><div className="row-actions"><button className="btn btn-sm btn-secondary" onClick={()=>markRecurringPaid(r)} disabled={paidBusy.includes(r.id)||isPaid(r)}>{paidBusy.includes(r.id)?'Saving…':isPaid(r)?'Paid':'Mark paid'}</button><button className="icon-btn" onClick={()=>{setEditing(r);setModal('recurring')}}><Pencil size={15}/></button><button className="icon-btn danger-hover" onClick={()=>deleteRecurringPayment(r)}><Trash2 size={15}/></button></div></td></tr>)}</tbody></table></div></section></>;
+}

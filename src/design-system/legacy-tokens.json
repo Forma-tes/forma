@@ -1,0 +1,186 @@
+[
+ {
+  "name": "--border",
+  "uses": 58,
+  "fallbacks": [
+   "#30394c",
+   "#e9ecf3",
+   "#edf0f5"
+  ]
+ },
+ {
+  "name": "--text",
+  "uses": 47,
+  "fallbacks": [
+   "#30384a",
+   "#edf0f8",
+   "#303746"
+  ]
+ },
+ {
+  "name": "--surface",
+  "uses": 21,
+  "fallbacks": [
+   "#fff",
+   "#1b2331",
+   "rgba(120,130,150,.025"
+  ]
+ },
+ {
+  "name": "--text-muted",
+  "uses": 18,
+  "fallbacks": [
+   "#9ca3af",
+   "#858b99",
+   "#9299a8"
+  ]
+ },
+ {
+  "name": "--accent",
+  "uses": 14,
+  "fallbacks": [
+   "#7887ff",
+   "#7c6cf4",
+   "#6558ff"
+  ]
+ },
+ {
+  "name": "--input-bg",
+  "uses": 10,
+  "fallbacks": [
+   "var(--surface",
+   "rgba(255,255,255,.025",
+   "#171f2d"
+  ]
+ },
+ {
+  "name": "--surface-soft",
+  "uses": 9,
+  "fallbacks": [
+   "#fafbfe",
+   "#f8f9fc",
+   "#fafbff"
+  ]
+ },
+ {
+  "name": "--text-secondary",
+  "uses": 7,
+  "fallbacks": [
+   "#738096",
+   "#6f7685",
+   "#687083"
+  ]
+ },
+ {
+  "name": "--surface-muted",
+  "uses": 7,
+  "fallbacks": [
+   "#f6f7fb",
+   "#f5f6fa"
+  ]
+ },
+ {
+  "name": "--primary",
+  "uses": 6,
+  "fallbacks": [
+   "#6c7cf5",
+   "#7c83fd"
+  ]
+ },
+ {
+  "name": "--border-subtle",
+  "uses": 6,
+  "fallbacks": [
+   "#edf0f4"
+  ]
+ },
+ {
+  "name": "--panel-soft",
+  "uses": 4,
+  "fallbacks": [
+   "rgba(120,135,255,.1",
+   "rgba(255,255,255,.035",
+   "rgba(255,255,255,.025"
+  ]
+ },
+ {
+  "name": "--text-primary",
+  "uses": 2,
+  "fallbacks": [
+   "#202433",
+   "#202b3c"
+  ]
+ },
+ {
+  "name": "--border-color",
+  "uses": 2,
+  "fallbacks": [
+   "rgba(140,150,170,.2",
+   "#d6dce6"
+  ]
+ },
+ {
+  "name": "--success",
+  "uses": 2,
+  "fallbacks": [
+   "#319b7a",
+   "#16845b"
+  ]
+ },
+ {
+  "name": "--accent-soft",
+  "uses": 2,
+  "fallbacks": [
+   "rgba(124,108,244,.08"
+  ]
+ },
+ {
+  "name": "--skeleton-base",
+  "uses": 2,
+  "fallbacks": [
+   "#eef0f5"
+  ]
+ },
+ {
+  "name": "--panel-subtle",
+  "uses": 1,
+  "fallbacks": [
+   "#f9faff"
+  ]
+ },
+ {
+  "name": "--track",
+  "uses": 1,
+  "fallbacks": [
+   "#edf0f6"
+  ]
+ },
+ {
+  "name": "--skeleton-highlight",
+  "uses": 1,
+  "fallbacks": [
+   "#f8f9fc"
+  ]
+ },
+ {
+  "name": "--hover",
+  "uses": 1,
+  "fallbacks": [
+   "#eef1f8"
+  ]
+ },
+ {
+  "name": "--sidebar-muted",
+  "uses": 1,
+  "fallbacks": [
+   "#858b99"
+  ]
+ },
+ {
+  "name": "--danger",
+  "uses": 1,
+  "fallbacks": [
+   "#c43d3d"
+  ]
+ }
+]

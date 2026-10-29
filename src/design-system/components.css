@@ -1,0 +1,115 @@
+/* ==========================================================================
+   POCKET DESIGN SYSTEM · SHARED COMPONENT RULES
+   Loaded last. Keeps controls and buttons consistent app-wide by reading
+   the tokens in tokens.css. Change look in tokens.css, not here.
+   ========================================================================== */
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* One text size for every text input, select and textarea, everywhere.
+   (Previously ~30 separate rules set 11-13px, and only modals forced 16px on
+   phones, so the size changed depending on where you were.) */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]),
+select,
+textarea {
+  font-family: var(--ds-font-ui);
+  font-size: var(--ds-control-fs) !important;
+}
+
+/* One typographic voice inside every control: same family, weight and spacing for
+   text inputs, numbers, dates, selects and textareas. */
+input, select, textarea { font-weight: 500; line-height: 1.35; letter-spacing: normal; text-transform: none; }
+:where(input, textarea)::placeholder { font-family: inherit; font-weight: 400; color: var(--ds-text-muted); opacity: .8; }
+input::-webkit-datetime-edit, input::-webkit-datetime-edit-fields-wrapper,
+input::-webkit-datetime-edit-day-field, input::-webkit-datetime-edit-month-field, input::-webkit-datetime-edit-year-field { font-family: inherit; font-size: inherit; }
+select option { font-family: var(--ds-font-ui); font-weight: 500; }
+
+/* Textareas get the same surface as inputs (they were left as browser defaults,
+   which looked grey with a white border in dark mode). */
+.field textarea, textarea.pocket-textarea, .modal textarea {
+  width: 100%; min-height: 96px; resize: vertical;
+  border: 1px solid var(--ds-control-border); border-radius: var(--ds-radius-md);
+  background: var(--ds-control-bg); color: var(--ds-control-text);
+}
+.field > span, .auth-field > span { font-size: var(--ds-label-fs); }
+
+/* Same height and side padding for every form field (not textareas, checkboxes). */
+.field input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+.field select,
+.auth-field input {
+  min-height: var(--ds-control-height);
+  padding-inline: var(--ds-control-pad-x);
+}
+.field textarea { padding: 12px var(--ds-control-pad-x); }
+.choice-color-row { padding: 4px; }
+
+/* Focus ring follows the brand color */
+:focus-visible { outline: 3px solid var(--ds-focus-ring); outline-offset: 2px; }
+
+/* Buttons */
+.btn { border-radius: var(--ds-radius-md); }
+.btn-primary { background: var(--ds-brand); box-shadow: 0 5px 14px color-mix(in srgb, var(--ds-brand) 12%, transparent); }
+.btn-primary:hover { background: var(--ds-brand-hover); box-shadow: 0 7px 18px color-mix(in srgb, var(--ds-brand) 17%, transparent); }
+.btn-danger { background: var(--ds-danger) !important; border-color: var(--ds-danger) !important; }
+.btn-danger:hover { background: var(--ds-danger-hover) !important; }
+
+/* Cards and panels */
+.metric-card, .panel, .budget-card, .goal-card, .report-card { border-radius: var(--ds-radius-lg); }
+.metric-icon.blue { background: var(--ds-brand-soft); color: var(--ds-brand); }
+
+/* Debt calculation summary: follows the theme (was a fixed light box in dark mode) */
+.debt-calculation-preview { background: var(--ds-soft); border-color: var(--ds-border); color: var(--ds-text); }
+.debt-calculation-preview span, .debt-calculation-preview p { color: var(--ds-text-muted); }
+.debt-calculation-preview b { color: var(--ds-text); }
+.debt-calculation-preview .text-danger { color: var(--ds-bad); }
+
+/* Base panel for .modal-shell dialogs (Log service, delete confirms…). Zero specificity so
+   category-wizard-card and the mobile sheet rules keep winning. */
+:where(.modal-shell:not(.category-wizard-card)){
+  display:flex;flex-direction:column;width:min(640px,calc(100vw - 28px));max-height:min(90vh,900px);overflow:auto;
+  background:var(--ds-surface,var(--panel));color:var(--ink);border:1px solid var(--line);
+  border-radius:var(--ds-radius-lg,16px);box-shadow:0 20px 60px rgba(24,32,57,.18);
+}
+:where(.modal-shell .modal-header){display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px 22px 14px}
+:where(.modal-shell .modal-header h2){margin:0;font-size:20px;line-height:1.2;letter-spacing:-.03em;color:var(--ink)}
+:where(.modal-shell .modal-header p){margin:6px 0 0;font-size:13px;line-height:1.5;color:var(--muted);font-weight:400}
+.vehicle-modal .vehicle-form-section-title{margin-top:4px}
+.vehicle-modal .vehicle-form-actions{position:sticky;bottom:0;background:var(--ds-surface,var(--panel));padding:12px 0 0}
+
+/* MonthPicker: keep our calendar icon, hide the browser's second one (whole field still opens the picker) */
+.month-picker{position:relative}
+.month-picker input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+
+/* Overlay: clearly darker than the popup so the sheet stands out in both themes */
+.modal-backdrop,:root[data-theme="dark"] .modal-backdrop{background:rgba(12,16,28,.62)!important;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+:root[data-theme="dark"] .modal-backdrop{background:rgba(0,0,0,.72)!important}
+:root[data-theme="dark"] .modal-backdrop>.modal,:root[data-theme="dark"] .modal-backdrop>.modal-shell{outline:0;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+:root[data-theme="dark"] .modal-backdrop .btn-secondary{background:#222b3b!important;color:#e7ebf5!important;border-color:#394256!important}
+
+/* Headings with a leading icon: icon and text share one centered line, system-wide */
+:is(h1,h2,h3,h4):has(>svg:first-child),.panel-header h2:has(>svg),.modal-head h2:has(>svg),.modal-header h2:has(>svg){display:flex!important;align-items:center;gap:8px}
+:is(h1,h2,h3,h4)>svg:first-child{flex:0 0 auto}
+
+/* A stepper with a single step is noise: hide it everywhere */
+.admin-wizard-steps:has(>:only-child){display:none}
+
+/* Selects: custom chevron inset by --ds-control-pad-x so it never touches the border */
+select:not([multiple]):not([size]){
+  -webkit-appearance:none;appearance:none;
+  padding-right:calc(var(--ds-control-pad-x,14px) + 26px)!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2373798b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right var(--ds-control-pad-x,14px) center;background-size:16px 16px;
+  text-overflow:ellipsis;
+}
+:root[data-theme="dark"] select:not([multiple]):not([size]){
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a2abc0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* Touch targets: icon buttons reach 44x44 on touch screens (hit area, visuals unchanged) */
+@media (pointer:coarse){
+  .icon-btn{min-width:44px;min-height:44px}
+}
+/* Respect reduced-motion */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

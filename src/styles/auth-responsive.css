@@ -1,0 +1,21 @@
+/* Login screen on phones and tablets: show only the sign-in entry.
+   Earlier auth rules kept re-showing the marketing panel above the card under 760px
+   and left an empty column between 760 and 900px. This file is loaded last and wins. */
+@media (max-width: 900px) {
+  .pocket-auth-page { display: block; grid-template-columns: none; min-height: 100vh; min-height: 100dvh; }
+  .pocket-auth-visual { display: none !important; }
+  .pocket-auth-panel {
+    width: 100%;
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    padding-block: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .pocket-auth-choice-card { width: 100%; max-width: 440px; margin: 0 auto; }
+  .pocket-mobile-brand { display: flex !important; margin-bottom: 28px; }
+}
+@media (max-width: 420px) {
+  .pocket-auth-card, .pocket-auth-choice-card { padding-inline: 20px; }
+  .pocket-auth-choice-card h2, .pocket-auth-card h2 { font-size: 28px; }
+}

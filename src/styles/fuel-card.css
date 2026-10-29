@@ -1,0 +1,22 @@
+/* Fuel log card */
+.fuel-card{display:flex;flex-direction:column;gap:14px;padding:16px 18px;background:var(--ds-surface,var(--panel));border:1px solid var(--line);border-radius:var(--ds-radius-lg,16px)}
+.fuel-card-head{display:flex;align-items:center;gap:12px;min-width:0}
+.fuel-card-head .vehicle-record-icon{flex:0 0 40px;width:40px;height:40px;display:grid;place-items:center;border-radius:12px}
+.fuel-card-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.fuel-card-title b{font-size:15px;line-height:1.25;color:var(--ink)}
+.fuel-card-title small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fuel-card-cost{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:0 0 auto}
+.fuel-card-cost b{font:700 18px/1.1 var(--font-display,Sora,Manrope,sans-serif);letter-spacing:-.03em;color:var(--ink)}
+.fuel-chip{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;color:var(--muted);background:var(--soft,rgba(120,130,150,.12))}
+.fuel-chip.is-full{color:var(--ds-ok,#1f9d6b);background:var(--ds-ok-soft,#e3f6ee)}
+.fuel-card-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0;padding:12px;background:var(--soft,rgba(120,130,150,.08));border-radius:12px}
+.fuel-card-stats div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fuel-card-stats dt{font-size:11px;font-weight:600;color:var(--muted)}
+.fuel-card-stats dd{margin:0;font-size:13px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fuel-card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fuel-card-note{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}
+.fuel-card-note.fuel-consumption-better{color:var(--ds-ok,#1f9d6b)}
+.fuel-card-note.fuel-consumption-worse{color:var(--ds-bad,#d64550)}
+.fuel-card-actions{display:flex;gap:2px;flex:0 0 auto}
+@media(max-width:560px){.fuel-card{padding:14px}.fuel-card-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.vehicle-record-list:has(>.fuel-card){gap:12px}

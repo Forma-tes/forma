@@ -1,0 +1,110 @@
+/* ==========================================================================
+   POCKET DESIGN SYSTEM · TOKENS
+   The single place to change colors, fonts, radii and control sizes.
+   Edit a value here and it updates the whole app (and design-system.html).
+
+   Naming:  --ds-*   = the design tokens (edit these)
+            --ink, --muted, --line, --panel, --blue, --green, --orange,
+            --cc-*   = legacy names the existing CSS already uses. They simply
+                       point at a --ds-* token, so old rules follow the tokens.
+   ========================================================================== */
+
+:root {
+  /* ---- Brand + status colors ---- */
+  --ds-brand: #3157f6;
+  --ds-brand-hover: #2449df;
+  --ds-brand-soft: #eaf0ff;          /* tinted icon/chip backgrounds */
+  --ds-success: #32b98a;
+  --ds-warning: #f2a64b;
+  --ds-danger: #cb4756;
+  --ds-danger-hover: #ba414f;
+
+  /* ---- Status chips (due dates, limits) ---- */
+  --ds-ok: #187d55;   --ds-ok-soft: #e3f6ee;
+  --ds-warn: #a25d19; --ds-warn-soft: #fdf0e1;
+  --ds-bad: #c03e48;  --ds-bad-soft: #fdeaec;
+  --ds-chip-brand-soft: #eef0ff;
+  --ds-soft: #f5f6fb;
+
+  /* ---- Surfaces + text ---- */
+  --ds-page: #f7f8fa;
+  --ds-surface: #ffffff;
+  --ds-text: #171923;
+  --ds-text-muted: #6c7182;
+  --ds-border: #e5e8f0;
+
+  /* ---- Form controls + secondary button ---- */
+  --ds-control-bg: #ffffff;
+  --ds-control-border: #e0e5ee;
+  --ds-control-text: #171923;
+  --ds-secondary-text: #586074;
+
+  /* ---- Typography ---- */
+  --ds-font-display: 'Sora', 'Manrope', Arial, sans-serif;   /* headings, brand */
+  --ds-font-ui: 'Manrope', Arial, sans-serif;                /* UI + numbers */
+  --ds-fs-2xs: 10px;
+  --ds-fs-xs: 11px;
+  --ds-fs-sm: 12px;
+  --ds-fs-md: 13px;
+  --ds-fs-lg: 15px;
+  --ds-fs-xl: 18px;
+  --ds-fs-2xl: 24px;
+  --ds-fs-3xl: 32px;
+
+  /* ---- Shape + controls ---- */
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 10px;     /* buttons, inputs */
+  --ds-radius-lg: 16px;     /* cards, panels */
+  --ds-radius-pill: 99px;
+  --ds-control-fs: 13px;    /* text size inside inputs, selects, textareas */
+  --ds-control-height: 40px; /* height of form fields */
+  --ds-control-pad-x: 14px;
+  --ds-label-fs: 11px;      /* small label above a field */
+  --ds-focus-ring: color-mix(in srgb, var(--ds-brand) 25%, transparent);
+
+  /* ---- Legacy names -> tokens (do not edit, edit the --ds-* above) ---- */
+  --ink: var(--ds-text);
+  --muted: var(--ds-text-muted);
+  --line: var(--ds-border);
+  --panel: var(--ds-surface);
+  --blue: var(--ds-brand);
+  --green: var(--ds-success);
+  --orange: var(--ds-warning);
+  --pocket-radius: var(--ds-radius-lg);
+  --font-display: var(--ds-font-display);
+  --font-ui: var(--ds-font-ui);
+  --cc-soft: var(--ds-soft);
+  --cc-pri-soft: var(--ds-chip-brand-soft);
+  --cc-ok: var(--ds-ok);     --cc-ok-soft: var(--ds-ok-soft);
+  --cc-warn: var(--ds-warn); --cc-warn-soft: var(--ds-warn-soft);
+  --cc-bad: var(--ds-bad);   --cc-bad-soft: var(--ds-bad-soft);
+}
+
+/* On phones and touch screens, inputs must be 16px or iOS zooms the page on focus. */
+@media (max-width: 760px), (pointer: coarse) {
+  :root { --ds-control-fs: 16px; --ds-control-height: 48px; --ds-label-fs: 12.5px; }
+}
+
+/* ---- Dark theme ---- */
+:root[data-theme="dark"] {
+  --ds-brand-soft: #2b3358;
+  --ds-ok: #56c9a0;   --ds-ok-soft: #173a31;
+  --ds-warn: #f0a458; --ds-warn-soft: #3b2c17;
+  --ds-bad: #ff8790;  --ds-bad-soft: #3d1d24;
+  --ds-chip-brand-soft: #2b3358;
+  --ds-soft: #222b3b;
+  --ds-page: #131925;
+  --ds-surface: #1d2432;
+  --ds-text: #edf0f8;
+  --ds-text-muted: #a2abc0;
+  --ds-border: #30384a;
+  --ds-control-bg: #222b3b;
+  --ds-control-border: #394256;
+  --ds-control-text: #e7ebf5;
+  --ds-secondary-text: #e7ebf5;
+}
+
+/* ---- Optional accent themes (set data-design on <html>) ---- */
+:root[data-design="lavender"] { --ds-brand: #9a75e8; --ds-brand-hover: #8661d6; --ds-success: #5bbba7; --ds-warning: #edb36b; --ds-brand-soft: #f1eafd; }
+:root[data-design="ocean"]    { --ds-brand: #168aad; --ds-brand-hover: #117592; --ds-success: #2a9d8f; --ds-warning: #e9a23b; --ds-brand-soft: #e1f3f8; }
+:root[data-design="forest"]   { --ds-brand: #43866c; --ds-brand-hover: #377259; --ds-success: #65ad83; --ds-warning: #c99a54; --ds-brand-soft: #e5f2ec; }

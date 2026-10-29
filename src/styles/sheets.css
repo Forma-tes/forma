@@ -1,0 +1,213 @@
+/* ==========================================================================
+   Pocket sheets (modals / bottom sheets) — single source of truth.
+   Desktop: centered modal. Mobile (<= 680px): bottom sheet that follows the
+   visual viewport (so it shrinks above the on-screen keyboard).
+
+   Structure every sheet follows:
+     .modal-backdrop
+       └ .modal | .modal-shell | section[role=dialog|alertdialog]   (the panel)
+           ├ .modal-head / .modal-header          (fixed)
+           ├ form | .modal-body | …content        (the ONLY part that scrolls)
+           └ .modal-actions | …-actions           (pinned at the bottom)
+
+   Behaviour (Escape, scroll lock, focus, backdrop-tap guard) lives in
+   src/hooks/useSheetManager.js — not in CSS and not in each modal.
+   ========================================================================== */
+
+/* --- Settings sheet: bottom-aligned on every screen size ------------------- */
+.modal-backdrop:has(> .modal > .settings-accordion-list) { align-items: flex-end !important; justify-content: center !important; padding: 0 !important; }
+.modal:has(> .settings-accordion-list) { display: flex; flex-direction: column; max-height: min(88dvh, 900px); min-height: 0; overflow: hidden; }
+.modal > .settings-accordion-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 18px; }
+.modal:has(> .settings-accordion-list) > .modal-actions { flex: 0 0 auto; position: sticky; bottom: 0; z-index: 2; background: var(--panel, #fff); padding: 14px 0 max(14px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); margin-top: 0; }
+
+/* --- Keep the page behind a sheet from scrolling; hide the popup notification over it ------ */
+html.pocket-sheet-open, html.pocket-sheet-open body { overflow: hidden; }
+html.pocket-sheet-open .notification-toast { visibility: hidden; pointer-events: none; }
+
+@keyframes pocket-sheet-enter { from { transform: translateY(24px); opacity: .7; } to { transform: translateY(0); opacity: 1; } }
+
+@media (max-width: 680px) {
+  /* Backdrop = the visual viewport (above the keyboard). */
+  .modal-backdrop {
+    position: fixed !important;
+    inset: var(--pocket-visual-viewport-top, 0px) 0 auto 0 !important;
+    height: var(--pocket-visual-viewport-height, 100dvh) !important;
+    min-height: 0 !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+  }
+
+  /* Panel = flex column; only the content area scrolls. */
+  .modal-backdrop > .modal,
+  .modal-backdrop > .modal-shell,
+  .modal-backdrop > section[role="dialog"],
+  .modal-backdrop > section[role="alertdialog"] {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: calc(var(--pocket-visual-viewport-height, 100dvh) - 6px) !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border-radius: 22px 22px 0 0 !important;
+    overflow: hidden !important;
+    padding-bottom: env(safe-area-inset-bottom);
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    animation: pocket-sheet-enter .22s ease-out;
+  }
+  .modal-backdrop > .modal > .modal-head,
+  .modal-backdrop > .modal-shell > .modal-header,
+  .modal-backdrop > section > .modal-head,
+  .modal-backdrop > section > .modal-header { flex: 0 0 auto; }
+
+  .modal-backdrop .modal-body,
+  .modal-backdrop .modal-shell > form,
+  .modal-backdrop > .modal > form,
+  .modal-backdrop .category-wizard-card-content,
+  .modal-backdrop .vehicle-wizard-form,
+  .modal-backdrop .vehicle-form,
+  .modal-backdrop > .modal > .settings-accordion-list {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: 120px;
+  }
+  /* The category wizard card scrolls as a whole (its actions are sticky inside it). */
+  .modal-backdrop .modal-shell.category-wizard-card,
+  .modal-backdrop .modal.category-wizard-card { overflow-y: auto !important; }
+
+  /* Action row: always visible at the bottom of the sheet. */
+  .modal-backdrop .modal-actions,
+  .modal-backdrop .category-wizard-actions,
+  .modal-backdrop .vehicle-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px !important;
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    margin-top: auto !important;
+    padding: 12px 18px max(14px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid var(--line, #e5e8ef);
+    background: var(--panel, #fff) !important;
+    box-sizing: border-box;
+    z-index: 8 !important;
+  }
+  .modal-backdrop .modal-actions > *,
+  .modal-backdrop .category-wizard-actions > *,
+  .modal-backdrop .vehicle-form-actions > * { min-width: 0; }
+  .modal-backdrop .modal-actions .btn,
+  .modal-backdrop .category-wizard-actions .btn,
+  .modal-backdrop .vehicle-form-actions .btn { min-height: 44px; }
+
+  /* Settings sheet specifics. */
+  .modal:has(> .settings-accordion-list) > .modal-head { padding: 20px 18px 14px; }
+  .modal > .settings-accordion-list { padding: 0 18px 20px; }
+  .modal:has(> .settings-accordion-list) > .modal-actions .btn { width: 100%; justify-content: center; }
+
+  /* Input text size lives in design-system/components.css (16px on touch screens). */
+  .modal-backdrop input,
+  .modal-backdrop select,
+  .modal-backdrop textarea { scroll-margin-block: 24px; }
+
+  /* Login / password popups share the same bottom-sheet look. */
+  .auth-modal-backdrop { align-items: flex-end; padding: 0; }
+  .auth-modal-backdrop .auth-popup-card,
+  .auth-modal-backdrop .auth-choice-card {
+    width: 100%;
+    max-width: none;
+    max-height: min(calc(var(--pocket-visual-viewport-height, 100dvh) - 8px), 900px);
+    overflow-y: auto;
+    border-radius: 22px 22px 0 0;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop > .modal,
+  .modal-backdrop > .modal-shell,
+  .modal-backdrop > section,
+  .auth-modal-backdrop .auth-popup-card { animation: none !important; }
+}
+
+/* ==========================================================================
+   Sheet comfort pass (phones)
+   - grab handle + swipe down to close (behaviour in useSheetManager.js)
+   - compact header so the form gets the room
+   - action row never touches the screen edge, 48px buttons
+   - sheets whose content has no scroll area scroll as a whole (nothing clipped)
+   - wizard sheets keep one height across steps (no jumping)
+   ========================================================================== */
+@media (max-width: 680px) {
+  .modal-backdrop > .modal::before,
+  .modal-backdrop > .modal-shell::before,
+  .modal-backdrop > section[role="dialog"]::before {
+    content: ""; display: block; flex: 0 0 auto;
+    width: 40px; height: 4px; border-radius: 99px;
+    margin: 0 auto 10px;
+    background: var(--line, #d9dde7);
+  }
+  .modal-backdrop > .modal,
+  .modal-backdrop > .modal-shell,
+  .modal-backdrop > section[role="dialog"] {
+    border-radius: 24px 24px 0 0 !important;
+    max-height: calc(var(--pocket-visual-viewport-height, 100dvh) - 12px) !important;
+    padding-top: 10px !important;
+  }
+  .modal-backdrop > .modal.sheet-dragging { transition: none; animation: none; }
+  .modal-backdrop > .modal.sheet-settling { transition: transform .2s ease-out; }
+
+  /* Header: grab area, smaller title, subtitle capped at two lines */
+  .modal-backdrop .modal-head,
+  .modal-backdrop .modal-header { touch-action: none; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+  .modal-backdrop .modal-head h2,
+  .modal-backdrop .modal-header h2 { font-size: 20px; line-height: 1.2; margin: 0; }
+  .modal-backdrop .modal-head p,
+  .modal-backdrop .modal-header p {
+    font-size: 13px; line-height: 1.45; margin: 4px 0 0;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .modal-backdrop .modal-head .icon-btn,
+  .modal-backdrop .modal-header .icon-btn { width: 40px; height: 40px; flex: 0 0 auto; margin: -4px -6px 0 0; }
+
+  /* Content with no scroll area of its own: the sheet scrolls, header stays pinned. */
+  .modal-backdrop > .modal:not(:has(> form)):not(:has(> .modal-body)):not(:has(> .settings-accordion-list)):not(.category-wizard-card),
+  .modal-backdrop > .modal-shell:not(:has(> form)):not(:has(> .modal-body)) {
+    overflow-y: auto !important; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  }
+  .modal-backdrop > .modal:not(:has(> form)):not(:has(> .modal-body)):not(:has(> .settings-accordion-list)) > .modal-head {
+    position: sticky; top: -10px; z-index: 3; background: var(--panel, #fff); padding-top: 10px; margin-top: -10px;
+  }
+
+  /* Wizards keep one height across steps. */
+  .modal-backdrop > .modal:has(.tx-wizard-progress) { min-height: min(84dvh, 720px); }
+
+  /* Action row: breathing room below, big touch targets, primary gets more width. */
+  .modal-backdrop .modal-actions,
+  .modal-backdrop .tx-wizard-actions,
+  .modal-backdrop .category-wizard-actions,
+  .modal-backdrop .vehicle-form-actions {
+    padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 10px !important;
+  }
+  .modal-backdrop .modal-actions .btn,
+  .modal-backdrop .tx-wizard-actions .btn,
+  .modal-backdrop .category-wizard-actions .btn,
+  .modal-backdrop .vehicle-form-actions .btn { min-height: 48px; flex: 1 1 0; justify-content: center; font-size: 14px; }
+  .modal-backdrop .modal-actions .btn-primary,
+  .modal-backdrop .tx-wizard-actions .btn-primary { flex-grow: 1.5; }
+
+  /* Wizard buttons stay visible while a long form scrolls. */
+  .modal-backdrop .tx-wizard-actions { position: sticky; bottom: 0; z-index: 2; background: var(--panel, #fff); margin-top: auto; border-top: 1px solid var(--line, #e5e8ef); }
+
+  /* Two-up field rows stack when they hold a select (long option text). */
+  .modal-backdrop .form-grid:has(select) { grid-template-columns: 1fr !important; }
+  .modal-backdrop select { text-overflow: ellipsis; }
+}
