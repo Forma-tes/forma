@@ -38,7 +38,7 @@ import { authRedirectUrl, cloudReady, supabase } from './lib/supabase.js';
 import { CardPayModal } from './features/credit/CardPayModal.jsx';
 import { CreditAccountModal } from './features/credit/CreditAccountModal.jsx';
 import { ProviderPayModal } from './features/credit/ProviderPayModal.jsx';
-import { CARD_TYPE, PROVIDER_TYPE, accountFlows, cardSummary, isCard, isLiability, isMoneyAccount, isProvider, providerSummary, reportView } from './lib/credit.js';
+import { CARD_TYPE, PROVIDER_TYPE, accountFlows, cardSummary, isCard, isLiability, isMoneyAccount, isProvider, providerSummary, reportView, limitLeft, planLimitUse } from './lib/credit.js';
 
 function readPocketStartupPage(){ return 'Overview'; }
 
@@ -118,6 +118,7 @@ function App(){
   const [debtFocus,setDebtFocus] = useState(null);
   const [creditKind,setCreditKind] = useState('card');
   const [debtPresetProvider,setDebtPresetProvider] = useState('');
+  const [convertTx,setConvertTx] = useState(null);
   const [txPresetAccount,setTxPresetAccount] = useState('');
   const [cardPay,setCardPay] = useState(null);
   const [providerPay,setProviderPay] = useState(null);
@@ -142,6 +143,7 @@ function App(){
   const [authMsg,setAuthMsg] = useState('');
   const [authMode,setAuthMode] = useState('choice');
   const [authName,setAuthName] = useState('');
+  const [authUsername,setAuthUsername] = useState('');
   const [authGender,setAuthGender] = useState('');
   const [authPassword,setAuthPassword] = useState('');
   const [stayLoggedIn,setStayLoggedIn] = useState(false);
@@ -187,6 +189,7 @@ function App(){
   const [profileAvatar,setProfileAvatar] = useState(()=>{const saved=null;return PROFILE_AVATARS.some(a=>a.id===saved)?saved:'avatar-01'});
   const [avatarPickerGender,setAvatarPickerGender] = useState('prefer_not_to_say');
   const [backupForUsers,setBackupForUsers] = useState(false);
+  const [accessRequestsOpen,setAccessRequestsOpen] = useState(true);
   const [paidBusy,setPaidBusy] = useState([]);
   const [localLoaded,setLocalLoaded] = useState(false);
   const [settingsCloudUserId,setSettingsCloudUserId] = useState('');
@@ -274,10 +277,12 @@ function App(){
         setProfile(data);
         const {data:settingData}=await supabase.from('app_settings').select('value').eq('key','backup_restore_for_users').maybeSingle();
         if(alive)setBackupForUsers(settingData?.value===true);
+        const {data:intakeData}=await supabase.from('app_settings').select('value').eq('key','access_requests_enabled').maybeSingle();
+        if(alive)setAccessRequestsOpen(intakeData?.value!==false);
         if(['owner','super_admin'].includes(data.role)){
           setAdminLoading(true);
           const {data:users,error:usersError}=await supabase.rpc('admin_list_users');
-          if(alive){if(usersError)setToast('Could not load user access list: '+usersError.message);else setAdminUsers(users||[]);setAdminLoading(false);}
+          if(alive){if(usersError)setToast('Could not load user access list: '+usersError.message);else setAdminUsers(await withEmailStatus(users||[]));setAdminLoading(false);}
         } else {setAdminUsers([]);setAdminLoading(false);}
       } catch (error) {
         if(alive)setProfileLoadError(error?.message||'Could not load your access profile.');
@@ -406,7 +411,7 @@ function App(){
   const debtReminderInfo=d=>{const raw=String(d.notes||'');const match=raw.match(/\[POCKET_DEBT_DETAILS\]\s*(\{[^\n]*\})/);if(!match)return {reminder:'2 days before',paymentMode:'Installments'};try{const data=JSON.parse(match[1]);return {reminder:data.reminder||'2 days before',paymentMode:data.payment_mode||'Installments'}}catch{return {reminder:'2 days before',paymentMode:'Installments'}}};
   const debtAlerts=debts.filter(d=>{if(!(Number(d.remaining_amount||0)>0&&d.due_date))return false;const pref=debtReminderInfo(d).reminder;const lead=pref==='1 week before'?7:pref==='2 days before'?2:pref==='1 day before'?1:0;const alertStart=new Date(`${d.due_date}T12:00:00`);alertStart.setDate(alertStart.getDate()-lead);const startISO=`${alertStart.getFullYear()}-${String(alertStart.getMonth()+1).padStart(2,'0')}-${String(alertStart.getDate()).padStart(2,'0')}`;return d.due_date<todayISO||todayISO>=startISO;}).map(d=>({id:`debt-${d.id}`,kind:'debt',name:d.name,detail:`${d.due_date<todayISO?'Overdue':d.due_date===todayISO?'Due today':`Due ${debtReminderInfo(d).reminder}`} · ${d.due_date}`,target:'Debts & installments',amount:Number(d.monthly_payment||d.remaining_amount||0)}));
   const cardAlertLimit=(()=>{const date=new Date(`${todayISO}T12:00:00`);date.setDate(date.getDate()+3);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`})();
-  const cardAlerts=accounts.filter(isCard).flatMap(c=>cardSummary(c,transactions,todayISO).groups.filter(g=>g.due<=cardAlertLimit).map(g=>({id:`card-${c.id}-${g.due}`,kind:'debt',name:`${c.name} payment`,detail:`${g.due<todayISO?'Overdue':g.due===todayISO?'Due today':'Due soon'} · ${g.due}`,target:'Debts & installments',amount:g.remaining})));
+  const cardAlerts=accounts.filter(isCard).flatMap(c=>cardSummary(c,transactions,todayISO,debts).groups.filter(g=>g.due<=cardAlertLimit).map(g=>({id:`card-${c.id}-${g.due}`,kind:'debt',name:`${c.name} payment`,detail:`${g.due<todayISO?'Overdue':g.due===todayISO?'Due today':'Due soon'} · ${g.due}`,target:'Debts & installments',amount:g.remaining})));
   const notificationPayments=recurring.filter(r=>!r.paid_this_cycle&&r.next_due_date&&r.next_due_date<=notificationDueLimit).sort((a,b)=>(a.next_due_date||'').localeCompare(b.next_due_date||''));
   const notificationItems=[...budgetAlerts,...debtAlerts,...cardAlerts,...notificationPayments.map(r=>({id:`recurring-${r.id}`,kind:'recurring',name:r.name,detail:r.next_due_date?`${r.next_due_date<todayISO?'Overdue':r.next_due_date===todayISO?'Due today':'Due soon'} · ${new Date(r.next_due_date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${r.frequency||'Recurring'}`:'Upcoming payment',target:'Recurring payments',amount:Number(r.amount||0)}))];
   const allNotificationItems=[...notificationItems,...vehicleReminderNotifications];
@@ -504,7 +509,8 @@ function App(){
     const sourceIn=transactions.filter(t=>(t.type==='Income'&&String(t.account_id)===String(source?.id))||(t.type==='Transfer'&&String(t.to_account_id)===String(source?.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);
     const sourceOut=transactions.filter(t=>((t.type==='Expense'||t.type==='Transfer')&&String(t.account_id)===String(source?.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);
     let available=Number(source?.opening_balance||0)+sourceIn-sourceOut+((isCard(source)||isProvider(source))?(Number(source.credit_limit)>0?Number(source.credit_limit):1e12):0);
-    if(isProvider(source)&&Number(source.credit_limit)>0){const planOwed=providerSummary(source,debts,undefined,[]).used;available=Number(source.credit_limit)-planOwed-Math.max(0,sourceOut-sourceIn);}
+    if(isProvider(source)&&Number(source.credit_limit)>0){const planOwed=providerSummary(source,debts,undefined,transactions).used;available=Number(source.credit_limit)-planOwed;}
+    if(isCard(source)&&Number(source.credit_limit)>0){available=Number(source.credit_limit)-cardSummary(source,transactions,undefined,debts).owed;}
     if(editing && String(editing.account_id)===String(source?.id) && (editing.type==='Expense'||editing.type==='Transfer')) available+=Number(editing.amount||0);
     if((form.type==='Expense'||form.type==='Transfer') && Number(form.amount)>available){const shown=new Intl.NumberFormat('en-EG',{style:'currency',currency,maximumFractionDigits:2}).format(Math.max(0,available));setToast((isCard(source)||isProvider(source))?`Could not add: this is over the limit on ${source.name}. Available credit: ${shown}.`:`Insufficient balance in ${source?.name||'this account'}. Available: ${shown}.`);return;}
     const payload={transaction_date:form.transaction_date,type:form.type,category:form.type==='Transfer'?'Transfer':form.category,subcategory:form.type==='Transfer'?(form.goal_id?(goals.find(g=>String(g.id)===String(form.goal_id))?.name||'Transfer'):'Transfer'):(form.subcategory||null),description:form.description,amount:Number(form.amount),need_want:form.type==='Expense'?form.need_want:null,fixed_variable:form.fixed_variable,payment_method:accounts.find(a=>String(a.id)===String(form.account_id))?.name||'Unassigned',account_id:form.account_id||null,to_account_id:form.type==='Transfer'?form.to_account_id||null:null,goal_id:form.type==='Transfer'?(form.goal_id||null):null,debt_id:form.debt_id||null,recurring:form.type==='Transfer'?false:form.recurring,notes:form.notes};
@@ -584,10 +590,10 @@ function App(){
     const interestRate=principal>0&&totalRepayment>0?Number((((totalRepayment-principal)/principal)*100).toFixed(2)):0;
     const providerId=['Installment','Buy now, pay later'].includes(form.debt_type)?(form.provider_account_id||null):null;
     const providerAcc=providerId?accounts.find(a=>String(a.id)===String(providerId)):null;
-    if(providerAcc&&Number(providerAcc.credit_limit)>0){const avail=providerSummary(providerAcc,debts,undefined,transactions).available+(editing&&String(editing.provider_account_id)===String(providerAcc.id)?Number(editing.remaining_amount||0):0);if(remaining>avail+0.005){setToast(`Could not save: only ${fmt(avail)} is left on ${providerAcc.name}.`);return;}}
+    if(providerAcc&&Number(providerAcc.credit_limit)>0){const avail=limitLeft(providerAcc,debts,transactions)+(convertTx&&String(convertTx.account_id)===String(providerAcc.id)?Number(convertTx.amount||0):0)+(editing&&String(editing.provider_account_id)===String(providerAcc.id)?planLimitUse(editing):0);const need=totalRepayment>0?Math.max(0,principal-Number(form.down_payment||0))*Math.min(1,remaining/totalRepayment):remaining;if(need>avail+0.005){setToast(`Could not save: only ${fmt(avail)} is left on ${providerAcc.name}.`);return;}}
     const payload={provider_account_id:providerId,name:form.name.trim(),debt_type:form.debt_type||'Other',lender:form.lender||'',account_id:form.account_id||null,original_amount:principal,remaining_amount:remaining,monthly_payment:installment,due_date:form.due_date||null,frequency:'Monthly',notes:form.notes||'',start_date:form.start_date||null,term_months:term||null,total_repayment:totalRepayment,interest_rate:interestRate,paid_installments:paidCount,amount_paid:amountPaid};
     const saved=await saveRecord('debts',payload,editing?.id);if(!saved)return;
-    setDebts(old=>editing?old.map(x=>x.id===editing.id?saved:x):[saved,...old]);setModal(null);setEditing(null);setDebtPresetProvider('');setToast('Debt saved');
+    setDebts(old=>editing?old.map(x=>x.id===editing.id?saved:x):[saved,...old]);if(convertTx&&!editing){const t=await saveRecord('transactions',{...convertTx,debt_id:saved.id},convertTx.id);if(t)setTransactions(old=>old.map(x=>x.id===t.id?t:x));}setConvertTx(null);setModal(null);setEditing(null);setDebtPresetProvider('');setToast(convertTx&&!editing?'Purchase turned into installments':'Debt saved');
   }
   async function recordDebtInstallment(debt, options={}){
     if(typeof options==='string') options={accountId:options};
@@ -657,6 +663,16 @@ function App(){
     e.preventDefault(); if(!supabase)return;
     if(authPassword.length<8){setAuthMsg('Use a password with at least 8 characters.');return;}
     setBusy(true);setAuthMsg('');
+    if(!authEmail.trim()){
+      const username=authUsername.trim();
+      if(!/^[a-zA-Z0-9._-]{3,32}$/.test(username)){setBusy(false);setAuthMsg('Choose a username (3–32 characters: letters, numbers, dots, underscores or hyphens) or add an email.');return;}
+      const {error:fnError}=await supabase.functions.invoke('public-signup',{body:{full_name:authName.trim(),gender:authGender,avatar:defaultAvatarForGender(authGender),username,password:authPassword}});
+      if(fnError){let msg=fnError.message;try{const j=await fnError.context?.json?.();if(j?.error)msg=j.error;}catch{}setBusy(false);setAuthMsg(msg||'Could not create the account.');return;}
+      const {error:inError}=await supabase.auth.signInWithPassword({email:`${username.toLowerCase().replace(/[^a-z0-9._-]/g,'-')}@users.pocket.local`,password:authPassword});
+      setBusy(false);
+      if(inError){setAuthMode('signin');setAuthMsg('Account created! Sign in with your username.');}
+      return;
+    }
     const {data,error}=await supabase.auth.signUp({
       email:authEmail.trim(),
       password:authPassword,
@@ -666,6 +682,17 @@ function App(){
     if(error){setAuthMsg(error.message);return;}
     if(data.session){setAuthMsg('Account created successfully.');}
     else {setAuthMode('signin');setAuthMsg('Account created! Check your email to confirm your address, then sign in.');}
+  }
+  async function sendEmailVerification(){
+    const email=session?.user?.email;if(!supabase||!email)return false;
+    const {error}=await supabase.auth.resend({type:'signup',email,options:{emailRedirectTo:authRedirectUrl()}});
+    setToast(error?error.message:`Verification email sent to ${email}. Check your inbox and spam folder.`);return !error;
+  }
+  async function addAccountEmail(email){
+    const clean=String(email||'').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)){setToast('Enter a valid email address.');return false;}
+    const {error}=await supabase.auth.updateUser({email:clean},{emailRedirectTo:authRedirectUrl()});
+    setToast(error?error.message:`We sent a confirmation link to ${clean}. After you confirm it, you can also sign in with this email.`);return !error;
   }
   async function resetPassword(e){
     e.preventDefault(); if(!supabase)return;
@@ -700,7 +727,7 @@ function App(){
     if(!['owner','super_admin'].includes(profile?.role))return;
     setAdminLoading(true);
     const {data,error}=await supabase.rpc('admin_list_users');
-    if(error)setToast('Could not refresh users: '+error.message);else setAdminUsers(data||[]);
+    if(error)setToast('Could not refresh users: '+error.message);else setAdminUsers(await withEmailStatus(data||[]));
     setAdminLoading(false);
   }
   async function deleteManagedUser(userId){
@@ -820,6 +847,10 @@ function App(){
     finally{setPaidBusy(old=>old.filter(id=>id!==r.id));}
   }
 
+  async function withEmailStatus(users){
+    try{const {data}=await supabase.rpc('admin_list_user_email_status');const m=new Map((data||[]).map(r=>[r.user_id,r.email_verified]));return users.map(u=>({...u,email_verified:m.has(u.user_id)?m.get(u.user_id):undefined}));}catch{return users;}
+  }
+
   async function requestAccess(){
     if(!cloudReady || !session?.user){setToast('Sign in to request access.');return;}
     if(accessRequestBusy)return;
@@ -829,7 +860,7 @@ function App(){
       if(error)throw error;
       setToast('Access request submitted. The administrator can review it in Pocket.');
     }catch(err){
-      setToast(err?.message||'Could not send your access request. Please try again later.');
+      setToast(err?.context?.status===403?'Access requests are turned off right now. Please contact the administrator.':(err?.message||'Could not send your access request. Please try again later.'));
     }finally{setAccessRequestBusy(false);}
   }
 
@@ -882,6 +913,7 @@ function App(){
     payCard:(card,choice=0)=>setCardPay({card,choice}),
     payProvider:(provider,group)=>setProviderPay({provider,group}),
     addPurchase:card=>{setEditing(null);setTxPresetAccount(card.id);setModal('transaction')},
+    convertPurchase:(provider,tx)=>{setEditing(null);setConvertTx(tx);setDebtPresetProvider(provider.id);setModal('debt')},
     addPlan:provider=>{setEditing(null);setDebtPresetProvider(provider.id);setModal('debt')}
   };
   if(cloudReady && (authLoading || (session && !profileLoaded))) return <main className="pocket-loading-screen" role="status" aria-live="polite" aria-label="Loading Pocket">
@@ -896,7 +928,7 @@ function App(){
     </section>
     <span className="pocket-loading-caption">PERSONAL FINANCE, IN ONE PLACE</span>
   </main>;
-  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,stayLoggedIn,setStayLoggedIn,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
+  if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authUsername,setAuthUsername,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,stayLoggedIn,setStayLoggedIn,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
   if(!cloudReady) return <main className="auth-page pocket-auth-page"><section className="auth-panel pocket-auth-panel"><div className="auth-choice-card pocket-auth-choice-card"><div className="auth-mobile-brand pocket-mobile-brand"><b>Pocket</b></div><h2>Connect Pocket to Supabase</h2><p className="auth-subtitle">Local and browser-based data storage is disabled. Configure <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your deployment environment, then redeploy.</p></div></section></main>;
   return <div className={`app-shell sidebar-${isDesktopNav?sidebarSize:'comfortable'}`} lang="en" dir="ltr">
     <aside className={`sidebar ${sidebarOpen?'sidebar-open':''}`} onMouseOver={e=>{if(!(isDesktopNav&&sidebarSize==='compact')){if(navTip)setNavTip(null);return}const el=e.target.closest('[data-label]');if(!el){if(navTip)setNavTip(null);return}const r=el.getBoundingClientRect();setNavTip({label:el.dataset.label,top:r.top+r.height/2,left:r.right+10})}} onMouseLeave={()=>setNavTip(null)}>
@@ -920,7 +952,7 @@ function App(){
         {profileLoadError&&<div className="workspace-error" role="alert"><div><b>Couldn’t verify your access</b><p>{profileLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>{setProfileLoaded(false);setProfileLoadError('');setProfileRetry(v=>v+1)}}>Retry</button></div>}
         {dataLoadError&&<div className="workspace-error" role="alert"><div><b>Some workspace data didn’t load</b><p>{dataLoadError}</p></div><button className="btn btn-secondary btn-sm" onClick={()=>setDataLoadAttempt(v=>v+1)}>Retry loading</button></div>}
         {cloudReady&&session&&!accountsLoaded?<WorkspaceSkeleton/>: <>
-        {!canSeeCurrentPage&&!(isAdmin&&['Expense categories','Admin access','Access requests','Access management'].includes(page))&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy}/> }
+        {!canSeeCurrentPage&&!(isAdmin&&['Expense categories','Admin access','Access requests','Access management'].includes(page))&&<AccessRestricted profile={profile} onBack={()=>setPage(allowedFeatures[0]?FEATURE_OPTIONS.find(f=>f.key===allowedFeatures[0])?.label:'Overview')} onRequestAccess={requestAccess} requestBusy={accessRequestBusy} requestsOpen={accessRequestsOpen}/> }
         {page==='Expense categories'&&(isAdmin||allowedFeatures.includes('expense_categories'))&&<ExpenseCategoriesPage session={session} supabase={supabase}/>}
         {canSeeCurrentPage&&page==='Vehicle Management'&&<VehicleManagementPage session={session} supabase={supabase} transactions={transactions} setTransactions={setTransactions} accounts={accounts} currency={currency} onToast={setToast} requestedTab={vehicleSidebarTab}/>}
         {['Access management','Admin access','Access requests'].includes(page)&&isAdmin&&<AccessManagementPage supabase={supabase} onToast={setToast} users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers} initialTab={page==='Admin access'?'users':'requests'}/>}
@@ -942,13 +974,13 @@ function App(){
     {modal==='recurring'&&<RecurringModal currency={currency} accounts={accounts} initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={addRecurring}/>}
     {modal==='budget'&&<BudgetModal currency={currency} initial={editing} month={month} onClose={()=>{setModal(null);setEditing(null)}} onSave={addBudget}/>}
      {modal==='app-settings'&&<SettingsModal {...{onClose:()=>setModal(null),design,setDesign,sidebarSize,setSidebarSize,isAdmin,backupForUsers,setBackupVisibility,exportCSV,exportBackup,handleImport,restoreBackup,session,supabase,onOpenProfile:()=>setModal('profile')}}/>}
-    {modal==='profile'&&<AccountProfileModal {...{onClose:()=>setModal(null),openAvatarPicker:gender=>{setAvatarPickerGender(gender||session?.user?.user_metadata?.gender||'prefer_not_to_say');setModal('avatar-picker')},session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
+    {modal==='profile'&&<AccountProfileModal {...{sendEmailVerification,addAccountEmail,onClose:()=>setModal(null),openAvatarPicker:gender=>{setAvatarPickerGender(gender||session?.user?.user_metadata?.gender||'prefer_not_to_say');setModal('avatar-picker')},session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
     {modal==='avatar-picker'&&<AvatarPickerModal current={profileAvatar} gender={avatarPickerGender} onClose={()=>setModal('profile')} onChoose={avatar=>{setProfileAvatar(avatar);setModal('profile')}} />}
     {modal==='account'&&<AccountModal initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveAccount}/> }
     {modal==='account-from-transaction'&&<AccountModal initial={null} onClose={()=>setModal('transaction')} onSave={async form=>{const payload={name:form.name.trim(),type:form.type,opening_balance:Number(form.opening_balance||0),opening_balance_date:form.opening_balance_date||localISODate(),color:form.color||'#6c7cf5'};const saved=await saveRecord('financial_accounts',payload);if(!saved)return;setAccounts(old=>[saved,...old]);setModal('transaction');setToast('Account added. Select it for your transaction.')}}/>}
-    {modal==='debt'&&<DebtModal currency={currency} accounts={accounts} debts={debts} transactions={transactions} providerAccounts={accounts.filter(isProvider)} presetProviderId={debtPresetProvider} onChooseAccountKind={kind=>{setEditing(null);setDebtPresetProvider('');setCreditKind(kind);setModal('credit-account')}} initial={editing} onClose={()=>{setModal(null);setEditing(null);setDebtPresetProvider('')}} onSave={saveDebt}/> }
+    {modal==='debt'&&<DebtModal currency={currency} accounts={accounts} debts={debts} transactions={transactions} convertTx={convertTx} providerAccounts={convertTx?accounts.filter(a=>String(a.id)===String(convertTx.account_id)):accounts.filter(isProvider)} presetProviderId={debtPresetProvider} onChooseAccountKind={kind=>{setEditing(null);setDebtPresetProvider('');setCreditKind(kind);setModal('credit-account')}} initial={editing} onClose={()=>{setModal(null);setEditing(null);setDebtPresetProvider('');setConvertTx(null)}} onSave={saveDebt}/> }
     {modal==='credit-account'&&<CreditAccountModal kind={creditKind} currency={currency} accounts={accounts} initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveCreditAccount}/>}
-    {cardPay&&<CardPayModal card={accounts.find(a=>String(a.id)===String(cardPay.card.id))||cardPay.card} summary={cardSummary(accounts.find(a=>String(a.id)===String(cardPay.card.id))||cardPay.card,transactions)} accounts={accounts} transactions={transactions} currency={currency} initialChoice={cardPay.choice} onClose={()=>setCardPay(null)} onSubmit={payCreditCard}/>}
+    {cardPay&&<CardPayModal card={accounts.find(a=>String(a.id)===String(cardPay.card.id))||cardPay.card} summary={cardSummary(accounts.find(a=>String(a.id)===String(cardPay.card.id))||cardPay.card,transactions,undefined,debts)} accounts={accounts} transactions={transactions} currency={currency} initialChoice={cardPay.choice} onClose={()=>setCardPay(null)} onSubmit={payCreditCard}/>}
     {providerPay&&<ProviderPayModal provider={providerPay.provider} group={providerPay.group} accounts={accounts} transactions={transactions} currency={currency} onClose={()=>setProviderPay(null)} onSubmit={payProviderGroup}/>}
     {modal==='debt-payment'&&debtPaymentTarget&&<DebtPaymentChoiceModal debt={debtPaymentTarget} accounts={accounts} currency={currency} onClose={()=>{setModal(null);setDebtPaymentTarget(null)}} onSubmit={async opts=>{const ok=await recordDebtInstallment(debtPaymentTarget,opts);if(ok){setModal(null);setDebtPaymentTarget(null)}}}/> }
     {modal==='import'&&<ImportModal rows={importPreview} onClose={()=>{setModal(null);setImportPreview([])}} onConfirm={confirmImport}/>}

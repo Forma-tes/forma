@@ -9,7 +9,7 @@ export function CashFlowCalendar({transactions,recurring,accounts=[],debts=[],mo
  const [selected,setSelected]=useState('');const [yy,mm]=month.split('-').map(Number);const first=new Date(yy,mm-1,1);const days=new Date(yy,mm,0).getDate();const offset=(first.getDay()+6)%7;
  const events={};const add=(date,item)=>{if(!date||date.slice(0,7)!==month)return;(events[date] ||= []).push(item)};
  transactions.forEach(t=>add(t.transaction_date,{kind:t.type==='Income'?'income':'expense',title:t.description||t.category,amount:Number(t.amount||0),label:t.type}));
- accounts.filter(isCard).forEach(c=>cardSummary(c,transactions).groups.forEach(g=>add(g.due,{kind:'due',title:`${c.name} payment`,amount:g.remaining,label:'Card due'})));
+ accounts.filter(isCard).forEach(c=>cardSummary(c,transactions,undefined,debts).groups.forEach(g=>add(g.due,{kind:'due',title:`${c.name} payment`,amount:g.remaining,label:'Card due'})));
  debts.filter(d=>d.due_date&&Number(d.remaining_amount||0)>0).forEach(d=>add(d.due_date,{kind:'due',title:d.name,amount:Math.min(Number(d.monthly_payment||0),Number(d.remaining_amount||0)),label:'Installment due'}));
  recurring.filter(r=>r.next_due_date).forEach(r=>add(r.next_due_date,{kind:'due',title:r.name,amount:Number(r.amount||0),label:'Due'}));
  const daysWithEvents=Object.keys(events).length;const dayEvents=events[selected]||[];const fmt=n=>new Intl.NumberFormat('en-EG',{style:'currency',currency,maximumFractionDigits:0}).format(Number(n)||0);

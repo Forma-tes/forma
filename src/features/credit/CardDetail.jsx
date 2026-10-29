@@ -5,7 +5,7 @@ import { shortDate } from '../../lib/format.js';
 import { CardVisual, DueChip, LimitBar } from './CreditSummary.jsx';
 
 // Credit card page: what to pay next up top, then tabs for what you owe, what you paid, and card info.
-export function CardDetail({ card, summary, accounts = [], currency, onBack, onPay, onAddPurchase, onEdit, onDelete }) {
+export function CardDetail({ card, summary, accounts = [], currency, onBack, onPay, onAddPurchase, onConvert, onPayPlan, onEditPlan, onDeletePlan, onEdit, onDelete }) {
   const fmt = money(currency);
   const [tab, setTab] = useState('pay');
   const next = summary.next;
@@ -42,11 +42,16 @@ export function CardDetail({ card, summary, accounts = [], currency, onBack, onP
       {[['pay', `To pay${summary.groups.length ? ` (${summary.groups.length})` : ''}`], ['paid', `Payments${summary.payments.length ? ` (${summary.payments.length})` : ''}`], ['about', 'About this card']].map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={`cc-tab ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{l}</button>)}
     </div>
 
+    {summary.activePlans.length > 0 && <section className="panel" style={{ padding: 0, overflow: 'hidden', marginBottom: 14 }}>
+      <div className="cc-line" style={{ borderTop: 0 }}><span><b>Installment plans on this card</b><small>Not part of the statement. Pay them month by month.</small></span><span><b>{fmt(summary.planOwed)}</b></span></div>
+      {summary.activePlans.map(d => <div className="cc-line" key={d.id}><span>{d.name}<small>{d.due_date ? `Next ${shortDate(d.due_date)} · ` : ''}{fmt(Math.min(Number(d.monthly_payment || 0), Number(d.remaining_amount || 0)))} / month · {fmt(d.remaining_amount)} left</small></span><span className="row-actions"><button className="btn btn-secondary btn-sm" onClick={() => onPayPlan(d)}>Record payment</button><button className="icon-btn" title="Edit plan" aria-label={`Edit ${d.name}`} onClick={() => onEditPlan(d)}><Pencil size={15} /></button><button className="icon-btn danger-hover" title="Delete plan" aria-label={`Delete ${d.name}`} onClick={() => onDeletePlan(d)}><Trash2 size={15} /></button></span></div>)}
+    </section>}
+
     {tab === 'pay' && (summary.groups.length ? <>
       <p className="small-muted" style={{ margin: '0 0 12px' }}>Each group is one due date. Pay the top one first to avoid interest.</p>
       {summary.groups.map((g, i) => <details className="cc-group" key={g.due} open={i === 0}>
         <summary><span><b>Pay by {shortDate(g.due)}</b><br /><small className="cc-sub">{g.items.filter(x => x.remaining > 0).length} purchase{g.items.filter(x => x.remaining > 0).length === 1 ? '' : 's'}{g.statement ? ` · statement ${shortDate(g.statement)}` : ''}</small></span><span className="cc-group-end"><b>{fmt(g.remaining)}</b><DueChip date={g.due} /></span></summary>
-        {g.items.filter(x => x.remaining > 0).map(c => <div className="cc-line" key={c.id}><span>{c.description}<small>{shortDate(c.date)}</small></span><span>{fmt(c.remaining)}{c.remaining < c.amount - 0.004 && <small>of {fmt(c.amount)}</small>}</span></div>)}
+        {g.items.filter(x => x.remaining > 0).map(c => <div className="cc-line" key={c.id}><span>{c.description}<small>{shortDate(c.date)}</small></span><span style={{ display: "flex", alignItems: "center" }}>{fmt(c.remaining)}{c.remaining < c.amount - 0.004 && <small>of {fmt(c.amount)}</small>}{onConvert && c.tx && c.tx.type === 'Expense' && c.remaining >= c.amount - 0.004 && <button type="button" className="btn btn-secondary btn-sm" style={{ marginLeft: 12 }} onClick={() => onConvert(card, c.tx)}>Make installments</button>}</span></div>)}
       </details>)}
     </> : <div className="panel cc-empty"><b>Nothing to pay</b><p>New purchases on this card show up here, grouped by due date.</p><button className="btn btn-primary" onClick={() => onAddPurchase(card)}><Plus size={16} /> Add purchase</button></div>)}
 
