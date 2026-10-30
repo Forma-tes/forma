@@ -1880,7 +1880,8 @@ body, button, input, select, textarea, table, h1, h2, h3, h4, .page-title, .sect
 .admin-mini-addr{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .email-status{white-space:nowrap;margin-top:0;align-self:center;font-size:10px;padding:3px 8px}
 /* email status bar */
-.email-status-bar{display:flex;align-items:center;gap:12px;margin:12px 24px 0;padding:10px 12px 10px 14px;border-radius:12px;border:1px solid rgba(242,166,75,.45);background:var(--ds-warn-soft,#fdf0e1);color:var(--ds-warn,#a25d19)}
+.email-status-wrap{max-width:1530px;margin:0 auto;padding:16px 36px 0}.email-status-wrap+.page-wrap{padding-top:20px}
+.email-status-bar{display:flex;align-items:center;gap:12px;margin:0;padding:10px 12px 10px 14px;border-radius:12px;border:1px solid rgba(242,166,75,.45);background:var(--ds-warn-soft,#fdf0e1);color:var(--ds-warn,#a25d19)}
 .email-status-bar-icon{display:grid;place-items:center;flex:none}
 .email-status-bar-copy{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;font-size:12px;line-height:1.4}
 .email-status-bar-copy b{font-size:13px;color:var(--ds-text,#171923)}
@@ -1890,5 +1891,5 @@ body, button, input, select, textarea, table, h1, h2, h3, h4, .page-title, .sect
 :root[data-theme="dark"] .email-status-bar{background:rgba(242,166,75,.1);border-color:rgba(242,166,75,.35);color:#f2b365}
 :root[data-theme="dark"] .email-status-bar-copy b,:root[data-theme="dark"] .email-status-bar-copy em{color:#f3f4f6}
 :root[data-theme="dark"] .email-status-bar-copy span{color:#a7adbd}
-@media(max-width:640px){.email-status-bar{margin:10px 14px 0;flex-wrap:wrap;gap:8px 10px}.email-status-bar-copy{flex:1 1 calc(100% - 40px)}.email-status-bar .btn{order:3;margin-left:28px}.email-status-bar-close{position:absolute;right:6px;top:6px}.email-status-bar{position:relative;padding-right:40px}}
+@media(max-width:640px){.email-status-wrap{padding:12px 16px 0}.email-status-bar{margin:0;flex-wrap:wrap;gap:8px 10px}.email-status-bar-copy{flex:1 1 calc(100% - 40px)}.email-status-bar .btn{order:3;margin-left:28px}.email-status-bar-close{position:absolute;right:6px;top:6px}.email-status-bar{position:relative;padding-right:40px}}
 .email-status-bar,.email-status-bar *,.email-status-card,.email-status-card *{text-transform:none!important}
