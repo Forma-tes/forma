@@ -1,9 +1,10 @@
-import { ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { money } from '../../lib/credit.js';
 import { shortDate } from '../../lib/format.js';
 import { CardVisual, DueChip, LimitBar } from './CreditSummary.jsx';
 import { ShoppingBag } from 'lucide-react';
+import { EmptyState } from '../../components/ui/EmptyState.jsx';
 
 // Installment app page (Valu, Aman, Halan...): limit, what is due next, and every plan under the app.
 export function ProviderDetail({ provider, summary, accounts = [], currency, onBack, onPay, onPayPlan, onAddPlan, onConvert, onEdit, onDelete, onEditPlan, onDeletePlan }) {
@@ -46,7 +47,7 @@ export function ProviderDetail({ provider, summary, accounts = [], currency, onB
       </section>;
     }) : <div className="panel cc-empty"><b>No active plans</b><p>Add what you bought on {provider.name} to track the installments and the limit left.</p><button className="btn btn-primary" onClick={() => onAddPlan(provider)}><Plus size={16} /> Add purchase plan</button></div>)}
 
-    {tab === 'done' && (summary.done.length ? <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>{summary.done.map(d => <div className="cc-line" key={d.id}><span>{d.name}<small>{d.term_months ? `${d.term_months} installments` : 'Plan'}</small></span><span><span className="cc-chip ok">Fully paid</span></span></div>)}</div> : <div className="panel cc-empty"><b>Nothing completed yet</b><p>Plans move here once every installment is paid.</p></div>)}
+    {tab === 'done' && (summary.done.length ? <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>{summary.done.map(d => <div className="cc-line" key={d.id}><span>{d.name}<small>{d.term_months ? `${d.term_months} installments` : 'Plan'}</small></span><span><span className="cc-chip ok">Fully paid</span></span></div>)}</div> : <EmptyState panel icon={Check} title="Nothing completed yet" text="Plans move here once every installment is paid."/>)}
 
     {tab === 'about' && <>
       <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>{[['Credit limit', fmt(summary.limit)], ['Committed', fmt(summary.used)], ['Available', fmt(summary.available)], ['Paid from', payFrom], ['Every month', fmt(summary.monthly)]].map(([l, v]) => <div className="cc-line" key={l}><span>{l}</span><span>{v}</span></div>)}</div>

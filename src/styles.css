@@ -1896,3 +1896,21 @@ body, button, input, select, textarea, table, h1, h2, h3, h4, .page-title, .sect
 .sidebar-profile-open{display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 auto;margin-right:auto;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;border-radius:12px;cursor:pointer}
 .sidebar-profile-open:focus-visible{outline:2px solid var(--ds-brand,#3157f6);outline-offset:3px}
 .sidebar-profile-open .sidebar-profile-copy{flex:0 1 auto;display:flex;flex-direction:column;cursor:pointer}
+
+.account-popover-identity .email-status{margin-top:6px;align-self:flex-start;display:inline-flex}
+.account-popover-email,.admin-mini-addr{text-transform:none!important}
+.email-status.is-none{background:var(--ds-soft,#f1f2f7);color:var(--ds-text-muted,#6c7182);border:1px solid var(--border,#e4e6ee)}
+.admin-access-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media(max-width:640px){.admin-access-shell .panel-header{flex-direction:column;align-items:stretch;gap:12px}.admin-access-head-actions{justify-content:flex-start}}
+.email-status{text-transform:none!important}
+:root[data-theme="dark"] .email-status.status-pending{background:rgba(242,166,75,.16);color:#f2b365}
+:root[data-theme="dark"] .email-status.status-good{background:rgba(50,185,138,.16);color:#5fd3a8}
+:root[data-theme="dark"] .email-status.is-none{background:rgba(255,255,255,.06);color:#a7adbd;border-color:rgba(255,255,255,.12)}
+/* Requests inbox toolbar: flush with the panel, tidy on mobile */
+.am-inbox-panel>.panel-head,.am-inbox-panel>.access-request-toolbar{background:transparent;margin:0;border-radius:0;padding:18px 20px;border-bottom:1px solid var(--border)}
+.am-request-area .access-request-controls .search-field{width:260px;height:40px}
+.am-request-area .access-request-controls select{height:40px;max-width:170px}
+@media(max-width:640px){.am-inbox-panel>.panel-head,.am-inbox-panel>.access-request-toolbar{padding:16px}
+.am-request-area .access-request-controls{display:grid;grid-template-columns:1fr auto;gap:8px;width:100%}
+.am-request-area .access-request-controls .search-field{grid-column:1/-1;width:100%}
+.am-request-area .access-request-controls select{max-width:none;width:100%}}
