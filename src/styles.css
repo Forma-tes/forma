@@ -1893,3 +1893,6 @@ body, button, input, select, textarea, table, h1, h2, h3, h4, .page-title, .sect
 :root[data-theme="dark"] .email-status-bar-copy span{color:#a7adbd}
 @media(max-width:640px){.email-status-wrap{padding:12px 16px 0}.email-status-bar{margin:0;flex-wrap:wrap;gap:8px 10px}.email-status-bar-copy{flex:1 1 calc(100% - 40px)}.email-status-bar .btn{order:3;margin-left:28px}.email-status-bar-close{position:absolute;right:6px;top:6px}.email-status-bar{position:relative;padding-right:40px}}
 .email-status-bar,.email-status-bar *,.email-status-card,.email-status-card *{text-transform:none!important}
+.sidebar-profile-open{display:flex;align-items:center;gap:10px;min-width:0;flex:0 1 auto;margin-right:auto;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;border-radius:12px;cursor:pointer}
+.sidebar-profile-open:focus-visible{outline:2px solid var(--ds-brand,#3157f6);outline-offset:3px}
+.sidebar-profile-open .sidebar-profile-copy{flex:0 1 auto;display:flex;flex-direction:column;cursor:pointer}
