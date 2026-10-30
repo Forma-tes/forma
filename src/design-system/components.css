@@ -136,3 +136,35 @@ select:not([multiple]):not([size]){
 .switch.on i{transform:translateX(20px)}
 :root[data-theme="dark"] .switch{background:#39393d}
 :root[data-theme="dark"] .switch.on{background:#30d158}
+
+/* ---- Menu button (Export / Import) ---- */
+.menu-wrap{position:relative;display:inline-flex}
+.menu-wrap>.btn{gap:8px}.menu-caret{opacity:.6;margin-left:-2px;transition:transform .15s}
+.menu-wrap>.btn[aria-expanded="true"] .menu-caret{transform:rotate(180deg)}
+.menu-popover{position:absolute;right:0;top:calc(100% + 8px);z-index:60;min-width:250px;padding:6px;border-radius:14px;border:1px solid var(--ds-border,var(--border,#e4e6ee));background:var(--ds-surface,#fff);box-shadow:0 14px 38px rgba(23,25,35,.16)}
+.menu-item{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:var(--ds-text,#171923);text-align:left;cursor:pointer;font:inherit;position:relative}
+.menu-item:hover,.menu-item:focus-visible{background:var(--ds-soft,#f5f6fb);outline:0}
+.menu-item input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.menu-item-icon{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:10px;background:var(--ds-brand-soft,#eaf0ff);color:var(--ds-brand,#3157f6)}
+.menu-item-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.menu-item-copy b{font-size:14px;font-weight:600;text-transform:none}.menu-item-copy small{font-size:12px;color:var(--ds-text-muted,#6c7182);text-transform:none}
+.menu-divider{height:1px;margin:6px 8px;background:var(--ds-border,var(--border,#e4e6ee))}
+:root[data-theme="dark"] .menu-popover{background:#1d2432;border-color:#30384a;box-shadow:0 14px 38px rgba(0,0,0,.5)}
+:root[data-theme="dark"] .menu-item{color:#edf0f8}:root[data-theme="dark"] .menu-item:hover,:root[data-theme="dark"] .menu-item:focus-visible{background:#262f42}
+:root[data-theme="dark"] .menu-item-icon{background:rgba(120,135,255,.14);color:#a5b0ff}
+:root[data-theme="dark"] .menu-item-copy small{color:#9aa4bb}:root[data-theme="dark"] .menu-divider{background:#30384a}
+@media(max-width:640px){.menu-popover{left:0;right:auto;min-width:min(270px,calc(100vw - 32px))}}
+/* ---- Transactions: three stat cards, table runs edge to edge ---- */
+.metric-grid.metric-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:950px){.metric-grid.metric-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-grid.metric-grid-3>:last-child{grid-column:1/-1}}
+@media(max-width:560px){.metric-grid.metric-grid-3{grid-template-columns:1fr}.metric-grid.metric-grid-3>:last-child{grid-column:auto}}
+.table-panel>.table-wrap{padding:0!important}
+.table-panel .data-table{width:100%}
+.table-panel .data-table th:first-child,.table-panel .data-table td:first-child{padding-left:20px}
+.table-panel .data-table th:last-child,.table-panel .data-table td:last-child{padding-right:20px}
+/* ---- Type scale: page title > section title > card title ---- */
+main .panel-header h2,main .panel-head h3,main .acc-toolbar h2,main .cc-section-head h2,main .calendar-heading h2{font-size:16px!important;font-weight:700!important;line-height:1.3!important;letter-spacing:-.1px!important;margin:0!important}
+main .panel-header p,main .panel-head p,main .acc-toolbar p,main .cc-section-head p{font-size:12.5px!important;line-height:1.5!important;margin:3px 0 0!important}
+main .goal-card h3,main .vehicle-card h2{font-size:15px!important;font-weight:700!important}
+main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight:800}
+.category-admin-page{max-width:none!important;padding:0 0 28px!important}

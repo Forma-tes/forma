@@ -1,6 +1,7 @@
 import { PanelLeftClose, PanelLeftOpen, ArrowLeftRight, ArrowUpRight, Bell, CalendarDays, CarFront, ChartNoAxesCombined, Check, ChevronDown, CircleDollarSign, CreditCard, Fuel, History, LayoutDashboard, LogOut, Mail, Menu, Moon, Repeat2, Settings, SlidersHorizontal, Sun, Target, UserRound, Users, Wallet, Wrench, X, XCircle } from 'lucide-react';
 import { useSheetManager } from './hooks/useSheetManager.js';
 import * as XLSX from 'xlsx';
+import { exportTransactions, downloadTemplate } from './lib/transferFile.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ConfirmActionModal } from './components/modals/ConfirmActionModal.jsx';
 import { ProfileAvatar } from './components/ui/ProfileAvatar.jsx';
@@ -750,6 +751,12 @@ function App(){
     setToast('User access updated');
     await refreshAdminUsers();
   }
+  async function exportTransactionsAs(format){
+    if(!transactions.length){setToast('No transactions to export yet.');return;}
+    try{await exportTransactions(format,transactions,accounts,currency);setToast(`Exported ${transactions.length} transactions as ${format==='xlsx'?'Excel':format.toUpperCase()}.`);}
+    catch(err){setToast('Could not export: '+(err?.message||err));}
+  }
+  function downloadTemplateAs(format){downloadTemplate(format,currency);setToast(`Template downloaded (${format==='xlsx'?'Excel':'CSV'}). Fill it in, then use Import.`);}
   function exportCSV(){
     const ws=XLSX.utils.json_to_sheet(transactions.map(t=>({'Date':t.transaction_date,'Type':t.type,'Category':t.category,'Description':t.description,[`Amount (${currency})`]:t.amount,'Need / Want':t.need_want,'Fixed / Variable':t.fixed_variable,'Account / Wallet':accounts.find(a=>a.id===t.account_id)?.name||'No account linked','Recurring?':t.recurring?'Yes':'No','Notes':t.notes})));
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Transactions');XLSX.writeFile(wb,'forma-transactions.xlsx');
@@ -960,7 +967,7 @@ function App(){
         {canSeeCurrentPage&&page==='Vehicle Management'&&<VehicleManagementPage session={session} supabase={supabase} transactions={transactions} setTransactions={setTransactions} accounts={accounts} currency={currency} onToast={setToast} requestedTab={vehicleSidebarTab}/>}
         {['Access management','Admin access','Access requests'].includes(page)&&isAdmin&&<AccessManagementPage supabase={supabase} onToast={setToast} users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers} initialTab={page==='Admin access'?'users':'requests'}/>}
         {canSeeCurrentPage&&page==='Overview'&&<Overview {...{debts,creditActions,month,setMonth,transactions,accounts,monthTx,income,expenses,net,savingsRate,monthlySeries,categoryData,needs,wants,monthBudgets,totalBudget,totalSaved,goalTarget,upcoming,goals,setPage,setModal,setEditing,setToast,displayName,greeting,profileAvatar,session,supabase,currency,setVehicleSidebarTab,canViewVehicles:allowedFeatures.includes('vehicle_management')}}/>}
-        {canSeeCurrentPage&&page==='Transactions'&&<TransactionsPage {...{transactions,reportTx,accounts,debts,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,amountSort,setAmountSort,setModal,setEditing,setPage,setToast,removeRecord,setTransactions,handleImport,exportCSV,currency,requestConfirm,recordDebtInstallment,activeCategoryOptions:getExpenseCategories(profile?.gender)}}/>}
+        {canSeeCurrentPage&&page==='Transactions'&&<TransactionsPage {...{transactions,reportTx,accounts,debts,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,amountSort,setAmountSort,setModal,setEditing,setPage,setToast,removeRecord,setTransactions,handleImport,exportCSV,exportTransactionsAs,downloadTemplateAs,currency,requestConfirm,recordDebtInstallment,activeCategoryOptions:getExpenseCategories(profile?.gender)}}/>}
         {canSeeCurrentPage&&page==='Accounts'&&<AccountsPage {...{debts,creditActions,accountsView,setAccountsView,accounts,transactions,setModal,setEditing,removeRecord,setAccounts,currency,requestConfirm,defaultAccountId,setDefaultAccountId}}/>}
         {canSeeCurrentPage&&page==='Cash flow calendar'&&<CashFlowCalendar {...{transactions,recurring,accounts,debts,month,setMonth,currency}}/>}
         {canSeeCurrentPage&&page==='Debts & installments'&&<DebtsPage {...{debts,accounts,transactions,debtFocus,setDebtFocus,credit:creditActions,setAccounts,setModal,setEditing,removeRecord,setDebts,currency,requestConfirm,recordDebtInstallment,setDebtPaymentTarget,setToast}}/>}
