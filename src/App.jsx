@@ -234,8 +234,9 @@ function App(){
     void 0;
     void 0;
     document.documentElement.dataset.theme=theme;
-    document.documentElement.dataset.design=design;
-  },[theme,design,sidebarSize,profileAvatar]);
+    document.documentElement.dataset.design='classic';
+    if(session){try{localStorage.setItem('pocket.loginTheme',theme)}catch{}}
+  },[theme,design,sidebarSize,profileAvatar,session]);
 
   useEffect(()=>{
     if(!cloudReady){setAuthMsg('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to use Pocket. Local/demo storage is disabled.');setAuthLoading(false);return;}
@@ -368,7 +369,7 @@ function App(){
         if(v.timezone){setTimezone(v.timezone);void 0}
         if(v.profileName!==undefined){setProfileName(v.profileName||'');void 0}
         if(v.theme){setTheme(v.theme);void 0}
-        if(v.design){setDesign(v.design);void 0}
+        
         if(v.sidebarSize){setSidebarSize(v.sidebarSize);void 0}
         if(v.profileAvatar){setProfileAvatar(v.profileAvatar);void 0}
         if(v.defaultAccountId!==undefined){setDefaultAccountId(v.defaultAccountId||'');void 0}
@@ -966,18 +967,20 @@ function App(){
     convertPurchase:(provider,tx)=>{setEditing(null);setConvertTx(tx);setDebtPresetProvider(provider.id);setModal('debt')},
     addPlan:provider=>{setEditing(null);setDebtPresetProvider(provider.id);setModal('debt')}
   };
-  if(cloudReady && (authLoading || (session && !profileLoaded))) return <main className="pocket-loading-screen" role="status" aria-live="polite" aria-label="Loading Pocket">
+  if(cloudReady && (authLoading || (session && !profileLoaded))){
+    let loadTheme='light';
+    try{const st=localStorage.getItem('pocket.loginTheme');loadTheme=st==='light'||st==='dark'?st:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}
+    return <main className="pocket-loading-screen" data-lg-theme={loadTheme} role="status" aria-live="polite" aria-label="Loading Pocket">
     <div className="pocket-loading-glow pocket-loading-glow-one" aria-hidden="true"/><div className="pocket-loading-glow pocket-loading-glow-two" aria-hidden="true"/>
     <section className="pocket-loading-card">
-      <div className="pocket-loading-brand"><span className="pocket-loading-logo"><img src="/brand/pocket-mark.svg" alt=""/></span><span>Pocket<span className="pocket-loading-brand-dot">.</span></span></div>
-      <div className="pocket-loading-orbit" aria-hidden="true"><span className="pocket-loading-orbit-core"><img src="/brand/pocket-mark.svg" alt=""/></span><i/><i/><i/></div>
+      <div className="pocket-loading-brand"><span className="pocket-loading-logo"><img src="/brand/pocket-mark.svg" alt=""/></span><span>Pocket</span></div>
+      <div className="pocket-loading-orbit" aria-hidden="true"><span className="pocket-loading-orbit-core"><img src="/brand/pocket-mark.svg" alt=""/></span></div>
       <h1>Getting things ready</h1>
       <p>Connecting to your secure workspace</p>
       <div className="pocket-loading-progress" aria-hidden="true"><span/></div>
       <div className="pocket-loading-foot"><span className="pocket-loading-status-dot"/> Secure sign-in <span className="pocket-loading-separator">·</span> Your data stays protected</div>
     </section>
-    <span className="pocket-loading-caption">PERSONAL FINANCE, IN ONE PLACE</span>
-  </main>;
+  </main>;}
   if(cloudReady && (!session || authMode==='update-password')) return <AuthScreen {...{authMode,setAuthMode,authName,setAuthName,authGender,setAuthGender,authEmail,setAuthEmail,authUsername,setAuthUsername,authPassword,setAuthPassword,authConfirmPassword,setAuthConfirmPassword,authMsg,setAuthMsg,stayLoggedIn,setStayLoggedIn,busy,signIn,signInWithGoogle,signUp,resetPassword,updatePassword,resendConfirmation}} />;
   if(!cloudReady) return <main className="auth-page pocket-auth-page"><section className="auth-panel pocket-auth-panel"><div className="auth-choice-card pocket-auth-choice-card"><div className="auth-mobile-brand pocket-mobile-brand"><b>Pocket</b></div><h2>Connect Pocket to Supabase</h2><p className="auth-subtitle">Local and browser-based data storage is disabled. Configure <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your deployment environment, then redeploy.</p></div></section></main>;
   return <div className={`app-shell sidebar-${isDesktopNav?sidebarSize:'comfortable'}`} lang="en" dir="ltr">

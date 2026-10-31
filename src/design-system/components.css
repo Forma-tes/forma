@@ -473,3 +473,48 @@ main .page-heading{position:relative;z-index:40}
 .debt-pay-field input,.debt-pay-field select{border:1px solid var(--ds-border,#dfe2ec);background:var(--ds-surface,#fff);color:var(--ink,#171923);outline:0;box-shadow:none;transition:border-color .15s,box-shadow .15s}
 .debt-pay-field input:focus,.debt-pay-field select:focus{border-color:var(--ds-brand,#3157f6);box-shadow:0 0 0 3px rgba(49,87,246,.16)}
 :root[data-theme="dark"] .debt-pay-field input,:root[data-theme="dark"] .debt-pay-field select{background:#151c2b;border-color:#30384a;color:#edf0f8}
+
+/* ==========================================================================
+   Consistency pass: one size/shape for every button, brand blue for every
+   primary / hover / active state (no stray green or purple).
+   ========================================================================== */
+body .btn{min-height:var(--ds-control-height);padding:0 16px;font-size:var(--ds-fs-md);font-weight:700;line-height:1.2;border-radius:var(--ds-radius-md);gap:8px}
+body .btn.btn-sm{min-height:34px;padding:0 12px;font-size:var(--ds-fs-md)}
+@media (max-width:760px),(pointer:coarse){body .btn.btn-sm{min-height:40px}}
+body .btn-secondary{background:var(--ds-surface);color:var(--ds-secondary-text);border:1px solid var(--ds-control-border)}
+body .btn-secondary:hover{background:var(--ds-soft);border-color:color-mix(in srgb,var(--ds-brand) 40%,var(--ds-control-border));color:var(--ds-text)}
+body .btn-ghost{background:transparent;color:var(--ds-secondary-text);border:1px solid transparent}
+body .btn-ghost:hover{background:var(--ds-soft);color:var(--ds-text)}
+body .btn.danger-hover:hover,body .icon-btn.danger-hover:hover{color:var(--ds-danger)}
+body .btn-primary{color:#fff}
+:root[data-theme="dark"] body .btn-secondary,:root[data-theme="dark"] .btn-secondary{background:var(--ds-control-bg);border-color:var(--ds-control-border);color:var(--ds-secondary-text)}
+:root[data-theme="dark"] .btn-secondary:hover{background:#2a3345}
+.icon-btn{width:36px;height:36px;min-width:36px;padding:0;border-radius:var(--ds-radius-md);display:inline-grid;place-items:center;color:var(--ds-text-muted)}
+.icon-btn:hover{background:var(--ds-soft);color:var(--ds-text)}
+@media (max-width:760px),(pointer:coarse){.icon-btn{min-width:44px;min-height:44px}}
+
+/* Menus, hovers and "selected" states use the brand color, not green */
+.notification-item:hover,.account-menu-item:hover{background:var(--ds-soft)}
+:root[data-theme="dark"] .notification-item:hover,:root[data-theme="dark"] .account-menu-item:hover{background:#2a3345}
+.notification-btn.is-open,.account-trigger.is-open{border-color:var(--ds-brand)}
+.theme-toggle-btn:hover{background:var(--ds-brand-soft);color:var(--ds-brand);border-color:var(--ds-brand)}
+:root[data-theme="dark"] .theme-toggle-btn:hover{color:#a9b8ff;border-color:#a9b8ff}
+.popover-footer-action{color:var(--ds-brand)}
+.account-popover-identity small{color:var(--ds-brand)}
+:root[data-theme="dark"] .popover-footer-action,:root[data-theme="dark"] .account-popover-identity small{color:#a9b8ff}
+.popover-icon,.notification-item-icon,.notification-empty>span,.account-large-avatar{background:var(--ds-brand-soft);color:var(--ds-brand)}
+:root[data-theme="dark"] .notification-item-icon,:root[data-theme="dark"] .popover-icon,:root[data-theme="dark"] .notification-empty>span,:root[data-theme="dark"] .account-large-avatar{background:#2b3358;color:#a9b8ff}
+.switch.on,:root[data-theme="dark"] .switch.on{background:var(--ds-brand)}
+.status-tag.status-brand{background:var(--ds-brand-soft);color:var(--ds-brand);border-color:transparent}
+:root[data-theme="dark"] .status-tag.status-brand{color:#a9b8ff}
+.admin-mini-avatar{background:var(--ds-brand-soft);color:var(--ds-brand)}
+.admin-mini-open{color:var(--ds-brand)}
+:root[data-theme="dark"] .admin-mini-avatar{background:#2b3358;color:#a9b8ff}
+:root[data-theme="dark"] .admin-mini-open{color:#a9b8ff}
+.am-feature-intro svg{color:var(--ds-brand)}
+.am-feature-intro>span,.am-feature-row small{color:var(--ds-brand)}
+.am-feature-check{background:var(--ds-brand-soft);color:var(--ds-brand)}
+:root[data-theme="dark"] .am-feature-intro svg,:root[data-theme="dark"] .am-feature-intro>span,:root[data-theme="dark"] .am-feature-row small,:root[data-theme="dark"] .am-feature-check{color:#a9b8ff}
+body main .btn.btn-sm{min-height:34px}
+@media (max-width:760px),(pointer:coarse){body main .btn.btn-sm{min-height:40px}}
+.category-admin-actions .icon-btn,.category-wizard-card .icon-btn{width:36px;height:36px;min-width:36px;border-radius:var(--ds-radius-md)}
