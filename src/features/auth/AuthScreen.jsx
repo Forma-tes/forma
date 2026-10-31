@@ -12,8 +12,7 @@ function initialTheme(){
 }
 function initialStyle(){
  try{const q=new URLSearchParams(window.location.search).get('login');if(q==='1'||q==='2')return Number(q)}catch{}
- try{const s=localStorage.getItem('pocket.loginStyle');if(s==='1'||s==='2')return Number(s)}catch{}
- return 1;
+ return 2;
 }
 
 export function AuthScreen(p){
@@ -23,9 +22,8 @@ export function AuthScreen(p){
  const showTabs=isSignin||isSignup;
  const submit=isSignup?signUp:isForgot?resetPassword:isUpdatePassword?updatePassword:signIn;
  const [theme,setTheme]=useState(initialTheme);
- const [style,setStyle]=useState(initialStyle);
+ const [style]=useState(initialStyle);
  const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);try{localStorage.setItem('pocket.loginTheme',next)}catch{}};
- const pickStyle=s=>{setStyle(s);try{localStorage.setItem('pocket.loginStyle',String(s))}catch{}};
  const go=m=>{setAuthMode(m);setAuthMsg('')};
  const two=style===2;
  const headline=['Make','room','for','what','matters.'];
@@ -62,10 +60,9 @@ export function AuthScreen(p){
  </form>;
  const switchRow=(isForgot||isSignin||isSignup)&&<p className="lg-switch" style={i()}>{isForgot?<>Remembered your password? <button type="button" className="lg-link" onClick={()=>go('signin')}>Back to sign in</button></>:isSignup?<>{two?'Have an account?':'Already have a Pocket account?'} <button type="button" className="lg-link" onClick={()=>go('signin')}>{two?'Log in':'Sign in'}</button></>:<>New to Pocket? <button type="button" className="lg-link" onClick={()=>go('signup')}>Create an account</button></>}</p>;
  const themeBtn=<button type="button" className="lg-theme" onClick={toggleTheme} aria-label={theme==='dark'?'Switch to light mode':'Switch to dark mode'} title={theme==='dark'?'Light mode':'Dark mode'}>{theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}</button>;
- const styleSwitch=<div className="lg-variant" role="group" aria-label="Login style"><span>Login style</span><button type="button" className={!two?'on':''} aria-pressed={!two} onClick={()=>pickStyle(1)}>1</button><button type="button" className={two?'on':''} aria-pressed={two} onClick={()=>pickStyle(2)}>2</button></div>;
 
  if(two) return <main className="lg-page lg2" data-lg-theme={theme}>
-  {themeBtn}{styleSwitch}
+  {themeBtn}
   <div className="lg2-blobs" aria-hidden="true"><i/><i/><i/></div>
   <div className="lg-brand lg2-brand"><img src="/brand/pocket-mark.svg" alt=""/><span>Pocket</span></div>
   <div className="lg2-art lg2-art-left" aria-hidden="true">
@@ -88,7 +85,7 @@ export function AuthScreen(p){
 
  return <main className="lg-page" data-lg-theme={theme}>
   <div className="lg-bg" aria-hidden="true"><i className="r1"/><i className="r2"/></div>
-  {themeBtn}{styleSwitch}
+  {themeBtn}
   <section className="lg-hero">
    <div className="lg-brand"><img src="/brand/pocket-mark.svg" alt=""/><span>Pocket</span></div>
    <div className="lg-hero-body">
