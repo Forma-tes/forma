@@ -293,3 +293,16 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 :root[data-theme="dark"] .tx-table .amount-expense{color:#eef0f7}
 :root[data-theme="dark"] .tx-table .amount-income{color:#4cc99a}
 :root[data-theme="dark"] .tx-table .td-date{color:#c3c9d8}
+
+/* ---- Transactions: day groups + show more ---- */
+.tx-table .tx-group-row td{padding:10px 20px!important;background:var(--surface-soft,#f6f7fb);border-bottom:1px solid var(--border,#eef0f5)}
+.tx-table .tx-group-row td span{font-size:12px;font-weight:700;color:var(--text,#1d2230);text-transform:none}
+.tx-table .tx-group-row td small{margin-left:10px;font-size:11.5px;color:var(--muted,#8b92a5);text-transform:none}
+:root[data-theme="dark"] .tx-table .tx-group-row td{background:#171e2c;border-color:#252c3a}
+:root[data-theme="dark"] .tx-table .tx-group-row td span{color:#e9ecf5}
+.tx-table tbody tr.tx-group-row:hover{background:transparent}
+.table-more{display:flex;justify-content:center;padding:14px;border-top:1px solid var(--border,#eef0f5)}
+@media(max-width:760px){.tx-table tr.tx-group-row{display:block;padding:0;grid-template-columns:none}.tx-table .tx-group-row td{padding:9px 16px!important}}
+.tx-table.is-grouped .td-date>span{display:none}
+.tx-table.is-grouped .td-date .transaction-time{font-size:12px;margin:0}
+@media(max-width:760px){.tx-table.is-grouped .td-cat::after{content:none}}
