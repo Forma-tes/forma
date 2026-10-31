@@ -203,8 +203,11 @@
 .lg2-center{position:relative;z-index:2;width:100%;max-width:476px;margin:0 auto;box-sizing:border-box;padding:96px 18px 72px;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;gap:20px}
 .lg2 .lg-form-head h1{font-size:34px;line-height:40px}
 .lg2 .lg-form-head p{font-size:17px;line-height:26px}
-.lg2 .lg-submit{background:var(--ink);color:var(--ink-text);box-shadow:0 6px 16px rgba(23,25,35,.18)}
-.lg2 .lg-submit:hover:not(:disabled){background:var(--ink);opacity:.9}
+.lg2 .lg-submit{background:var(--brand);color:#fff;box-shadow:var(--btn-shadow)}
+.lg2 .lg-submit:hover:not(:disabled){background:var(--brand-hover);opacity:1}
+.lg-page .lg-google{border-color:#e0e5ee;color:#586074}
+.lg-page[data-lg-theme="dark"] .lg-google{border-color:#394256;color:#e7ebf5}
+.lg-page .lg-google:hover:not(:disabled){border-color:color-mix(in srgb,var(--brand) 40%,#e0e5ee)}
 .lg2 .lg-field input,.lg2 .lg-google{background:var(--surface)}
 .lg2[data-lg-theme="dark"] .lg-field input,.lg2[data-lg-theme="dark"] .lg-google{background:var(--ctl-bg)}
 .lg2 .lg-or{gap:0}.lg2 .lg-or{font-size:0}.lg2 .lg-or span:first-child{flex:1}.lg2 .lg-or span:last-child{display:none}
