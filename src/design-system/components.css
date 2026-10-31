@@ -594,3 +594,9 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
   .admin-user-compact-list .admin-user-mini{padding:12px}
 }
 .admin-access-shell .panel-header .status-tag{font-size:11px;padding:6px 10px}
+
+/* Active nav item: same left accent bar in light and dark */
+.sidebar .nav-item.active{box-shadow:inset 3px 0 0 var(--ds-brand);background:var(--ds-brand-soft);color:var(--ds-brand)}
+.sidebar .nav-item.active svg{color:var(--ds-brand)}
+:root[data-theme="dark"] .sidebar .nav-item.active{box-shadow:inset 3px 0 0 #5d7cff;background:#293455;color:#cbd4ff}
+:root[data-theme="dark"] .sidebar .nav-item.active svg{color:#9eb4ff}
