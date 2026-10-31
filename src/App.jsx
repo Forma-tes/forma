@@ -187,7 +187,7 @@ function App(){
   const [timezone,setTimezone] = useState(()=>{try{return null||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch{return 'UTC'}});
   const [profileName,setProfileName] = useState(()=>{try{return null||''}catch{return ''}});
   const [profileSaving,setProfileSaving] = useState(false);
-  const [theme,setTheme] = useState(()=>null||'light');
+  const [theme,setTheme] = useState(()=>{try{const t=localStorage.getItem('pocket.loginTheme');if(t==='light'||t==='dark')return t}catch{}return 'light'});
   const [design,setDesign] = useState(()=>null||'classic');
   const [sidebarSize,setSidebarSize] = useState(()=>null||'comfortable');
   const [workspaceSectionName,setWorkspaceSectionName] = useState(()=>{try{return null||'MY SPACE'}catch{return 'MY SPACE'}});
@@ -368,7 +368,7 @@ function App(){
         if(v.currency){setCurrency(v.currency);void 0}
         if(v.timezone){setTimezone(v.timezone);void 0}
         if(v.profileName!==undefined){setProfileName(v.profileName||'');void 0}
-        if(v.theme){setTheme(v.theme);void 0}
+        {let picked=false;try{picked=localStorage.getItem('pocket.themePick')==='1';localStorage.removeItem('pocket.themePick')}catch{}if(v.theme&&!picked)setTheme(v.theme)}
         
         if(v.sidebarSize){setSidebarSize(v.sidebarSize);void 0}
         if(v.profileAvatar){setProfileAvatar(v.profileAvatar);void 0}

@@ -23,7 +23,7 @@ export function AuthScreen(p){
  const submit=isSignup?signUp:isForgot?resetPassword:isUpdatePassword?updatePassword:signIn;
  const [theme,setTheme]=useState(initialTheme);
  const [style]=useState(initialStyle);
- const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);try{localStorage.setItem('pocket.loginTheme',next)}catch{}};
+ const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);try{localStorage.setItem('pocket.loginTheme',next);localStorage.setItem('pocket.themePick','1')}catch{}};
  const go=m=>{setAuthMode(m);setAuthMsg('')};
  const two=style===2;
  const headline=['Make','room','for','what','matters.'];
