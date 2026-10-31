@@ -8,6 +8,17 @@ const cors = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
+
+// ---- Rate limiting (fixed window, stored in public.rate_limits via check_rate_limit) ----
+const clientIp = (req: Request) => (req.headers.get('cf-connecting-ip') || (req.headers.get('x-forwarded-for') || '').split(',')[0] || 'unknown').trim();
+async function allow(service: any, key: string, max: number, windowSeconds: number, failOpen = true) {
+  const { data, error } = await service.rpc('check_rate_limit', { p_key: key, p_max: max, p_window_seconds: windowSeconds });
+  if (error) { console.error('rate limit check failed', error.message); return failOpen; }
+  return data === true;
+}
+// Constant-time comparison so the secret cannot be guessed from response timing.
+const safeEqual = (a: string, b: string) => { if (a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
+const TOO_MANY = 'Too many attempts. Please wait a little and try again.';
 const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const cairoToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date());
@@ -91,11 +102,15 @@ Deno.serve(async (req) => {
       const caller = createClient(url, anon, { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } });
       const { data: { user } } = await caller.auth.getUser();
       if (!user) return json({ ok: false, error: 'Sign in is required.' }, 401);
+      if (!(await allow(service, `emailtest:${user.id}`, 5, 3600))) return json({ ok: false, error: TOO_MANY }, 429);
       const r = await sendFor(user.id, true);
       return r === 'sent' ? json({ ok: true, result: r }) : json({ ok: false, error: r === 'no-verified-email' ? 'Add and verify your email first.' : r }, 400);
     }
     // Daily run from pg_cron.
-    if (!cronSecret || req.headers.get('x-cron-secret') !== cronSecret) return json({ ok: false, error: 'Not allowed.' }, 401);
+    if (!cronSecret || !safeEqual(req.headers.get('x-cron-secret') || '', cronSecret)) {
+      await allow(service, `cronbad:${clientIp(req)}`, 10, 600);
+      return json({ ok: false, error: 'Not allowed.' }, 401);
+    }
     const { data: users } = await service.from('user_settings').select('user_id').filter('settings->>emailAlerts', 'eq', 'true');
     const summary: Record<string, number> = {};
     for (const u of users || []) {

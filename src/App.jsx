@@ -39,6 +39,7 @@ import { customSubcategoriesOverride, expenseCategories, expenseCategoriesOverri
 import { FEATURE_OPTIONS, PAGE_FEATURE, isGoalsAccount } from './lib/features.js';
 import { addFrequency, fmt, getGreeting, localISODate, monthNow, monthStart, titleCaseName, uid } from './lib/format.js';
 import { authRedirectUrl, cloudReady, supabase } from './lib/supabase.js';
+import { clearLoginFailures, formatWait, loginLockSeconds, recordLoginFailure } from './lib/loginThrottle.js';
 import { CardPayModal } from './features/credit/CardPayModal.jsx';
 import { CreditAccountModal } from './features/credit/CreditAccountModal.jsx';
 import { ProviderPayModal } from './features/credit/ProviderPayModal.jsx';
@@ -637,16 +638,23 @@ function App(){
 
   async function signIn(e){
     e.preventDefault(); if(!supabase)return;
+    const locked=loginLockSeconds();if(locked){setAuthMsg(`Too many sign-in attempts. Try again in ${formatWait(locked)}.`);return;}
     setBusy(true);setAuthMsg('');setSessionExpiredNotice(false);
     const loginId=authEmail.trim();
     const loginEmail=loginId.includes('@')?loginId:`${loginId.toLowerCase().replace(/[^a-z0-9._-]/g,'-')}@users.pocket.local`;
     const {error}=await supabase.auth.signInWithPassword({email:loginEmail,password:authPassword});
     setBusy(false);
+    if(!error)clearLoginFailures();
     if(error){
       const message=String(error.message||'');
       if(/email not confirmed|email_not_confirmed|confirm your email/i.test(message)){
         setAuthMsg('Your email is not confirmed yet. Check your inbox or resend the confirmation email below.');
-      }else setAuthMsg(message);
+      }else if(/rate limit|too many|429/i.test(message)||error.status===429){
+        setAuthMsg('Too many attempts right now. Please wait a few minutes and try again.');
+      }else{
+        const wait=recordLoginFailure();
+        setAuthMsg(wait?`${message} Too many attempts — try again in ${formatWait(wait)}.`:message);
+      }
     }
   }
   async function resendConfirmation(){
