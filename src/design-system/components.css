@@ -261,3 +261,35 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
  .year-picker select{width:auto;min-width:64px}
  .year-picker{min-width:0}
 }
+
+/* ---- Transactions table: aligned columns, mobile cards ---- */
+.tx-table .th-amt,.tx-table .td-amt{text-align:right}
+.tx-table .td-date{white-space:nowrap}
+.tx-table .td-act{width:1%;white-space:nowrap}
+.tx-table .td-cat{white-space:nowrap}
+.tx-subcat{display:block;margin-top:5px;font-size:11px;color:var(--muted,#8b92a5);text-transform:none}
+.tx-table .amount-transfer{color:var(--muted,#7b8396)}
+.table-toolbar .filter-group select{min-width:0}
+@media(max-width:760px){
+ .table-toolbar{gap:10px;padding:14px!important}
+ .table-toolbar .search-field{width:100%}
+ .table-toolbar .filter-group{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+ .table-toolbar .filter-group .filter-icon{display:none}
+ .table-toolbar .filter-group select{width:100%;max-width:none}
+ .tx-table thead{display:none}
+ .tx-table,.tx-table tbody{display:block;width:100%}
+ .tx-table tr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"tx amt" "cat act";gap:6px 12px;padding:14px 16px;border-bottom:1px solid var(--border,#eef0f5)}
+ .tx-table tr:last-child{border-bottom:0}
+ .tx-table td{display:block;padding:0!important;border:0!important}
+ .tx-table .td-tx{grid-area:tx;min-width:0}
+ .tx-table .td-amt{grid-area:amt;align-self:start;padding-top:2px!important}
+ .tx-table .td-cat{grid-area:cat;display:flex!important;align-items:center;gap:8px;flex-wrap:wrap}
+ .tx-table .td-cat .tx-subcat{margin:0}
+ .tx-table .td-date{display:none!important}
+ .tx-table .td-act{grid-area:act;width:auto}
+ .tx-table .td-cat::after{content:attr(data-date);font-size:11px;color:var(--muted,#8b92a5)}
+ .table-wrap{overflow:visible!important}
+}
+:root[data-theme="dark"] .tx-table .amount-expense{color:#eef0f7}
+:root[data-theme="dark"] .tx-table .amount-income{color:#4cc99a}
+:root[data-theme="dark"] .tx-table .td-date{color:#c3c9d8}
