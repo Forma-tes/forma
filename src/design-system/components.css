@@ -206,3 +206,17 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 .vehicle-form .field-hint{display:block;font-size:12px;color:var(--muted,#8b92a5);line-height:1.5;text-transform:none}
 @media(max-width:620px){.vehicle-record-row{flex-wrap:wrap}.vehicle-record-row .vehicle-record-due{align-items:flex-start;width:100%;min-width:0;text-align:left}.vehicle-record-row .vehicle-record-actions{justify-content:flex-start}}
 .modal-header p,.panel-header p,.vehicle-form-section-title span,.empty-state p{text-transform:none}
+
+/* ---- Settings: email reminders ---- */
+.email-alerts-card{border:1px solid var(--border,#30394c);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:grid;gap:12px}
+.email-alerts-card .access-intake-toggle{border:0;padding:0;margin:0;background:transparent}
+.email-alerts-test{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.email-alerts-test small{font-size:12px;text-transform:none}
+.email-alerts-test .is-ok{color:#2f9e6d}.email-alerts-test .is-err{color:#d9485f}
+.email-alerts-card .access-intake-toggle b{font-size:14px!important;font-weight:700!important;text-transform:none}
+.email-alerts-card .access-intake-toggle small{font-size:12px!important;font-weight:500!important;text-transform:none;line-height:1.5}
+.setting-toggle small,.settings-preference-list small,.modal-header p,.settings-info-row p{text-transform:none}
+.setting-toggle .switch{flex-shrink:0}
+.email-alerts-card{border-color:var(--border,#e4e8f1)!important}
+.email-alerts-card .access-intake-toggle b{font-size:13px!important}
+.email-alerts-card .access-intake-toggle small{font-size:11.5px!important}
