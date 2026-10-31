@@ -180,3 +180,19 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
  .admin-user-compact-list .admin-mini-open{font-size:11px}
  .admin-user-compact-list .admin-mini-delete{grid-column:6;justify-self:end}
 }
+
+/* ---- Expense categories: same header / stat cards / toggle as other pages ---- */
+.metric-grid.metric-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:560px){.metric-grid.metric-grid-2{grid-template-columns:1fr}}
+.category-admin-page .metric-grid{margin-bottom:16px}
+.category-admin-list{align-items:start}
+@media(max-width:900px){.category-admin-list{grid-template-columns:1fr!important}}
+.category-admin-card{padding:16px 18px!important}
+.category-enabled{cursor:default!important;gap:12px!important}
+.category-enabled .switch{flex-shrink:0}
+.subcategory-chip-list{margin:14px 0 0!important}
+.category-name-copy b{font-size:15px!important;font-weight:700!important}
+.category-name-copy small{font-size:12px!important}
+.page-heading p,.metric-foot span,.category-name-copy small{text-transform:none}
+.category-admin-list{align-items:stretch!important}
+@media(max-width:560px){.metric-grid.metric-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.category-admin-page .metric-card{padding:14px}.category-admin-page .metric-value{font-size:22px}.category-admin-actions{gap:0}.category-enabled{gap:10px!important}}
