@@ -1,4 +1,6 @@
-import { Check, CreditCard, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Check, CreditCard, Download, FileSpreadsheet, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
+import { MenuButton } from '../../components/ui/MenuButton.jsx';
+import { exportTable } from '../../lib/transferFile.js';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { PageHeading } from '../../components/ui/PageHeading.jsx';
 import { shortDate } from '../../lib/format.js';
@@ -8,6 +10,7 @@ import { CardTile, ProviderTile } from '../credit/CreditSummary.jsx';
 import { ProviderDetail } from '../credit/ProviderDetail.jsx';
 
 export function DebtsPage({debts,accounts=[],transactions=[],setModal,setEditing,removeRecord,setDebts,setAccounts,currency,requestConfirm,recordDebtInstallment,setDebtPaymentTarget,setToast,debtFocus,setDebtFocus,credit={}}){
+ const exportDebts=format=>exportTable(format,'debts','Debts',debts.map(d=>({Name:d.name,Lender:d.lender||'',Account:accounts.find(a=>String(a.id)===String(d.provider_account_id))?.name||'',[`Total (${currency})`]:Number(d.total_amount||0),[`Remaining (${currency})`]:Number(d.remaining_amount||0),[`Monthly payment (${currency})`]:Number(d.monthly_payment||0),'Next due':d.due_date||'','Interest %':d.interest_rate??''})));
  const cards=accounts.filter(isCard),providers=accounts.filter(isProvider);
  const focus=debtFocus?accounts.find(a=>String(a.id)===String(debtFocus)):null;
  const confirmDeleteAccount=a=>requestConfirm(isCard(a)?'Delete this credit card?':'Delete this installment app?',isCard(a)?`Delete “${a.name}”? Your purchases stay in Transactions, but they will no longer be tracked on a card.`:`Delete “${a.name}”? Its installment plans stay, but they will no longer be grouped under this app.`,async()=>{await removeRecord('financial_accounts',a.id,setAccounts,accounts);setDebtFocus(null)});
@@ -18,7 +21,7 @@ export function DebtsPage({debts,accounts=[],transactions=[],setModal,setEditing
  const hasCredit=cards.length>0||providers.length>0;
  const legacyCards=loanDebts.filter(d=>d.debt_type==='Credit card').length;
  const fmt=n=>new Intl.NumberFormat('en-EG',{style:'currency',currency,maximumFractionDigits:2}).format(Number(n)||0);const total=debts.reduce((s,d)=>s+Number(d.remaining_amount||0),0);const payments=debts.reduce((s,d)=>s+Number(d.monthly_payment||0),0);
- return <><PageHeading eyebrow="COMMITMENTS" title="Debts & installments" subtitle="Track credit cards, installment apps, loans, and what is due next." actions={<button className="btn btn-primary" onClick={()=>{setEditing(null);setModal('debt')}}><Plus size={17}/> Add debt</button>}/>
+ return <><PageHeading eyebrow="COMMITMENTS" title="Debts & installments" subtitle="Track credit cards, installment apps, loans, and what is due next." actions={<><MenuButton label="Export" icon={Download} items={[{label:'CSV',description:'Plain text, opens anywhere',icon:FileText,onClick:()=>exportDebts('csv')},{label:'Excel',description:'.xlsx spreadsheet',icon:FileSpreadsheet,onClick:()=>exportDebts('xlsx')}]}/><button className="btn btn-primary" onClick={()=>{setEditing(null);setModal('debt')}}><Plus size={17}/> Add debt</button></>}/>
  {!hasCredit&&<div style={{marginBottom:18}}><EmptyState panel icon={CreditCard} title="Track your credit cards and installment apps" text="Add a card once to see its limit and when to pay. Add Valu, Aman or Halan to keep every installment plan in one place."><div className="cc-actions" style={{justifyContent:'center'}}><button className="btn btn-primary" onClick={credit.addCard}><CreditCard size={16}/> Add credit card</button><button className="btn btn-secondary" onClick={credit.addProviderApp}><Plus size={16}/> Add installment app</button></div></EmptyState></div>}
  {cards.length>0&&<><div className="cc-section-head"><div><h2>Credit cards</h2><p>What to pay next, and how much limit is left.</p></div><button className="btn btn-secondary btn-sm" onClick={credit.addCard}><Plus size={14}/> Add credit card</button></div><div className="cc-grid-cards">{cards.map(c=><CardTile key={c.id} card={c} summary={cardSummary(c,transactions,undefined,debts)} currency={currency} onOpen={a=>setDebtFocus(a.id)} onPay={credit.payCard}/>)}</div></>}
  {providers.length>0&&<><div className="cc-section-head"><div><h2>Installment apps</h2><p>Your plans on Valu, Aman, Halan and more.</p></div><button className="btn btn-secondary btn-sm" onClick={credit.addProviderApp}><Plus size={14}/> Add installment app</button></div><div className="cc-list-apps">{providers.map(pr=><ProviderTile key={pr.id} provider={pr} summary={providerSummary(pr,debts,undefined,transactions)} currency={currency} onOpen={a=>setDebtFocus(a.id)} onPay={credit.payProvider}/>)}</div></>}

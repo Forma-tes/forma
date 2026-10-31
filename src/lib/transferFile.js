@@ -52,3 +52,10 @@ export function downloadTemplate(format,currency){
   const csv=XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet([headers]));
   saveBlob(new Blob(['﻿'+csv+'\n'],{type:'text/csv;charset=utf-8'}),'pocket-transactions-template.csv');
 }
+
+export function exportTable(format,baseName,sheetName,rows){
+  const base=`pocket-${baseName}-${stamp()}`;
+  if(format==='xlsx'){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),sheetName);XLSX.writeFile(wb,`${base}.xlsx`);return;}
+  const csv=XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows));
+  saveBlob(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}),`${base}.csv`);
+}
