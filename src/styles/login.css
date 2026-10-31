@@ -249,7 +249,7 @@
 .pocket-loading-screen[data-lg-theme="dark"]{--bg:#131925;--surface:#1d2432;--soft:#2a3345;--line:#30384a;--text:#edf0f8;--muted:#a2abc0;--blob:rgba(110,125,170,.18);--shadow:0 20px 60px rgba(0,0,0,.35)}
 .pocket-loading-glow{position:absolute;z-index:-1;width:420px;height:340px;border-radius:50%;background:var(--blob);filter:blur(90px);pointer-events:none}
 .pocket-loading-glow-one{top:-120px;left:-100px}.pocket-loading-glow-two{right:-120px;bottom:-140px}
-.pocket-loading-card{width:min(400px,100%);display:flex;align-items:center;flex-direction:column;padding:34px 28px 28px;border:1px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:var(--shadow);animation:lg-card-in .5s var(--ease,ease) backwards}
+.pocket-loading-card{width:min(400px,100%);display:flex;align-items:center;flex-direction:column;padding:34px 28px 28px;border:1px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:var(--shadow)}
 .pocket-loading-brand{display:flex;align-items:center;gap:10px;font:700 24px 'Sora','Manrope',sans-serif;letter-spacing:-.03em}
 .pocket-loading-logo{display:grid;place-items:center;width:38px;height:38px}.pocket-loading-logo img{width:38px;height:38px;object-fit:contain}
 .pocket-loading-orbit{position:relative;display:grid;place-items:center;width:84px;height:84px;margin:30px 0 22px;border-radius:50%;border:3px solid var(--soft);border-top-color:var(--brand);animation:pocket-spin 1s linear infinite}
@@ -266,5 +266,5 @@
 @keyframes pocket-pulse{0%,100%{opacity:1}50%{opacity:.35}}
 @keyframes pocket-loading-progress{from{transform:translateX(-35%);width:28%}to{transform:translateX(240%);width:42%}}
 @media(max-width:480px){.pocket-loading-screen{padding:18px}.pocket-loading-card{padding:28px 20px 24px}}
-@media(prefers-reduced-motion:reduce){.pocket-loading-orbit,.pocket-loading-orbit-core,.pocket-loading-status-dot,.pocket-loading-card{animation:none}.pocket-loading-progress span{animation:none;width:100%;transform:none}}
+@media(prefers-reduced-motion:reduce){.pocket-loading-orbit,.pocket-loading-orbit-core,.pocket-loading-status-dot{animation:none}.pocket-loading-progress span{animation:none;width:100%;transform:none}}
 .pocket-loading-screen,.pocket-loading-screen *{text-transform:none!important}

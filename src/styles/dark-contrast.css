@@ -1,0 +1,66 @@
+/* Dark mode contrast fixes (generated from measured failures) */
+:root[data-theme="dark"] .metric-foot .positive,
+:root[data-theme="dark"] .amount-income,
+:root[data-theme="dark"] .status-good,
+:root[data-theme="dark"] .calendar-day .cal-net.pos{color:#56c9a0}
+:root[data-theme="dark"] .metric-foot .neutral,
+:root[data-theme="dark"] .donut-center span,
+:root[data-theme="dark"] .category-legend-row > span,
+:root[data-theme="dark"] .data-table td,
+:root[data-theme="dark"] .transaction-name small,
+:root[data-theme="dark"] .budget-total span,
+:root[data-theme="dark"] .need-label span,
+:root[data-theme="dark"] .upcoming-info span,
+:root[data-theme="dark"] .footer-dot,
+:root[data-theme="dark"] .text-muted,
+:root[data-theme="dark"] .goal-deadline,
+:root[data-theme="dark"] .goal-amounts span,
+:root[data-theme="dark"] .goal-note,
+:root[data-theme="dark"] .small-muted,
+:root[data-theme="dark"] .modal-head p,
+:root[data-theme="dark"] .notification-toast-copy > small,
+:root[data-theme="dark"] .calendar-weekday,
+:root[data-theme="dark"] .popover-heading span:not(.popover-icon),
+:root[data-theme="dark"] .account-popover-identity > div > span,
+:root[data-theme="dark"] .page-heading p,
+:root[data-theme="dark"] .eyebrow,
+:root[data-theme="dark"] .panel-header p,
+:root[data-theme="dark"] .data-table th,
+:root[data-theme="dark"] .overview-vehicle-stats span,
+:root[data-theme="dark"] .email-status-bar-copy span,
+:root[data-theme="dark"] .cc-section-head p,
+:root[data-theme="dark"] .acc-toolbar p,
+:root[data-theme="dark"] .acc-alert small,
+:root[data-theme="dark"] .fuel-card-stats dt{color:#a2abc0}
+:root[data-theme="dark"] .status-pending,
+:root[data-theme="dark"] .access-request-stat.pending strong{color:#f0a458}
+:root[data-theme="dark"] .notification-toast-copy > b{color:#a9b8ff}
+
+/* Status pills on dark surfaces */
+:root[data-theme="dark"] .status-tag.status-good{background:rgba(50,185,138,.16);color:#56c9a0}
+:root[data-theme="dark"] .status-tag.status-pending{background:rgba(242,166,75,.16);color:#f2b365}
+:root[data-theme="dark"] .status-tag.status-bad,:root[data-theme="dark"] .status-tag.status-danger{background:rgba(255,135,144,.16);color:#ff8790}
+:root[data-theme="dark"] .status-tag:not(.status-good):not(.status-pending):not(.status-brand):not(.status-bad):not(.status-danger){background:rgba(255,255,255,.07);color:#c5cbdb}
+:root[data-theme="dark"] .footer-dot{color:#4a5570}
+:root[data-theme="dark"] .amount-expense,
+:root[data-theme="dark"] .table-bottom b{color:#edf0f8!important}
+:root[data-theme="dark"] .select-lite,
+:root[data-theme="dark"] .amount-transfer,
+:root[data-theme="dark"] .cc-view-btn.on,
+:root[data-theme="dark"] .onboarding li.next .onboarding-dot{color:#a9b8ff!important}
+:root[data-theme="dark"] .sidebar-section-title,
+:root[data-theme="dark"] .sidebar-section-heading span{color:#a2abc0!important}
+:root[data-theme="dark"] .access-request-stat.approved strong{color:#56c9a0!important}
+:root[data-theme="dark"] .access-request-stat.denied strong,
+:root[data-theme="dark"] .calendar-day .cal-net.neg,
+:root[data-theme="dark"] .plan-km.over,
+:root[data-theme="dark"] .plan-state.over{color:#ff8790!important}
+:root[data-theme="dark"] .recharts-tooltip-label{color:#171923!important}
+
+/* Toast + tinted icon chips: dark surfaces instead of bright light ones */
+:root[data-theme="dark"] .notification-toast{background:#1d2432;border:1px solid #30384a;color:#edf0f8}
+:root[data-theme="dark"] .notification-toast-copy>b{color:#edf0f8!important}
+:root[data-theme="dark"] .notification-toast-icon{background:rgba(255,135,144,.16)}
+:root[data-theme="dark"] .tx-income,:root[data-theme="dark"] .metric-icon.green{background:rgba(86,201,160,.16)!important;color:#56c9a0!important}
+:root[data-theme="dark"] .tx-expense,:root[data-theme="dark"] .metric-icon.orange{background:rgba(240,164,88,.16)!important;color:#f0a458!important}
+:root[data-theme="dark"] .tx-transfer{background:rgba(169,184,255,.16)!important;color:#a9b8ff!important}

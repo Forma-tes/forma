@@ -13,3 +13,4 @@ import './design-system/motion.css';
 import './styles/login.css';
 
 createRoot(document.getElementById('root')).render(<ErrorBoundary><App /></ErrorBoundary>);
+import './styles/dark-contrast.css';
