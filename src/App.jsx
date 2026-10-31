@@ -526,6 +526,15 @@ function App(){
     const saved=await saveRecord('transactions',payload,editing?.id);if(!saved)return;
     setTransactions(old=>editing?old.map(x=>x.id===editing.id?saved:x):[saved,...old]);
     if(form.type==='Income'&&form.loan_mode==='new'&&!editing){setEditing(null);setTxPresetAccount('');setConvertTx(saved);setDebtPresetProvider('');setModal('debt');setToast('Income added · now add the debt details');return;}
+    if(form.type==='Income'&&form.loan_mode==='link'&&form.debt_id&&!editing){
+      const d=(debts||[]).find(x=>String(x.id)===String(form.debt_id));const add=Number(form.amount)||0;
+      if(d&&add>0){const r2=n=>Number(Number(n).toFixed(2));
+        const dp={name:d.name,debt_type:d.debt_type||'Other',lender:d.lender||'',account_id:d.account_id||null,original_amount:r2(Number(d.original_amount||0)+add),remaining_amount:r2(Number(d.remaining_amount||0)+add),monthly_payment:d.monthly_payment,due_date:d.due_date||null,frequency:d.frequency||'Monthly',notes:d.notes||'',start_date:d.start_date||null,term_months:d.term_months||null,total_repayment:r2(Number(d.total_repayment||d.original_amount||0)+add),interest_rate:Number(d.interest_rate||0),paid_installments:d.paid_installments||0,amount_paid:Number(d.amount_paid||0)};
+        const ds=await saveRecord('debts',dp,d.id);
+        if(ds){setDebts(old=>old.map(x=>x.id===d.id?ds:x));setModal(null);setEditing(null);setTxPresetAccount('');setToast(`Income added · ${d.name} increased by ${fmt(add)}`);return;}
+        setToast('Income added, but the debt could not be updated');
+      }
+    }
     setModal(null);setEditing(null);setTxPresetAccount('');setToast(editing?'Transaction updated':'Transaction added');
   }
   async function addGoal(form){

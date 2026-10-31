@@ -435,3 +435,6 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 .pay-by{display:block;margin-top:2px;font-size:12px;color:var(--ds-text-muted,#8b93a7)}
 .pay-by.late{color:var(--ds-danger,#ef4444);font-weight:600}
 .pay-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 12px}
+
+.modal>.modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.modal>.modal-header .icon-btn{flex:0 0 auto}
