@@ -153,8 +153,6 @@ const EXTRA_MODELS = {
   "Chery":["Envy","Eastar","Jaecoo 7"],
   "MG":["ZS","MG5","MG6","RX5","HS","MG3","RX8","MG4","Marvel R","One","Cyberster","350","550","GT","MG7","ZS EV"],
   "Hyundai":["Excel","Lantra","Atos"],
-  "Suzuki":["Hayabusa","GSX-R750","V-Strom","Burgman"],
-  "Honda":["CB500","CBR600","Africa Twin","PCX","SH150","CB650R","Rebel","Gold Wing","Forza"],
   "Nissan":["Almera","Bluebird","Primera","Pickup"],
   "BMW":["116i","118i","120i","316i","318i","320i","325i","328i","520i","523i","528i","530i","535i","730i","740i","iX3"],
   "Mercedes-Benz":["C180","C200","C250","E200","E250","E300","S350","S500","CLA 200","A180","A200","GLA 200","190E","200","230","300","Viano"],
@@ -169,3 +167,20 @@ const EXTRA_MODELS = {
   // keep "Other" last
   if(VEHICLE_CATALOG["Other"]){const o=VEHICLE_CATALOG["Other"];delete VEHICLE_CATALOG["Other"];VEHICLE_CATALOG["Other"]=o}
 })();
+
+export const VEHICLE_TYPES = ['Car','Motorcycle / Scooter','Truck','Bus'];
+const MOTO_MAKES = new Set(['Yamaha','Kawasaki','Vespa','Piaggio','Bajaj','TVS','Royal Enfield','KTM','Ducati','Harley-Davidson','Triumph','SYM','Benelli','CFMoto','Hero','Keeway','Zontes','Voge','Aprilia','Husqvarna','Moto Guzzi','MV Agusta','Suzuki Motorcycles','Honda Motorcycles']);
+const TRUCK_ONLY = new Set(['Hino Trucks','Mitsubishi Fuso','UD Trucks','Volvo Trucks','Scania Trucks','MAN Truck & Bus','Mercedes-Benz Trucks & Buses','DAF Trucks','Iveco','Ashok Leyland','Eicher','Tata Commercial Vehicles']);
+const TRUCK_ALSO = new Set(['Isuzu','Foton','FAW','JAC','Dongfeng','Mahindra','Tata','Mitsubishi','Hyundai','Toyota','Ford','Nissan','Mercedes-Benz','Renault','Peugeot','Fiat','Citroën','Volkswagen','Chevrolet','GMC','RAM','Changan','Forthing','BAIC','Great Wall','Suzuki']);
+const BUS_ONLY = new Set(['Yutong','King Long','Zhongtong','Golden Dragon','Temsa','Setra','Irizar','Alexander Dennis','Blue Bird']);
+const BUS_ALSO = new Set(['Mercedes-Benz Trucks & Buses','MAN Truck & Bus','Scania Trucks','Volvo Trucks','Iveco','Hyundai','Toyota','Isuzu','Foton','Mitsubishi Fuso']);
+export const vehicleTypeOfMake = make => MOTO_MAKES.has(make) ? 'Motorcycle / Scooter' : BUS_ONLY.has(make) ? 'Bus' : TRUCK_ONLY.has(make) ? 'Truck' : 'Car';
+// Does a make belong in the list for this vehicle type? Unknown (custom) makes and "Other" show for every type.
+export const makeMatchesType = (make, type) => {
+  if (make === 'Other' || !(make in VEHICLE_CATALOG)) return true;
+  if (type === 'Motorcycle / Scooter') return MOTO_MAKES.has(make);
+  if (MOTO_MAKES.has(make)) return false;
+  if (type === 'Truck') return TRUCK_ONLY.has(make) || TRUCK_ALSO.has(make);
+  if (type === 'Bus') return BUS_ONLY.has(make) || BUS_ALSO.has(make);
+  return !TRUCK_ONLY.has(make) && !BUS_ONLY.has(make);
+};

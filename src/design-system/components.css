@@ -418,3 +418,8 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 
 .vehicle-add-wizard .admin-wizard-content>.field,.vehicle-add-wizard .admin-wizard-content>.vehicle-wizard-grid+.field,.vehicle-add-wizard .admin-wizard-content>.field-hint,.vehicle-add-wizard .admin-wizard-content>.vehicle-check{margin-top:14px}
 .vehicle-add-wizard .admin-wizard-content>.vehicle-wizard-grid+.field{margin-top:14px}
+
+.vehicle-type-field{grid-column:1/-1}
+.vehicle-type-pills{display:flex;flex-wrap:wrap;gap:8px}
+.vehicle-type-pills button{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--border,#e5e7eb);background:var(--ds-surface,var(--panel,#fff));color:var(--text);font-weight:600;font-size:13.5px;text-transform:none}
+.vehicle-type-pills button.on{background:#3157f6;border-color:#3157f6;color:#fff}
