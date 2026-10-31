@@ -7,7 +7,7 @@ import { ShoppingBag } from 'lucide-react';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 
 // Installment app page (Valu, Aman, Halan...): limit, what is due next, and every plan under the app.
-export function ProviderDetail({ provider, summary, accounts = [], currency, onBack, onPay, onPayPlan, onAddPlan, onConvert, onEdit, onDelete, onEditPlan, onDeletePlan }) {
+export function ProviderDetail({ provider, summary, accounts = [], currency, onBack, onPay, onPayPlan, onAddPlan, onConvert, onEdit, onDelete, onEditPlan, onDeletePlan, renderReport }) {
   const fmt = money(currency);
   const [tab, setTab] = useState('active');
   const next = summary.next;
@@ -40,7 +40,7 @@ export function ProviderDetail({ provider, summary, accounts = [], currency, onB
     {tab === 'active' && (sorted.length ? sorted.map(d => {
       const term = Number(d.term_months || 0), paid = Number(d.paid_installments || 0), total = Number(d.total_repayment || d.original_amount || 0), done = Number(d.amount_paid || 0), pct = total > 0 ? Math.min(100, done / total * 100) : 0;
       return <section className="panel cc-plan" key={d.id}>
-        <div className="cc-plan-top"><div><h3>{d.name}</h3><p>{d.due_date ? `Next installment ${shortDate(d.due_date)}` : 'No due date set'}</p></div><div className="row-actions"><DueChip date={d.due_date} /><button className="icon-btn" title="Edit plan" aria-label={`Edit ${d.name}`} onClick={() => onEditPlan(d)}><Pencil size={15} /></button><button className="icon-btn danger-hover" title="Delete plan" aria-label={`Delete ${d.name}`} onClick={() => onDeletePlan(d)}><Trash2 size={15} /></button></div></div>
+        <div className="cc-plan-top"><div><h3>{d.name}</h3><p>{d.due_date ? `Next installment ${shortDate(d.due_date)}` : 'No due date set'}</p></div><div className="row-actions"><DueChip date={d.due_date} />{renderReport && renderReport(d)}<button className="icon-btn" title="Edit plan" aria-label={`Edit ${d.name}`} onClick={() => onEditPlan(d)}><Pencil size={15} /></button><button className="icon-btn danger-hover" title="Delete plan" aria-label={`Delete ${d.name}`} onClick={() => onDeletePlan(d)}><Trash2 size={15} /></button></div></div>
         <div className="cc-plan-nums"><div><span>Installment</span><b>{fmt(Math.min(Number(d.monthly_payment || 0), Number(d.remaining_amount || 0)))}</b></div><div><span>Remaining</span><b>{fmt(d.remaining_amount)}</b></div><div><span>Paid</span><b>{paid}{term ? ` of ${term}` : ''}</b></div></div>
         <div className="cc-bar" aria-hidden="true"><i style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--green)' : undefined }} /></div>
         <div className="cc-row-between"><span className="cc-sub">{Math.round(pct)}% repaid</span><button className="btn btn-secondary btn-sm" onClick={() => onPayPlan(d)}>Record this payment</button></div>

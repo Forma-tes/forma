@@ -6,7 +6,7 @@ import { CardVisual, DueChip, LimitBar } from './CreditSummary.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 
 // Credit card page: what to pay next up top, then tabs for what you owe, what you paid, and card info.
-export function CardDetail({ card, summary, accounts = [], currency, onBack, onPay, onAddPurchase, onConvert, onPayPlan, onEditPlan, onDeletePlan, onEdit, onDelete }) {
+export function CardDetail({ card, summary, accounts = [], currency, onBack, onPay, onAddPurchase, onConvert, onPayPlan, onEditPlan, onDeletePlan, onEdit, onDelete, renderReport }) {
   const fmt = money(currency);
   const [tab, setTab] = useState('pay');
   const next = summary.next;
@@ -45,7 +45,7 @@ export function CardDetail({ card, summary, accounts = [], currency, onBack, onP
 
     {summary.activePlans.length > 0 && <section className="panel" style={{ padding: 0, overflow: 'hidden', marginBottom: 14 }}>
       <div className="cc-line" style={{ borderTop: 0 }}><span><b>Installment plans on this card</b><small>Not part of the statement. Pay them month by month.</small></span><span><b>{fmt(summary.planOwed)}</b></span></div>
-      {summary.activePlans.map(d => <div className="cc-line" key={d.id}><span>{d.name}<small>{d.due_date ? `Next ${shortDate(d.due_date)} · ` : ''}{fmt(Math.min(Number(d.monthly_payment || 0), Number(d.remaining_amount || 0)))} / month · {fmt(d.remaining_amount)} left</small></span><span className="row-actions"><button className="btn btn-secondary btn-sm" onClick={() => onPayPlan(d)}>Record payment</button><button className="icon-btn" title="Edit plan" aria-label={`Edit ${d.name}`} onClick={() => onEditPlan(d)}><Pencil size={15} /></button><button className="icon-btn danger-hover" title="Delete plan" aria-label={`Delete ${d.name}`} onClick={() => onDeletePlan(d)}><Trash2 size={15} /></button></span></div>)}
+      {summary.activePlans.map(d => <div className="cc-line" key={d.id}><span>{d.name}<small>{d.due_date ? `Next ${shortDate(d.due_date)} · ` : ''}{fmt(Math.min(Number(d.monthly_payment || 0), Number(d.remaining_amount || 0)))} / month · {fmt(d.remaining_amount)} left</small></span><span className="row-actions"><button className="btn btn-secondary btn-sm" onClick={() => onPayPlan(d)}>Record payment</button>{renderReport && renderReport(d)}<button className="icon-btn" title="Edit plan" aria-label={`Edit ${d.name}`} onClick={() => onEditPlan(d)}><Pencil size={15} /></button><button className="icon-btn danger-hover" title="Delete plan" aria-label={`Delete ${d.name}`} onClick={() => onDeletePlan(d)}><Trash2 size={15} /></button></span></div>)}
     </section>}
 
     {tab === 'pay' && (summary.groups.length ? <>
