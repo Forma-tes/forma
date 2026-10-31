@@ -415,3 +415,6 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 .acc-alert b{text-transform:none}
 
 .plan-km{text-transform:none}.plan-km.over,.plan-state.over{color:#dc2626;font-weight:650}.plan-km.soon,.plan-state.soon{color:#d97706;font-weight:650}
+
+.vehicle-add-wizard .admin-wizard-content>.field,.vehicle-add-wizard .admin-wizard-content>.vehicle-wizard-grid+.field,.vehicle-add-wizard .admin-wizard-content>.field-hint,.vehicle-add-wizard .admin-wizard-content>.vehicle-check{margin-top:14px}
+.vehicle-add-wizard .admin-wizard-content>.vehicle-wizard-grid+.field{margin-top:14px}
