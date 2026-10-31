@@ -6,10 +6,6 @@ import { ArtCalendar, ArtCard, ArtCoins, ArtGoal, ArtNote, ArtReceipt } from './
 
 const GOOGLE=<svg viewBox="0 0 48 48" aria-hidden="true" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 38.05 46.98 31.95 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.45-4.88 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>;
 
-function initialTheme(){
- try{const s=localStorage.getItem('pocket.loginTheme');if(s==='light'||s==='dark')return s}catch{}
- try{return window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{return 'light'}
-}
 function initialStyle(){
  try{const q=new URLSearchParams(window.location.search).get('login');if(q==='1'||q==='2')return Number(q)}catch{}
  return 2;
@@ -21,9 +17,8 @@ export function AuthScreen(p){
  const isSignin=mode==='signin', isSignup=mode==='signup', isForgot=mode==='forgot', isUpdatePassword=mode==='update-password';
  const showTabs=isSignin||isSignup;
  const submit=isSignup?signUp:isForgot?resetPassword:isUpdatePassword?updatePassword:signIn;
- const [theme,setTheme]=useState(initialTheme);
+ const theme='light';
  const [style]=useState(initialStyle);
- const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);try{localStorage.setItem('pocket.loginTheme',next);localStorage.setItem('pocket.themePick','1')}catch{}};
  const go=m=>{setAuthMode(m);setAuthMsg('')};
  const two=style===2;
  const headline=['Make','room','for','what','matters.'];
@@ -59,10 +54,8 @@ export function AuthScreen(p){
   {messages}
  </form>;
  const switchRow=(isForgot||isSignin||isSignup)&&<p className="lg-switch" style={i()}>{isForgot?<>Remembered your password? <button type="button" className="lg-link" onClick={()=>go('signin')}>Back to sign in</button></>:isSignup?<>{two?'Have an account?':'Already have a Pocket account?'} <button type="button" className="lg-link" onClick={()=>go('signin')}>{two?'Log in':'Sign in'}</button></>:<>New to Pocket? <button type="button" className="lg-link" onClick={()=>go('signup')}>Create an account</button></>}</p>;
- const themeBtn=<button type="button" className="lg-theme" onClick={toggleTheme} aria-label={theme==='dark'?'Switch to light mode':'Switch to dark mode'} title={theme==='dark'?'Light mode':'Dark mode'}>{theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}</button>;
 
  if(two) return <main className="lg-page lg2" data-lg-theme={theme}>
-  {themeBtn}
   <div className="lg2-blobs" aria-hidden="true"><i/><i/><i/></div>
   <div className="lg-brand lg2-brand"><img src="/brand/pocket-mark.svg" alt=""/><span>Pocket</span></div>
   <div className="lg2-art lg2-art-left" aria-hidden="true">
@@ -85,7 +78,6 @@ export function AuthScreen(p){
 
  return <main className="lg-page" data-lg-theme={theme}>
   <div className="lg-bg" aria-hidden="true"><i className="r1"/><i className="r2"/></div>
-  {themeBtn}
   <section className="lg-hero">
    <div className="lg-brand"><img src="/brand/pocket-mark.svg" alt=""/><span>Pocket</span></div>
    <div className="lg-hero-body">

@@ -5,6 +5,7 @@ import { exportTransactions, downloadTemplate } from './lib/transferFile.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ConfirmActionModal } from './components/modals/ConfirmActionModal.jsx';
 import { ProfileAvatar } from './components/ui/ProfileAvatar.jsx';
+import { storedTheme, saveTheme, bootTheme } from './lib/theme.js';
 import { WorkspaceSkeleton } from './components/ui/WorkspaceSkeleton.jsx';
 import { AccountModal } from './features/accounts/AccountModal.jsx';
 import { AccountsPage } from './features/accounts/AccountsPage.jsx';
@@ -187,7 +188,7 @@ function App(){
   const [timezone,setTimezone] = useState(()=>{try{return null||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch{return 'UTC'}});
   const [profileName,setProfileName] = useState(()=>{try{return null||''}catch{return ''}});
   const [profileSaving,setProfileSaving] = useState(false);
-  const [theme,setTheme] = useState(()=>{try{const t=localStorage.getItem('pocket.loginTheme');if(t==='light'||t==='dark')return t}catch{}return 'light'});
+  const [theme,setTheme] = useState(()=>storedTheme());
   const [design,setDesign] = useState(()=>null||'classic');
   const [sidebarSize,setSidebarSize] = useState(()=>null||'comfortable');
   const [workspaceSectionName,setWorkspaceSectionName] = useState(()=>{try{return null||'MY SPACE'}catch{return 'MY SPACE'}});
@@ -233,9 +234,9 @@ function App(){
     void 0;
     void 0;
     void 0;
-    document.documentElement.dataset.theme=theme;
+    document.documentElement.dataset.theme=session?theme:'light';
     document.documentElement.dataset.design='classic';
-    if(session){try{localStorage.setItem('pocket.loginTheme',theme)}catch{}}
+    if(session)saveTheme(theme);
   },[theme,design,sidebarSize,profileAvatar,session]);
 
   useEffect(()=>{
@@ -368,7 +369,7 @@ function App(){
         if(v.currency){setCurrency(v.currency);void 0}
         if(v.timezone){setTimezone(v.timezone);void 0}
         if(v.profileName!==undefined){setProfileName(v.profileName||'');void 0}
-        {let picked=false;try{picked=localStorage.getItem('pocket.themePick')==='1';localStorage.removeItem('pocket.themePick')}catch{}if(v.theme&&!picked)setTheme(v.theme)}
+        if(v.theme)setTheme(v.theme);
         
         if(v.sidebarSize){setSidebarSize(v.sidebarSize);void 0}
         if(v.profileAvatar){setProfileAvatar(v.profileAvatar);void 0}
@@ -969,7 +970,7 @@ function App(){
   };
   if(cloudReady && (authLoading || (session && !profileLoaded))){
     let loadTheme='light';
-    try{const st=localStorage.getItem('pocket.loginTheme');loadTheme=st==='light'||st==='dark'?st:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}
+    loadTheme=bootTheme();
     return <main className="pocket-loading-screen" data-lg-theme={loadTheme} role="status" aria-live="polite" aria-label="Loading Pocket">
     <div className="pocket-loading-glow pocket-loading-glow-one" aria-hidden="true"/><div className="pocket-loading-glow pocket-loading-glow-two" aria-hidden="true"/>
     <section className="pocket-loading-card">
