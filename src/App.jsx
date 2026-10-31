@@ -421,7 +421,7 @@ function App(){
   const cardAlertLimit=(()=>{const date=new Date(`${todayISO}T12:00:00`);date.setDate(date.getDate()+3);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`})();
   const cardAlerts=accounts.filter(isCard).flatMap(c=>cardSummary(c,transactions,todayISO,debts).groups.filter(g=>g.due<=cardAlertLimit).map(g=>({id:`card-${c.id}-${g.due}`,kind:'debt',name:`${c.name} payment`,detail:`${g.due<todayISO?'Overdue':g.due===todayISO?'Due today':'Due soon'} · ${g.due}`,target:'Debts & installments',amount:g.remaining})));
   const notificationPayments=recurring.filter(r=>!r.paid_this_cycle&&r.next_due_date&&r.next_due_date<=notificationDueLimit).sort((a,b)=>(a.next_due_date||'').localeCompare(b.next_due_date||''));
-  const notificationItems=[...budgetAlerts,...debtAlerts,...cardAlerts,...notificationPayments.map(r=>({id:`recurring-${r.id}`,kind:'recurring',name:r.name,detail:r.next_due_date?`${r.next_due_date<todayISO?'Overdue':r.next_due_date===todayISO?'Due today':'Due soon'} · ${new Date(r.next_due_date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${r.frequency||'Recurring'}`:'Upcoming payment',target:'Recurring payments',amount:Number(r.amount||0)}))];
+  const notificationItems=[...budgetAlerts,...debtAlerts,...cardAlerts,...notificationPayments.map(r=>({id:`recurring-${r.id}`,kind:'recurring',name:r.name,detail:r.next_due_date?`${r.next_due_date<todayISO?'Overdue':r.next_due_date===todayISO?'Due today':'Due soon'} · ${new Date(r.next_due_date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${r.frequency||'Recurring'}`:'Upcoming payment',target:'Recurring payments',amount:Math.max(0,Number(r.amount||0)-Number(r.paid_amount||0))}))];
   const allNotificationItems=[...notificationItems,...vehicleReminderNotifications];
   useEffect(()=>{
     const currentIds=new Set(notificationItems.map(item=>String(item.id)));
@@ -533,7 +533,7 @@ function App(){
     setGoals(old=>editing?old.map(x=>x.id===editing.id?saved:x):[saved,...old]);setModal(null);setEditing(null);setToast('Goal saved');
   }
   async function addRecurring(form){
-    const p={name:form.name,category:form.category,subcategory:form.subcategory||null,amount:Number(form.amount),frequency:form.frequency,next_due_date:form.next_due_date||null,account_id:form.account_id||null,auto_pay:form.auto_pay,paid_this_cycle:form.paid_this_cycle,last_paid_date:editing?.last_paid_date||null,essential:form.essential,notes:form.notes||''};
+    const p={name:form.name,category:form.category,subcategory:form.subcategory||null,amount:Number(form.amount),frequency:form.frequency,next_due_date:form.next_due_date||null,account_id:form.account_id||null,auto_pay:form.auto_pay,paid_this_cycle:form.paid_this_cycle,last_paid_date:editing?.last_paid_date||null,pay_by_date:form.pay_by_date||null,paid_amount:Math.min(Number(editing?.paid_amount||0),Number(form.amount)),essential:form.essential,notes:form.notes||''};
     const saved=await saveRecord('recurring_payments',p,editing?.id);if(!saved)return;
     setRecurring(old=>editing?old.map(x=>x.id===editing.id?saved:x):[saved,...old]);setModal(null);setEditing(null);setToast('Payment saved');
   }
@@ -844,25 +844,38 @@ function App(){
     setPaidBusy(old=>[...old,r.id]);
     try{
       const paidDate=localISODate();
+      const already=Number(r.paid_amount||0),remaining=Math.max(0,Number(r.amount||0)-already);
+      const payAmt=opts.amount!=null&&opts.amount!==''?Math.min(Number(opts.amount),remaining):remaining;
+      if(!(payAmt>0))throw new Error('Enter an amount greater than zero.');
+      const isPart=payAmt<remaining-0.004,newPaid=Math.round((already+payAmt)*100)/100,done=newPaid>=Number(r.amount||0)-0.004;
+      const nextDue=addFrequency(r.next_due_date||paidDate,r.frequency);
+      const gap=r.pay_by_date&&r.next_due_date?Math.round((new Date(r.pay_by_date+'T12:00:00')-new Date(r.next_due_date+'T12:00:00'))/864e5):null;
+      const shiftPayBy=nd=>gap!=null&&gap>=0?localISODate(new Date(new Date(nd+'T12:00:00').getTime()+gap*864e5)):null;
+      const patch=done?{next_due_date:nextDue,paid_this_cycle:true,last_paid_date:paidDate,paid_amount:0,...(r.pay_by_date?{pay_by_date:shiftPayBy(nextDue)}:{})}:{paid_amount:newPaid};
       if(!record){
-        const nextDue=addFrequency(r.next_due_date||paidDate,r.frequency);const patch={next_due_date:nextDue,paid_this_cycle:true,last_paid_date:paidDate};
         if(cloudReady&&session?.user){const {error}=await supabase.from('recurring_payments').update(patch).eq('id',r.id);if(error)throw error;}
         setRecurring(old=>old.map(x=>x.id===r.id?{...x,...patch}:x));
-      } else if(cloudReady&&session?.user){
+      } else if(cloudReady&&session?.user&&!isPart&&already===0){
         const {error}=await supabase.rpc('mark_recurring_payment_paid',{p_payment_id:r.id,p_paid_date:paidDate,p_account_id:accId});
         if(error)throw error;
         const [t,rec]=await Promise.all([supabase.from('transactions').select('*').order('transaction_date',{ascending:false}),supabase.from('recurring_payments').select('*').order('next_due_date',{ascending:true})]);
         if(t.error||rec.error)throw new Error('Payment recorded. Reload the app if the refreshed list is not visible.');
-        setTransactions(t.data||[]);setRecurring(rec.data||[]);
+        let recRows=rec.data||[];
+        if(r.pay_by_date){const fresh=recRows.find(x=>x.id===r.id);const nd=fresh?.next_due_date;const np=nd?shiftPayBy(nd):null;if(np){const {error:e2}=await supabase.from('recurring_payments').update({pay_by_date:np}).eq('id',r.id);if(!e2)recRows=recRows.map(x=>x.id===r.id?{...x,pay_by_date:np}:x);}}
+        setTransactions(t.data||[]);setRecurring(recRows);
       } else {
-        if(r.last_paid_date&&r.next_due_date&&paidDate<r.next_due_date)throw new Error('This payment was already recorded for the current cycle.');
-        const account=accounts.find(a=>String(a.id)===String(accId));if(!account)throw new Error('Choose an account or wallet in this recurring payment before marking it paid.');if(isGoalsAccount(account))throw new Error('The Goals account can only be used for transfers.');const accountIn=transactions.filter(t=>(t.type==='Income'&&String(t.account_id)===String(account.id))||(t.type==='Transfer'&&String(t.to_account_id)===String(account.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);const accountOut=transactions.filter(t=>((t.type==='Expense'||t.type==='Transfer')&&String(t.account_id)===String(account.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);if(isProvider(account))throw new Error('Choose a bank, cash, wallet or credit card account for this payment.');const available=Number(account.opening_balance||0)+accountIn-accountOut+(isCard(account)?(Number(account.credit_limit)>0?Number(account.credit_limit):1e12):0);if(Number(r.amount)>available)throw new Error(`Insufficient balance in ${account.name}. Available: ${fmt(available)}.`);const tx={transaction_date:paidDate,type:'Expense',category:r.category||'Bills & Utilities',subcategory:r.subcategory||null,description:`Recurring payment: ${r.name}`,amount:Number(r.amount)||0,need_want:'Need',fixed_variable:'Fixed',payment_method:account.name,account_id:account.id,recurring:true,notes:`Generated from recurring payment ${r.name}`};
-        const savedTx={...tx,id:uid()};
-        const nextDue=addFrequency(r.next_due_date||paidDate,r.frequency);
-        const updated={...r,next_due_date:nextDue,paid_this_cycle:true,last_paid_date:paidDate};
-        setTransactions(old=>[savedTx,...old]);setRecurring(old=>old.map(x=>x.id===r.id?updated:x));
+        if(!cloudReady&&already===0&&!isPart&&r.last_paid_date&&r.next_due_date&&paidDate<r.next_due_date)throw new Error('This payment was already recorded for the current cycle.');
+        const account=accounts.find(a=>String(a.id)===String(accId));if(!account)throw new Error('Choose an account or wallet in this recurring payment before marking it paid.');if(isGoalsAccount(account))throw new Error('The Goals account can only be used for transfers.');const accountIn=transactions.filter(t=>(t.type==='Income'&&String(t.account_id)===String(account.id))||(t.type==='Transfer'&&String(t.to_account_id)===String(account.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);const accountOut=transactions.filter(t=>((t.type==='Expense'||t.type==='Transfer')&&String(t.account_id)===String(account.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);if(isProvider(account))throw new Error('Choose a bank, cash, wallet or credit card account for this payment.');const available=Number(account.opening_balance||0)+accountIn-accountOut+(isCard(account)?(Number(account.credit_limit)>0?Number(account.credit_limit):1e12):0);if(payAmt>available)throw new Error(`Insufficient balance in ${account.name}. Available: ${fmt(available)}.`);
+        const partial=isPart||already>0;
+        const tx={transaction_date:paidDate,type:'Expense',category:r.category||'Bills & Utilities',subcategory:r.subcategory||null,description:`Recurring payment: ${r.name}${partial?(done?' (final part)':' (part)'):''}`,amount:payAmt,need_want:'Need',fixed_variable:'Fixed',payment_method:account.name,account_id:account.id,recurring:true,notes:`Generated from recurring payment ${r.name}${partial?` · ${fmt(newPaid)} of ${fmt(r.amount)} paid`:''}`};
+        let savedTx={...tx,id:uid()};
+        if(cloudReady&&session?.user){
+          const ins=await supabase.from('transactions').insert({...tx,user_id:session.user.id}).select().single();if(ins.error)throw ins.error;savedTx=ins.data;
+          const {error:e3}=await supabase.from('recurring_payments').update(patch).eq('id',r.id);if(e3)throw e3;
+        }
+        setTransactions(old=>[savedTx,...old]);setRecurring(old=>old.map(x=>x.id===r.id?{...x,...patch}:x));
       }
-      setToast(record?'Payment recorded and next due date updated':'Marked as paid · no transaction created');
+      setToast(!record?(done?'Marked as paid · no transaction created':'Part payment saved · no transaction created'):done?'Payment recorded and next due date updated':`Part payment recorded · ${fmt(Math.max(0,Number(r.amount||0)-newPaid))} left`);
     }catch(err){setToast(err.message||'Could not mark payment as paid');}
     finally{setPaidBusy(old=>old.filter(id=>id!==r.id));}
   }

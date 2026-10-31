@@ -2022,3 +2022,8 @@ alter table public.financial_accounts add constraint financial_accounts_credit_l
 -- An installment plan can belong to an installment app account.
 alter table public.debts add column if not exists provider_account_id uuid references public.financial_accounts(id) on delete set null;
 create index if not exists debts_user_provider_idx on public.debts(user_id, provider_account_id);
+
+
+-- Recurring payments: optional last date to pay + running part-payment total (additive).
+alter table public.recurring_payments add column if not exists pay_by_date date;
+alter table public.recurring_payments add column if not exists paid_amount numeric(12,2) not null default 0;
