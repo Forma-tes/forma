@@ -10,5 +10,6 @@ import './styles/sidebar-collapse.css'
 import './styles/fuel-card.css'
 import './styles/auth-responsive.css';
 import './design-system/motion.css';
+import './styles/login.css';
 
 createRoot(document.getElementById('root')).render(<ErrorBoundary><App /></ErrorBoundary>);
