@@ -1,3 +1,4 @@
+import { AnimatedNumber } from '../../components/ui/AnimatedNumber.jsx';
 import { CreditCard, ShoppingBag } from 'lucide-react';
 import { dueLabel, dueTone, daysUntil, money } from '../../lib/credit.js';
 import { shortDate } from '../../lib/format.js';
@@ -32,7 +33,7 @@ export function CardTile({ card, summary, currency, onOpen, onPay }) {
     <div className="cc-tile-body">
       <div>
         <div className="cc-row-between"><span className="cc-label">Next payment</span>{next ? <DueChip date={next.due} /> : <span className="cc-chip ok">All paid</span>}</div>
-        {next ? <><div className="cc-amount">{fmt(next.remaining)}</div><div className="cc-sub">Due {shortDate(next.due)}</div></> : <div className="cc-amount ok">All clear</div>}
+        {next ? <><div className="cc-amount"><AnimatedNumber value={fmt(next.remaining)} /></div><div className="cc-sub">Due {shortDate(next.due)}</div></> : <div className="cc-amount ok">All clear</div>}
       </div>
       <LimitBar used={summary.owed} limit={summary.limit} currency={currency} />
       <div className="cc-actions">{next && <button className="btn btn-primary" onClick={() => onPay(card)}>Pay {fmt(next.remaining)}</button>}<button className="btn btn-secondary" onClick={() => onOpen(card)}>View details</button></div>

@@ -1,3 +1,4 @@
+import { AnimatedNumber } from './ui/AnimatedNumber.jsx';
 import React from 'react';
 import { CalendarDays, Check, CircleDollarSign, Wallet, ArrowLeftRight, FileSpreadsheet, CircleHelp, CreditCard, Sparkles, Target, ArrowUpRight, PiggyBank, Settings, UserRound, FileJson, ChartNoAxesCombined } from 'lucide-react';
 import { PROFILE_AVATARS } from '../lib/domain.js';
@@ -8,7 +9,7 @@ function PageHeading({eyebrow,title,subtitle,actions,className=''}){const isGree
 
 function MonthPicker({month,setMonth}){return <div className="month-picker"><CalendarDays size={16}/><input aria-label="Selected month" type="month" value={month} onChange={e=>setMonth(e.target.value)}/></div>}
 
-function MetricCard({label,value,change,icon:Icon,tone='blue',note}){return <div className="metric-card"><div className="metric-top"><span>{label}</span><span className={`metric-icon ${tone}`}><Icon size={18}/></span></div><div className="metric-value">{value}</div><div className="metric-foot">{change&&<span className={change.startsWith('+')?'positive':'neutral'}>{change}</span>}<span>{note}</span></div></div>}
+function MetricCard({label,value,change,icon:Icon,tone='blue',note}){return <div className="metric-card"><div className="metric-top"><span>{label}</span><span className={`metric-icon ${tone}`}><Icon size={18}/></span></div><div className="metric-value"><AnimatedNumber value={value}/></div><div className="metric-foot">{change&&<span className={change.startsWith('+')?'positive':'neutral'}>{change}</span>}<span>{note}</span></div></div>}
 
 function EmptyState({icon:Icon,title,text,action,actionLabel}){return <div className="empty-state"><div className="empty-icon"><Icon size={21}/></div><b>{title}</b><p>{text}</p>{action&&<button className="btn btn-secondary btn-sm" onClick={action}>{actionLabel||'Add new'}</button>}</div>}
 

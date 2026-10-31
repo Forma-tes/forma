@@ -1,3 +1,4 @@
+import { AnimatedNumber } from '../../components/ui/AnimatedNumber.jsx';
 import { ArrowLeft, Check, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { cardCycle, money } from '../../lib/credit.js';
@@ -32,7 +33,7 @@ export function CardDetail({ card, summary, accounts = [], currency, onBack, onP
       <section className="panel cc-next">
         <div>
           <div className="cc-row-between"><span className="cc-label">Next payment</span>{next ? <DueChip date={next.due} /> : <span className="cc-chip ok">All paid</span>}</div>
-          {next ? <><div className="cc-amount">{fmt(next.remaining)}</div><div className="cc-sub">Due {shortDate(next.due)}</div></> : <><div className="cc-amount ok">All clear</div><div className="cc-sub">Nothing to pay right now.</div></>}
+          {next ? <><div className="cc-amount"><AnimatedNumber value={fmt(next.remaining)} /></div><div className="cc-sub">Due {shortDate(next.due)}</div></> : <><div className="cc-amount ok">All clear</div><div className="cc-sub">Nothing to pay right now.</div></>}
         </div>
         {next && <div className="cc-actions"><button className="btn btn-primary" onClick={() => onPay(card, 0)}>Pay {fmt(next.remaining)}</button>{summary.groups.length > 1 && <button className="btn btn-secondary" onClick={() => onPay(card, summary.groups.length - 1)}>Pay all {fmt(summary.owed)}</button>}<button className="btn btn-secondary" onClick={() => onPay(card, 'custom')}>Other amount</button></div>}
       </section>

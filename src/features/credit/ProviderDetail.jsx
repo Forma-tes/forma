@@ -1,3 +1,4 @@
+import { AnimatedNumber } from '../../components/ui/AnimatedNumber.jsx';
 import { ArrowLeft, Check, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { money } from '../../lib/credit.js';
@@ -23,7 +24,7 @@ export function ProviderDetail({ provider, summary, accounts = [], currency, onB
       <section className="panel cc-next">
         <div>
           <div className="cc-row-between"><span className="cc-label">Next payment</span>{next ? <DueChip date={next.due} /> : <span className="cc-chip ok">{summary.active.length ? 'Not scheduled' : 'No active plans'}</span>}</div>
-          {next ? <><div className="cc-amount">{fmt(next.amount)}</div><div className="cc-sub">Due {shortDate(next.due)} · {next.plans.length} plan{next.plans.length === 1 ? '' : 's'}</div></> : <><div className="cc-amount ok">All clear</div><div className="cc-sub">Nothing to pay right now.</div></>}
+          {next ? <><div className="cc-amount"><AnimatedNumber value={fmt(next.amount)} /></div><div className="cc-sub">Due {shortDate(next.due)} · {next.plans.length} plan{next.plans.length === 1 ? '' : 's'}</div></> : <><div className="cc-amount ok">All clear</div><div className="cc-sub">Nothing to pay right now.</div></>}
         </div>
         {next && <div className="cc-actions"><button className="btn btn-primary" onClick={() => onPay(provider, next)}>Pay {fmt(next.amount)}</button></div>}
       </section>
