@@ -518,3 +518,50 @@ body .btn-primary{color:#fff}
 body main .btn.btn-sm{min-height:34px}
 @media (max-width:760px),(pointer:coarse){body main .btn.btn-sm{min-height:40px}}
 .category-admin-actions .icon-btn,.category-wizard-card .icon-btn{width:36px;height:36px;min-width:36px;border-radius:var(--ds-radius-md)}
+
+/* ==========================================================================
+   Pass 3: topbar buttons, notification popup on phones, compact mobile
+   controls, transactions cards + table.
+   ========================================================================== */
+/* Topbar: search, theme and bell are the same size and look */
+.topbar-actions .topbar-search,.topbar-actions .icon-btn{width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border-radius:12px;border:1px solid var(--ds-border);background:var(--ds-surface);color:var(--ds-text-muted);display:inline-grid;place-items:center}
+.topbar-actions .topbar-search{width:auto;padding:0 12px;display:inline-flex;gap:8px}
+.topbar-actions .topbar-search:hover,.topbar-actions .icon-btn:hover{background:var(--ds-soft);color:var(--ds-text)}
+.topbar-actions .notification-btn.is-open{border-color:var(--ds-brand);background:var(--ds-brand-soft);color:var(--ds-brand)}
+.topbar-actions .notification-count-badge{top:-6px;right:-6px}
+@media(max-width:680px){
+  .topbar-actions .topbar-search{width:40px;padding:0;display:inline-grid}
+  .topbar-actions{gap:8px}
+  /* Notification + account popups sit inside the screen, not under the bell */
+  .top-popover{position:fixed;top:66px;left:12px;right:12px;width:auto;max-width:none;max-height:calc(100dvh - 90px);overflow:auto}
+  .account-popover{left:auto;width:min(300px,calc(100vw - 24px))}
+}
+
+/* Compact controls on phones: smaller text, lower height, buttons match inputs */
+@media (max-width:760px),(pointer:coarse){
+  body .btn.btn-sm{min-height:36px}
+  body main .btn.btn-sm{min-height:36px}
+  select,input:not([type=checkbox]):not([type=radio]),textarea{font-size:var(--ds-control-fs)}
+  .table-toolbar .filter-group select,.table-toolbar .search-field input{min-height:var(--ds-control-height)}
+  .gs-input input{font-size:15px}
+}
+
+/* Transactions summary cards: same 2-up compact cards as Accounts on phones */
+@media(max-width:560px){
+  .metric-grid.metric-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .metric-grid.metric-grid-3>:last-child{grid-column:1/-1}
+}
+
+/* Transactions table: borders and rows follow the theme (no white lines in dark) */
+.tx-table tr{border-bottom-color:var(--ds-border)}
+.tx-table .tx-group-row td{background:var(--ds-soft);border-bottom:1px solid var(--ds-border)}
+.table-more{border-top-color:var(--ds-border)}
+:root[data-theme="dark"] .tx-table .tx-group-row td{background:var(--ds-soft);border-color:var(--ds-border)}
+:root[data-theme="dark"] .tx-table tbody tr:not(.tx-group-row){background:transparent;border-color:var(--ds-border)}
+:root[data-theme="dark"] .tx-table tbody tr:not(.tx-group-row):hover{background:rgba(255,255,255,.03)}
+:root[data-theme="dark"] .tx-table td{border-color:var(--ds-border)}
+
+/* Buttons always match the text size and height of inputs */
+body .btn{font-size:var(--ds-control-fs)!important;min-height:var(--ds-control-height)!important}
+body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
+@media (max-width:760px),(pointer:coarse){body .btn.btn-sm,body main .btn.btn-sm{min-height:36px!important}}
