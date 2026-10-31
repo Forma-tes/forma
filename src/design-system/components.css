@@ -413,3 +413,5 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 .pay-modal h2,.pay-modal .field span,.pay-modal p{text-transform:none}
 .pay-check b{font-size:14px;font-weight:650}
 .acc-alert b{text-transform:none}
+
+.plan-km{text-transform:none}.plan-km.over,.plan-state.over{color:#dc2626;font-weight:650}.plan-km.soon,.plan-state.soon{color:#d97706;font-weight:650}
