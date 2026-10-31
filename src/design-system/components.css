@@ -600,3 +600,10 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .sidebar .nav-item.active svg{color:var(--ds-brand)}
 :root[data-theme="dark"] .sidebar .nav-item.active{box-shadow:inset 3px 0 0 #5d7cff;background:#293455;color:#cbd4ff}
 :root[data-theme="dark"] .sidebar .nav-item.active svg{color:#9eb4ff}
+
+/* Wizard progress: one segment per step */
+.tx-wizard-track{display:flex;gap:6px;height:6px;margin-top:14px;background:transparent!important;overflow:visible;border-radius:0}
+.tx-wizard-track>span{flex:1 1 0;width:auto!important;height:100%;border-radius:99px;background:var(--ds-border);transition:background .25s ease}
+.tx-wizard-track>span.on{background:var(--ds-brand)}
+:root[data-theme="dark"] .tx-wizard-track>span{background:#30384a}
+:root[data-theme="dark"] .tx-wizard-track>span.on{background:#5c7dff}
