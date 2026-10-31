@@ -438,3 +438,38 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 
 .modal>.modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
 .modal>.modal-header .icon-btn{flex:0 0 auto}
+
+/* Export / Import menu must float above the sections that follow the heading (motion layer creates stacking contexts) */
+main .page-heading{position:relative;z-index:40}
+.menu-popover{z-index:80;max-width:calc(100vw - 32px)}
+
+/* ---- Debt payment popup ---- */
+.modal.debt-pay{width:min(520px,calc(100vw - 32px));padding:0;display:flex;flex-direction:column;overflow:hidden}
+.debt-pay-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:22px 24px 4px}
+.debt-pay-eyebrow{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#7a8194)}
+.debt-pay-head h2{margin:6px 0 4px;font-size:21px;line-height:1.25;letter-spacing:-.02em;color:var(--ink,#171923)}
+.debt-pay-head p{margin:0;font-size:13px;color:var(--muted,#7a8194)}.debt-pay-head p b{color:var(--ink,#171923)}
+.debt-pay-close{flex:none;width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--ds-border,#e4e6ee);border-radius:10px;background:transparent;color:var(--muted,#7a8194);font-size:20px;line-height:1;cursor:pointer}
+.debt-pay-close:hover{background:var(--ds-soft,#f5f6fb);color:var(--ink,#171923)}
+.debt-pay-body{display:flex;flex-direction:column;gap:16px;padding:18px 24px 6px}
+.debt-pay-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.debt-pay-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.debt-pay-field>span{font-size:13px;font-weight:600;color:var(--ink,#171923)}
+.debt-pay-field input,.debt-pay-field select{width:100%;height:44px;padding:0 12px;border-radius:12px;font-size:15px}
+.debt-pay-field small{font-size:12px;color:var(--muted,#7a8194)}
+.debt-pay-summary{padding:14px 16px;border-radius:14px;background:var(--ds-soft,#f5f6fb);border:1px solid var(--ds-border,#e4e6ee)}
+.debt-pay-summary>div{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.debt-pay-summary span{font-size:13px;color:var(--muted,#7a8194)}.debt-pay-summary b{font-size:18px;color:var(--ink,#171923)}
+.debt-pay-summary p{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--muted,#7a8194)}
+.debt-pay-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 24px 22px}
+.debt-pay-actions .btn{min-height:44px;padding:0 20px}
+:root[data-theme="dark"] .debt-pay-close{border-color:#30384a}:root[data-theme="dark"] .debt-pay-close:hover{background:#262f42}
+:root[data-theme="dark"] .debt-pay-summary{background:#1a2132;border-color:#30384a}
+@media(max-width:640px){
+ .debt-pay-head{padding:6px 18px 2px}.debt-pay-body{padding:14px 18px 4px}.debt-pay-row{grid-template-columns:1fr}
+ .debt-pay-actions{padding:14px 18px calc(18px + env(safe-area-inset-bottom));flex-direction:column-reverse}.debt-pay-actions .btn{width:100%}
+}
+.debt-pay :is(p,small,span,b,label,div){text-transform:none}.debt-pay .debt-pay-eyebrow{text-transform:uppercase}
+.debt-pay-field input,.debt-pay-field select{border:1px solid var(--ds-border,#dfe2ec);background:var(--ds-surface,#fff);color:var(--ink,#171923);outline:0;box-shadow:none;transition:border-color .15s,box-shadow .15s}
+.debt-pay-field input:focus,.debt-pay-field select:focus{border-color:var(--ds-brand,#3157f6);box-shadow:0 0 0 3px rgba(49,87,246,.16)}
+:root[data-theme="dark"] .debt-pay-field input,:root[data-theme="dark"] .debt-pay-field select{background:#151c2b;border-color:#30384a;color:#edf0f8}
