@@ -607,3 +607,17 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .tx-wizard-track>span.on{background:var(--ds-brand)}
 :root[data-theme="dark"] .tx-wizard-track>span{background:#30384a}
 :root[data-theme="dark"] .tx-wizard-track>span.on{background:#5c7dff}
+
+/* Spending breakdown: legend as a clean list on phones */
+@media(max-width:640px){
+  .donut-wrap{height:200px;max-width:240px;margin-bottom:12px}
+  .donut-center b{font-size:20px}
+  .donut-center span{font-size:12px}
+  .category-legend{grid-template-columns:1fr;gap:0;margin-top:6px}
+  .category-legend-row{padding:11px 2px;font-size:14px;gap:12px;border-bottom:1px solid var(--ds-border)}
+  .category-legend-row:last-child{border-bottom:0}
+  .category-legend-row>span{font-size:14px;gap:10px;color:var(--ds-text);overflow:hidden}
+  .category-legend-row>span i{width:10px;height:10px;border-radius:4px}
+  .category-legend-row b{font-size:14px;flex:0 0 auto}
+}
+:root[data-theme="dark"] .category-legend-row>span{color:#edf0f8!important}
