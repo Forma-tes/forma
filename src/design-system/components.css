@@ -725,3 +725,38 @@ button:hover>.cat-emoji,.tx-choice-card:hover .cat-emoji,.category-admin-card:ho
 .sms-other-row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border,#eef0f4)}
 .sms-other-row p{margin:0;font-size:13px;line-height:1.45;word-break:break-word;text-transform:none}
 .sms-other .sms-actions{padding:8px 0 12px}
+
+/* ---- Bank SMS page ---- */
+.sms-page{display:grid;gap:16px}
+.smx-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.smx-summary>div{background:var(--surface,#fff);border:1px solid var(--border,#e5e8f0);border-radius:14px;padding:14px;display:grid;gap:2px;min-width:0}
+.smx-summary b{font-size:20px;line-height:1.2;text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.smx-summary small{color:var(--muted,#6b7280);text-transform:none;font-size:12.5px}
+.smx-sico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--ds-brand-soft,#eaf0ff);color:#3157f6;margin-bottom:6px}
+.sms-panel{padding:14px}
+.smx-filters{display:flex;gap:8px;flex-wrap:wrap}
+.smx-filters select,.smx-filters input[type=date]{height:38px;border-radius:10px;border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff);color:inherit;padding:0 10px;font:inherit;font-size:13.5px;min-width:0}
+.smx-search{flex:1 1 200px;display:flex;align-items:center;gap:8px;height:38px;border:1px solid var(--border,#e5e8f0);border-radius:10px;padding:0 10px;background:var(--surface,#fff);color:var(--muted,#6b7280)}
+.smx-search input{border:0;outline:0;background:none;flex:1;min-width:0;font:inherit;font-size:13.5px;color:inherit;text-transform:none}
+.smx-list{display:grid;gap:12px}
+@media(min-width:900px){.smx-list{grid-template-columns:repeat(2,1fr)}}
+.smx-card{border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff);border-radius:16px;padding:14px;display:grid;gap:12px;border-left:4px solid #dc2626;min-width:0}
+.smx-card.in{border-left-color:#16a34a}
+.smx-card.editing{box-shadow:0 0 0 2px rgba(49,87,246,.35)}
+.smx-top{display:flex;align-items:center;gap:10px}
+.smx-av{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--ds-brand-soft,#eaf0ff);color:#3157f6;font-weight:800;flex:none}
+.smx-who{flex:1;min-width:0;display:grid}.smx-who b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:none}.smx-who small{color:var(--muted,#6b7280);text-transform:none}
+.smx-amt{font-weight:800;font-size:17px;white-space:nowrap;text-transform:none}.smx-amt.in{color:#15803d}.smx-amt.out{color:#dc2626}
+.smx-facts{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.smx-facts div{min-width:0}.smx-facts dt{font-size:11.5px;color:var(--muted,#6b7280);text-transform:uppercase;letter-spacing:.04em}
+.smx-facts dd{margin:2px 0 0;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;text-transform:none}.smx-facts em{font-style:normal;color:var(--muted,#6b7280);font-weight:500}
+.smx-quote{all:unset;box-sizing:border-box;display:block;cursor:pointer;font-size:12.5px;line-height:1.5;color:var(--muted,#6b7280);background:var(--surface-soft,#f5f6fb);border-radius:10px;padding:9px 12px;text-transform:none;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+.smx-quote.open{-webkit-line-clamp:unset;display:block}
+.smx-foot{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.smx-spacer{flex:1}
+.smx-row{display:flex;align-items:center;gap:10px;border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff);border-radius:14px;padding:12px;flex-wrap:wrap}
+.smx-dot{width:10px;height:10px;border-radius:50%;background:#16a34a;flex:none}.smx-dot.dismissed{background:#9ca3af}
+.smx-row-main{flex:1;min-width:140px;display:grid}.smx-row-main small{color:var(--muted,#6b7280);text-transform:none}
+.smx-row-end{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.smx-in{color:#15803d}
+@media(max-width:560px){.smx-summary{gap:8px}.smx-summary>div{padding:10px}.smx-summary b{font-size:16px}.smx-summary small{font-size:11px}}
+.sms-other summary{text-transform:none}
+@media(max-width:560px){.smx-foot{display:grid;grid-template-columns:1fr 1fr}.smx-foot .smx-spacer{display:none}.smx-foot .btn-primary{grid-column:1/-1;justify-content:center}.smx-foot .btn{justify-content:center}}

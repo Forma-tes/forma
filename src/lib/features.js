@@ -16,6 +16,6 @@ export const FEATURE_OPTIONS = [
   {key:'vehicle_management',label:'Vehicle Management',description:'Manage vehicles, maintenance schedules, service history and vehicle expenses'},
 ];
 
-export const PAGE_FEATURE = {'Overview':'overview','Transactions':'transactions','Accounts':'accounts','Cash flow calendar':'calendar','Budgets':'budgets','Savings goals':'goals','Subscriptions & bills':'subscriptions','Recurring payments':'subscriptions','Debts & installments':'debts','Insights & forecast':'insights','Reports':'insights','Insights & reports':'insights','Expense categories':'expense_categories','Vehicle Management':'vehicle_management'};
+export const PAGE_FEATURE = {'Overview':'overview','Transactions':'transactions','Bank SMS':'transactions','Accounts':'accounts','Cash flow calendar':'calendar','Budgets':'budgets','Savings goals':'goals','Subscriptions & bills':'subscriptions','Recurring payments':'subscriptions','Debts & installments':'debts','Insights & forecast':'insights','Reports':'insights','Insights & reports':'insights','Expense categories':'expense_categories','Vehicle Management':'vehicle_management'};
 
-export const POCKET_VALID_PAGES = new Set(['Overview','Transactions','Accounts','Cash flow calendar','Budgets','Savings goals','Subscriptions & bills','Recurring payments','Debts & installments','Insights & forecast','Insights & reports','Reports','Admin access','Expense categories','Vehicle Management']);
+export const POCKET_VALID_PAGES = new Set(['Overview','Transactions','Bank SMS','Accounts','Cash flow calendar','Budgets','Savings goals','Subscriptions & bills','Recurring payments','Debts & installments','Insights & forecast','Insights & reports','Reports','Admin access','Expense categories','Vehicle Management']);
