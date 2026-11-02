@@ -719,3 +719,9 @@ button:hover>.cat-emoji,.tx-choice-card:hover .cat-emoji,.category-admin-card:ho
 .sms-steps button i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--surface-soft);font-size:11px}
 .sms-steps button.on{border-color:#3157f6;color:#3157f6}
 .sms-steps button.done i{background:#15803d;color:#fff}
+.sms-link{border:0;background:none;padding:0;font:inherit;color:#3157f6;font-weight:700;text-decoration:underline;cursor:pointer;text-transform:none}
+.sms-other{border:1px solid var(--border,#e5e7eb);border-radius:14px;padding:4px 14px;background:var(--surface,#fff)}
+.sms-other summary{cursor:pointer;padding:12px 0;font-weight:700;font-size:14px}.sms-other summary small{color:var(--muted,#6b7280);font-weight:500;text-transform:none}
+.sms-other-row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border,#eef0f4)}
+.sms-other-row p{margin:0;font-size:13px;line-height:1.45;word-break:break-word;text-transform:none}
+.sms-other .sms-actions{padding:8px 0 12px}

@@ -5,7 +5,7 @@ import { Field } from '../../components/ui/Field.jsx';
 import { getExpenseCategories, incomeCategories } from '../../lib/categories.js';
 import { localISODate } from '../../lib/format.js';
 import { isGoalsAccount } from '../../lib/features.js';
-import { matchAccount, parseSms } from '../../lib/smsParser.js';
+import { findLast4, matchAccount, normalizeDigits, parseSms } from '../../lib/smsParser.js';
 
 const csv = v => String(v || '').split(/[,\n،]/).map(x => x.trim()).filter(Boolean);
 const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -96,6 +96,19 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
     setItems(o => o.filter(y => y.id !== x.id));
     setToast('Added to Transactions');
   };
+  const remember = async x => {
+    const acc = accounts.find(a => String(a.id) === String(x._acc)); if (!acc) { setToast('Choose the account first'); return; }
+    const cur = configs.find(c => c.account_id === acc.id);
+    const last4 = findLast4(normalizeDigits(x.body));
+    const senders = [...new Set([...(cur?.senders || []), ...(x.sender ? [x.sender] : [])])];
+    const card_last4 = [...new Set([...(cur?.card_last4 || []), ...(last4 ? [last4] : [])])];
+    const row = { account_id: acc.id, user_id: userId, enabled: true, senders, card_last4, default_category: cur?.default_category || null, debit_keywords: cur?.debit_keywords || [], credit_keywords: cur?.credit_keywords || [], amount_pattern: cur?.amount_pattern || null, updated_at: new Date().toISOString() };
+    const { data, error } = await supabase.from('account_sms_config').upsert(row, { onConflict: 'account_id' }).select().single();
+    if (error) { setToast(error.message); return; }
+    setConfigs(o => [...o.filter(c => c.account_id !== data.account_id), data]);
+    setItems(o => o.map(y => y.id === x.id ? { ...y, account_id: acc.id } : y));
+    setToast(`Next time, ${x.sender || 'this sender'} goes to ${acc.name} automatically`);
+  };
   const approveAll = async () => { const ready = items.filter(x => x._acc && Number(x._amount) > 0); for (const x of ready) { await approve(x); } };
   const sendTest = async () => {
     if (!token) { setToast('Create your token first'); return; }
@@ -133,9 +146,9 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
     {tab === 'inbox' && <section className="sms-pane">
       <div className="sms-pane-top"><p>{loading ? 'Loading…' : items.length ? `${items.length} waiting for review` : 'Nothing waiting'}</p><div className="sms-actions">{items.filter(x => x._acc && Number(x._amount) > 0).length > 1 && <button type="button" className="btn btn-primary btn-sm" onClick={approveAll}><Check size={14} /> Approve all ready ({items.filter(x => x._acc && Number(x._amount) > 0).length})</button>}<button type="button" className="btn btn-sm" onClick={load}><RefreshCw size={14} /> Refresh</button></div></div>
       {!loading && !items.length && <div className="sms-empty"><MessageSquare size={26} /><b>No SMS yet</b><small>Connect your phone, then new bank messages show up here.</small><button type="button" className="btn btn-primary btn-sm" onClick={() => setTab('connect')}>Connect phone</button></div>}
-      {items.map(x => <div className="sms-item" key={x.id}>
+      {items.filter(x => !(x.amount == null && !x.txn_type)).map(x => <div className="sms-item" key={x.id}>
         <div className="sms-item-msg"><b>{x.sender || 'Unknown sender'}</b><small>{new Date(x.received_at).toLocaleString()}</small><p dir="auto">{x.body}</p></div>
-        {!x.account_id && <p className="sms-warn">No account matched this sender — pick one below.</p>}
+        {!x.account_id && <p className="sms-warn">No account matched this sender. Pick one below{x._acc ? <>, then <button type="button" className="sms-link" onClick={() => remember(x)}>remember {x.sender || 'this sender'}{findLast4(normalizeDigits(x.body)) ? ` · ••${findLast4(normalizeDigits(x.body))}` : ''} for this account</button></> : ''}.</p>}
         <div className="form-grid">
           <Field label="Type"><select value={x._type} onChange={e => patch(x.id, { _type: e.target.value, _cat: '' })}><option>Expense</option><option>Income</option></select></Field>
           <Field label={`Amount (${currency})`}><input inputMode="decimal" value={x._amount} onChange={e => patch(x.id, { _amount: e.target.value })} /></Field>
@@ -146,6 +159,10 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
         <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => dismiss(x)}><X size={14} /> Dismiss</button><button type="button" className="btn btn-primary btn-sm" onClick={() => approve(x)}><Check size={14} /> Add transaction</button></div>
       </div>)}
     </section>}
+
+    {tab === 'inbox' && items.some(x => x.amount == null && !x.txn_type) && <details className="sms-other"><summary>Not a payment ({items.filter(x => x.amount == null && !x.txn_type).length}) <small>OTP codes, offers…</small></summary>
+      {items.filter(x => x.amount == null && !x.txn_type).map(x => <div className="sms-other-row" key={x.id}><p dir="auto">{x.body}</p><button type="button" className="btn btn-sm" onClick={() => dismiss(x)}><X size={14} /> Dismiss</button></div>)}
+      <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={async () => { for (const x of items.filter(y => y.amount == null && !y.txn_type)) await dismiss(x); }}>Dismiss all</button></div></details>}
 
     {tab === 'accounts' && <section className="sms-pane">
       <p className="sms-hint">For each account, tell Pocket which bank sender and card digits belong to it. Messages that match are linked to that account automatically.</p>
