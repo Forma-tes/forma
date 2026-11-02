@@ -75,7 +75,10 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
     const memo = {}; (h.data || []).forEach(r => { const k = String(r.merchant || '').trim().toLowerCase(); if (k && !memo[k]) memo[k] = r.category; });
     setLastSms(l.data?.[0]?.created_at || null);
     if (i.error || c.error) setToast((i.error || c.error).message.includes('does not exist') ? 'SMS tables are not installed yet — run the SMS migration in Supabase first.' : (i.error || c.error).message);
-    setItems((i.data || []).map(x => ({ ...x, _type: x.txn_type || 'Expense', _amount: x.amount ?? '', _cat: x.category || memo[String(x.merchant || '').trim().toLowerCase()] || '', _desc: x.merchant || '', _acc: x.account_id || '' })));
+    setItems((i.data || []).map(x => {
+      const cfg = x.account_id ? (c.data || []).find(k => k.account_id === x.account_id) : matchAccount(c.data || [], x.sender, findLast4(normalizeDigits(x.body)));
+      return { ...x, account_id: x.account_id || cfg?.account_id || null, _type: x.txn_type || 'Expense', _amount: x.amount ?? '', _cat: x.category || memo[String(x.merchant || '').trim().toLowerCase()] || cfg?.default_category || '', _desc: x.merchant || '', _acc: x.account_id || cfg?.account_id || '' };
+    }));
     setConfigs(c.data || []);
     setToken(t.data?.token || '');
     setLoading(false);

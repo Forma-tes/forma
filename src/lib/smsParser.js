@@ -59,12 +59,14 @@ export function parseSms(raw, cfg = {}) {
   return { amount: findAmount(text, cfg.amount_pattern), type: findType(text, cfg), merchant: findMerchant(text), last4: findLast4(text) };
 }
 
+// Ignore case, spaces, dashes and symbols so "BacK-AlAhly" and "BanKAlAhly"-style spellings still compare fairly.
+const nz = v => lc(v).replace(/[^a-z0-9\u0600-\u06FF]/g, '');
 export function matchAccount(configs, sender, last4) {
-  const s = lc(sender).trim(); let best = null, score = 0;
+  const s = nz(sender); let best = null, score = 0;
   for (const c of configs) {
     if (c.enabled === false) continue;
     let sc = 0;
-    if (s && (c.senders || []).some(x => lc(x).trim() && (s === lc(x).trim() || s.includes(lc(x).trim())))) sc += 2;
+    if (s && (c.senders || []).some(x => nz(x) && (s === nz(x) || s.includes(nz(x)) || nz(x).includes(s)))) sc += 2;
     if (last4 && (c.card_last4 || []).some(x => String(x).trim() === last4)) sc += 3;
     if (sc > score) { score = sc; best = c; }
   }
