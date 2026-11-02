@@ -3,7 +3,7 @@ import { localISODate } from './format.js';
 
 export const CARD_TYPE = 'Credit card';
 export const PROVIDER_TYPE = 'Installment app';
-export const PROVIDER_PRESETS = ['Valu', 'Aman', 'Souhoola', 'Contact', 'Sympl', 'Halan', 'Forsa', 'Shahry', 'Premium Card'];
+export const PROVIDER_PRESETS = ['Valu', 'Aman', 'Souhoola', 'Contact', 'Sympl', 'Halan', 'Forsa', 'Shahry', 'Premium Card', 'Mogo', 'Klivvr', 'Seven', 'TRU', 'Mylo'];
 
 export const isCard = a => Boolean(a && a.type === CARD_TYPE);
 export const isProvider = a => Boolean(a && a.type === PROVIDER_TYPE);

@@ -8,6 +8,11 @@ export const PROVIDER_THEMES = {
   Halan: { a: '#2f4cdd', b: '#0a1a63' },
   Forsa: { a: '#0f8f7e', b: '#0b3d52' },
   Shahry: { a: '#e0561d', b: '#7a1d0c' },
+  Mogo: { a: '#0e8f5a', b: '#063b2a' },
+  Klivvr: { a: '#1f1f2e', b: '#6d3fe0' },
+  Seven: { a: '#d6336c', b: '#5b0f2e' },
+  TRU: { a: '#0a7ea4', b: '#062c3f' },
+  Mylo: { a: '#e8a317', b: '#7a4a05' },
   'Premium Card': { a: '#2a2f3d', b: '#0c0e14' },
 };
 const clean = s => String(s || '').trim().toLowerCase();
