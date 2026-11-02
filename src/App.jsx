@@ -573,8 +573,8 @@ function App(){
     }
   }
   async function saveAccount(form){
-    if(isGoalsAccount(editing)){setToast('The system Goals account cannot be edited.');return;}
-    const payload={name:form.name.trim(),type:form.type,opening_balance:Number(form.opening_balance||0),opening_balance_date:form.opening_balance_date||localISODate(),color:form.color||'#6c7cf5'};
+    const goalsEdit=isGoalsAccount(editing);
+    const payload=goalsEdit?{name:editing.name,type:editing.type,opening_balance:Number(form.opening_balance||0),opening_balance_date:form.opening_balance_date||editing.opening_balance_date||localISODate(),color:form.color||editing.color||'#6c7cf5'}:{name:form.name.trim(),type:form.type,opening_balance:Number(form.opening_balance||0),opening_balance_date:form.opening_balance_date||localISODate(),color:form.color||'#6c7cf5'};
     const saved=await saveRecord('financial_accounts',payload,editing?.id);if(!saved)return;
     setAccounts(old=>editing?old.map(x=>x.id===editing.id?saved:x):[saved,...old]);setModal(null);setEditing(null);setToast('Account saved');
   }
@@ -631,19 +631,20 @@ function App(){
     const total=Number(debt.total_repayment||debt.original_amount||0), installment=Number(debt.monthly_payment||0), paid=Number(debt.paid_installments||0), amountPaid=Number(debt.amount_paid??Math.max(0,total-Number(debt.remaining_amount||0)));
     const installmentAmount=Math.min(installment,Number(debt.remaining_amount||0));
     const actualPaid=mode==='transaction'?Number(enteredAmount??installmentAmount):Number(enteredAmount??installmentAmount);
-    if(installmentAmount<=0||actualPaid<installmentAmount){setToast(`Payment must cover at least the due installment (${fmt(installmentAmount)}).`);return false;}
+    if(installmentAmount<=0||!(actualPaid>0)){setToast('Enter the amount you paid.');return false;}
+    const partialPay=actualPaid<installmentAmount;
     if(mode==='transaction'){
       const accountIn=transactions.filter(t=>(t.type==='Income'&&String(t.account_id)===String(account.id))||(t.type==='Transfer'&&String(t.to_account_id)===String(account.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);
       const accountOut=transactions.filter(t=>((t.type==='Expense'||t.type==='Transfer')&&String(t.account_id)===String(account.id))).reduce((sum,t)=>sum+Number(t.amount||0),0);
       const balance=Number(account.opening_balance||0)+accountIn-accountOut;
       if(actualPaid>balance){setToast(`Insufficient balance in ${account.name}. Available: ${fmt(balance)}.`);return false;}
     }
-    const nextPaid=paid+1, nextAmountPaid=Math.min(total,Number((amountPaid+installmentAmount).toFixed(2))), nextRemaining=Math.max(0,Number((total-nextAmountPaid).toFixed(2)));
-    let nextDue=debt.due_date||null;if(nextDue){const d=new Date(`${nextDue}T12:00:00`);if(debt.frequency==='Weekly')d.setDate(d.getDate()+7);else if(debt.frequency==='Quarterly')d.setMonth(d.getMonth()+3);else if(debt.frequency==='Yearly')d.setFullYear(d.getFullYear()+1);else d.setMonth(d.getMonth()+1);nextDue=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+    const reduceBy=partialPay?actualPaid:installmentAmount;const nextPaid=partialPay?paid:paid+1, nextAmountPaid=Math.min(total,Number((amountPaid+reduceBy).toFixed(2))), nextRemaining=Math.max(0,Number((total-nextAmountPaid).toFixed(2)));
+    let nextDue=debt.due_date||null;if(nextDue&&!partialPay){const d=new Date(`${nextDue}T12:00:00`);if(debt.frequency==='Weekly')d.setDate(d.getDate()+7);else if(debt.frequency==='Quarterly')d.setMonth(d.getMonth()+3);else if(debt.frequency==='Yearly')d.setFullYear(d.getFullYear()+1);else d.setMonth(d.getMonth()+1);nextDue=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
     let txSaved=null;
     if(mode==='transaction'){
       const extraFees=Math.max(0,Number((actualPaid-installmentAmount).toFixed(2)));
-      const txPayload={transaction_date:paymentDate,type:'Expense',category:'Debt repayment',subcategory:debt.debt_type||'Installment',description:`Installment · ${debt.name}`,amount:actualPaid,need_want:'Need',fixed_variable:'Fixed',payment_method:account.name,account_id:account.id,to_account_id:null,goal_id:null,debt_id:debt.id,recurring:false,notes:`Debt installment ${nextPaid}${extraFees>0?` · Extra fees: ${fmt(extraFees)}`:''}`};
+      const txPayload={transaction_date:paymentDate,type:'Expense',category:'Debt repayment',subcategory:debt.debt_type||'Installment',description:`Installment · ${debt.name}`,amount:actualPaid,need_want:'Need',fixed_variable:'Fixed',payment_method:account.name,account_id:account.id,to_account_id:null,goal_id:null,debt_id:debt.id,recurring:false,notes:`${partialPay?'Partial payment for installment '+(paid+1):'Debt installment '+nextPaid}${extraFees>0?` · Extra fees: ${fmt(extraFees)}`:''}`};
       txSaved=await saveRecord('transactions',txPayload);if(!txSaved)return false;
     }
     const payload={name:debt.name,debt_type:debt.debt_type||'Other',lender:debt.lender||'',account_id:debt.account_id||account?.id||null,original_amount:Number(debt.original_amount||0),remaining_amount:nextRemaining,monthly_payment:installment,due_date:nextDue,frequency:debt.frequency||'Monthly',notes:debt.notes||'',start_date:debt.start_date||null,term_months:debt.term_months||null,total_repayment:total,interest_rate:Number(debt.interest_rate||0),paid_installments:nextPaid,amount_paid:nextAmountPaid};

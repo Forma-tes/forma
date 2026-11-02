@@ -656,3 +656,30 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 @media(max-width:560px){.metric-grid.acc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .goal-amounts>div:last-child{align-items:flex-end;text-align:right}
 @media(min-width:951px){.page-heading>div:first-child{flex:1 1 auto;min-width:0}.page-heading .heading-actions{flex-wrap:nowrap;flex-shrink:0}}
+
+/* ---- Account cards: custom color + soft/bold look ---- */
+.acc-card{--acc-c:#5b6cf0;position:relative;overflow:hidden;background-image:linear-gradient(180deg,color-mix(in srgb,var(--acc-c) 12%,transparent),transparent 150px)}
+.acc-card:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--acc-c)}
+.acc-icon{background:color-mix(in srgb,var(--acc-c) 18%,transparent)!important;color:var(--acc-c)!important}
+.acc-card.acc-solid{background-image:linear-gradient(135deg,var(--acc-c),color-mix(in srgb,var(--acc-c) 55%,#0b1033))!important;color:#fff;border-color:transparent}
+.acc-card.acc-solid:before{display:none}
+.acc-card.acc-solid *{color:#fff!important;border-color:rgba(255,255,255,.28)!important}
+.acc-card.acc-solid .acc-icon{background:rgba(255,255,255,.22)!important}
+.acc-card.acc-solid .icon-btn{background:rgba(255,255,255,.16)!important}
+.acc-card.acc-solid .system-account-badge{background:rgba(255,255,255,.2)!important}
+.acc-card.acc-solid .goal-amounts span,.acc-card.acc-solid .split-note,.acc-card.acc-solid .goal-deadline{opacity:.85}
+.acc-card.acc-solid .default-star.is-default svg{fill:#fff}
+.acc-row .acc-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+.acc-look{display:grid;gap:10px}
+.acc-swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.acc-swatch{width:30px;height:30px;border-radius:50%;border:2px solid transparent;background:var(--sw);cursor:pointer;padding:0;box-shadow:inset 0 0 0 2px var(--surface,#fff)}
+.acc-swatch.on{border-color:var(--sw);box-shadow:inset 0 0 0 3px var(--surface,#fff)}
+.acc-custom{width:30px;height:30px;border:0;padding:0;background:none;border-radius:50%;cursor:pointer}
+.acc-styles{display:flex;gap:8px}
+.acc-styles button{flex:1;border:1.5px solid var(--border,#e5e7eb);border-radius:12px;padding:10px;background:var(--surface,#fff);font:inherit;font-size:13px;font-weight:700;color:inherit;cursor:pointer}
+.acc-styles button.on{border-color:#3157f6;color:#3157f6}
+.debt-done{margin-top:18px;border:1px solid var(--border,#e5e7eb);border-radius:14px;background:var(--surface,#fff);padding:4px 16px}
+.debt-done summary{cursor:pointer;display:flex;gap:8px;align-items:center;padding:12px 0;font-weight:700;font-size:14px;color:#15803d}
+.debt-done-list{display:grid;gap:2px;padding-bottom:8px}
+.debt-done-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border,#eef0f4)}
+.debt-done-row b{display:block;font-size:14px}.debt-done-row small{color:var(--muted,#6b7280);text-transform:none}
