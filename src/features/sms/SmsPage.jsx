@@ -1,12 +1,14 @@
-import { Check, ChevronDown, Copy, Inbox, History, MessageSquare, Pencil, RefreshCw, RotateCcw, Search, Settings2, X, Clock, CheckCircle2 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Check, ChevronDown, Copy, Inbox, History, MessageSquare, Pencil, RefreshCw, RotateCcw, Search, Settings2, X, Clock, CheckCircle2, Download, FileSpreadsheet, FileText, Plus, Scissors, Trash2, TriangleAlert } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from '../../components/ui/Field.jsx';
 import { PageHeading } from '../../components/ui/PageHeading.jsx';
 import { getExpenseCategories, incomeCategories } from '../../lib/categories.js';
 import { localISODate } from '../../lib/format.js';
 import { isGoalsAccount } from '../../lib/features.js';
-import { money } from '../../lib/credit.js';
-import { findLast4, matchAccount, normalizeDigits, parseSms } from '../../lib/smsParser.js';
+import { accountFlows, money } from '../../lib/credit.js';
+import { exportTable } from '../../lib/transferFile.js';
+import { MenuButton } from '../../components/ui/MenuButton.jsx';
+import { buildAmountPattern, findBalance, findLast4, matchAccount, normalizeDigits, parseSms } from '../../lib/smsParser.js';
 
 const csv = v => String(v || '').split(/[,\n،]/).map(x => x.trim()).filter(Boolean);
 const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -14,12 +16,14 @@ const copy = async (text, setToast) => { try { await navigator.clipboard.writeTe
 
 function AccountConfig({ account, cfg, userId, supabase, onSaved, setToast, open, onToggle, categories }) {
   const [f, setF] = useState({ enabled: cfg?.enabled ?? true, senders: (cfg?.senders || []).join(', '), card_last4: (cfg?.card_last4 || []).join(', '), default_category: cfg?.default_category || '', debit_keywords: (cfg?.debit_keywords || []).join(', '), credit_keywords: (cfg?.credit_keywords || []).join(', '), amount_pattern: cfg?.amount_pattern || '' });
+  const [rules, setRules] = useState(cfg?.auto_rules || []);
+  const [sample, setSample] = useState({ body: '', amt: '' });
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setF(o => ({ ...o, [k]: v }));
   const save = async () => {
     if (f.amount_pattern) { try { new RegExp(f.amount_pattern); } catch { setToast('Amount pattern is not a valid regex'); return; } }
     setBusy(true);
-    const row = { account_id: account.id, user_id: userId, enabled: f.enabled, senders: csv(f.senders), card_last4: csv(f.card_last4).map(x => x.replace(/\D/g, '').slice(-4)).filter(x => x.length === 4), default_category: f.default_category || null, debit_keywords: csv(f.debit_keywords), credit_keywords: csv(f.credit_keywords), amount_pattern: f.amount_pattern.trim() || null, updated_at: new Date().toISOString() };
+    const row = { account_id: account.id, user_id: userId, enabled: f.enabled, senders: csv(f.senders), card_last4: csv(f.card_last4).map(x => x.replace(/\D/g, '').slice(-4)).filter(x => x.length === 4), default_category: f.default_category || null, debit_keywords: csv(f.debit_keywords), credit_keywords: csv(f.credit_keywords), amount_pattern: f.amount_pattern.trim() || null, auto_rules: rules.filter(r => String(r.merchant || '').trim() && Number(r.max) > 0).map(r => ({ merchant: String(r.merchant).trim(), max: Number(r.max) })), updated_at: new Date().toISOString() };
     const { data, error } = await supabase.from('account_sms_config').upsert(row, { onConflict: 'account_id' }).select().single();
     setBusy(false);
     if (error) { setToast(error.message); return; }
@@ -41,7 +45,14 @@ function AccountConfig({ account, cfg, userId, supabase, onSaved, setToast, open
           <Field label="Words that mean money in" wide><input value={f.credit_keywords} onChange={e => set('credit_keywords', e.target.value)} placeholder="credited, ايداع, راتب" /></Field>
           <Field label="Custom amount pattern (regex, first group = amount)" wide><input value={f.amount_pattern} onChange={e => set('amount_pattern', e.target.value)} placeholder="Amt:\s*([\d,.]+)" /></Field>
         </div>
+        <div className="sms-helper"><b>Pattern helper</b><small>Paste one SMS from this bank and type the amount as you see it. Pocket builds the pattern for you.</small>
+          <textarea rows={3} dir="auto" value={sample.body} onChange={e => setSample(o => ({ ...o, body: e.target.value }))} placeholder="Paste a sample SMS" />
+          <div className="sms-helper-row"><input inputMode="decimal" value={sample.amt} onChange={e => setSample(o => ({ ...o, amt: e.target.value }))} placeholder="Amount in the SMS, e.g. 450.00" /><button type="button" className="btn btn-sm" onClick={() => { const pat = buildAmountPattern(sample.body, sample.amt); if (!pat) { setToast('Could not find that amount in the SMS'); return; } set('amount_pattern', pat); setToast('Pattern created. Press Save to keep it.'); }}>Build pattern</button></div>
+        </div>
       </details>
+      <div className="sms-rules"><b>Auto-approve</b><small>Messages from these merchants are added to Transactions by themselves, up to the limit. Works when this page is open.</small>
+        {rules.map((r, i) => <div className="sms-rule" key={i}><input value={r.merchant} onChange={e => setRules(o => o.map((x, j) => j === i ? { ...x, merchant: e.target.value } : x))} placeholder="Merchant, e.g. Uber" /><input inputMode="decimal" value={r.max} onChange={e => setRules(o => o.map((x, j) => j === i ? { ...x, max: e.target.value } : x))} placeholder="Up to" /><button type="button" className="icon-btn" aria-label="Remove rule" onClick={() => setRules(o => o.filter((_, j) => j !== i))}><Trash2 size={15} /></button></div>)}
+        <button type="button" className="btn btn-sm" onClick={() => setRules(o => [...o, { merchant: '', max: '' }])}><Plus size={14} /> Add rule</button></div>
       <div className="sms-actions"><button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={save}>{busy ? 'Saving…' : 'Save'}</button></div>
     </div>}
   </div>;
@@ -50,16 +61,22 @@ function AccountConfig({ account, cfg, userId, supabase, onSaved, setToast, open
 const ago = d => { if (!d) return 'No SMS yet'; const m = Math.round((Date.now() - new Date(d).getTime()) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
 const isNoise = x => x.amount == null && !x.txn_type;
 
-function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismiss, onRemember, editing, setEditing }) {
+function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismiss, onRemember, editing, setEditing, selectMode, selected, onSelect, dup, bal }) {
   const [open, setOpen] = useState(false);
   const accName = usable.find(a => String(a.id) === String(x._acc))?.name;
   const isIn = x._type === 'Income';
   const amt = Number(x._amount);
   const last4 = findLast4(normalizeDigits(x.body));
-  const startEdit = () => { patch(x.id, { _snap: { _type: x._type, _amount: x._amount, _acc: x._acc, _cat: x._cat, _desc: x._desc } }); setEditing(x.id, true); };
+  const cats = isIn ? incomeCategories : expCats;
+  const splits = x._splits || null;
+  const splitSum = splits ? splits.reduce((n, r) => n + (Number(r.amount) || 0), 0) : 0;
+  const remain = amt - splitSum;
+  const startEdit = () => { patch(x.id, { _snap: { _type: x._type, _amount: x._amount, _acc: x._acc, _cat: x._cat, _desc: x._desc, _splits: x._splits || null } }); setEditing(x.id, true); };
   const cancelEdit = () => { if (x._snap) patch(x.id, { ...x._snap, _snap: null }); setEditing(x.id, false); };
-  return <article className={`smx-card ${isIn ? 'in' : 'out'} ${editing ? 'editing' : ''}`}>
+  const setSplit = (i, k, v) => patch(x.id, { _splits: splits.map((r, j) => j === i ? { ...r, [k]: v } : r) });
+  return <article className={`smx-card ${isIn ? 'in' : 'out'} ${editing ? 'editing' : ''} ${selected ? 'picked' : ''}`}>
     <header className="smx-top">
+      {selectMode && <input type="checkbox" className="smx-check" checked={!!selected} onChange={() => onSelect(x.id)} aria-label="Select this SMS" />}
       <span className="smx-av" aria-hidden="true">{(x.sender || '?').trim().charAt(0).toUpperCase()}</span>
       <div className="smx-who"><b>{x.sender || 'Unknown sender'}</b><small>{new Date(x.received_at).toLocaleString()}</small></div>
       <div className={`smx-amt ${isIn ? 'in' : 'out'}`}>{amt > 0 ? `${isIn ? '+' : '−'}${fmt(amt)}` : 'No amount'}</div>
@@ -67,16 +84,21 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
     {!editing ? <dl className="smx-facts">
       <div><dt>Type</dt><dd>{isIn ? 'Money in' : 'Money out'}</dd></div>
       <div><dt>Account</dt><dd>{accName || <em>Not matched</em>}</dd></div>
-      <div><dt>Category</dt><dd>{x._cat || <em>{isIn ? 'Other income' : 'Other'}</em>}</dd></div>
+      <div><dt>Category</dt><dd>{splits ? `Split in ${splits.length}` : (x._cat || <em>{isIn ? 'Other income' : 'Other'}</em>)}</dd></div>
       <div><dt>Description</dt><dd>{x._desc || <em>—</em>}</dd></div>
     </dl> : <div className="form-grid smx-edit">
-      <Field label="Type"><select value={x._type} onChange={e => patch(x.id, { _type: e.target.value, _cat: '' })}><option>Expense</option><option>Income</option></select></Field>
+      <Field label="Type"><select value={x._type} onChange={e => patch(x.id, { _type: e.target.value, _cat: '', _splits: null })}><option>Expense</option><option>Income</option></select></Field>
       <Field label={`Amount (${currency})`}><input inputMode="decimal" value={x._amount} onChange={e => patch(x.id, { _amount: e.target.value })} /></Field>
       <Field label="Account"><select value={x._acc} onChange={e => patch(x.id, { _acc: e.target.value })}><option value="">Choose…</option>{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>
-      <Field label="Category"><select value={x._cat} onChange={e => patch(x.id, { _cat: e.target.value })}><option value="">{isIn ? 'Other income' : 'Other'}</option>{(isIn ? incomeCategories : expCats).map(c => <option key={c}>{c}</option>)}</select></Field>
+      {!splits && <Field label="Category"><select value={x._cat} onChange={e => patch(x.id, { _cat: e.target.value })}><option value="">{isIn ? 'Other income' : 'Other'}</option>{cats.map(c => <option key={c}>{c}</option>)}</select></Field>}
       <Field label="Description" wide><input value={x._desc} onChange={e => patch(x.id, { _desc: e.target.value })} placeholder="Where was it?" /></Field>
+      {splits && <div className="smx-splits wide">{splits.map((r, i) => <div className="smx-split" key={i}><select value={r.cat} onChange={e => setSplit(i, 'cat', e.target.value)} aria-label="Category"><option value="">{isIn ? 'Other income' : 'Other'}</option>{cats.map(c => <option key={c}>{c}</option>)}</select><input inputMode="decimal" value={r.amount} onChange={e => setSplit(i, 'amount', e.target.value)} placeholder="Amount" aria-label="Part amount" /><button type="button" className="icon-btn" aria-label="Remove part" onClick={() => patch(x.id, { _splits: splits.length > 2 ? splits.filter((_, j) => j !== i) : null })}><Trash2 size={15} /></button></div>)}
+        <div className="smx-split-foot"><button type="button" className="btn btn-sm" onClick={() => patch(x.id, { _splits: [...splits, { cat: '', amount: remain > 0 ? String(Math.round(remain * 100) / 100) : '' }] })}><Plus size={14} /> Add part</button><small className={Math.abs(remain) < 0.01 ? 'ok' : 'bad'}>{Math.abs(remain) < 0.01 ? 'Parts add up' : remain > 0 ? `${fmt(remain)} left to assign` : `${fmt(-remain)} too much`}</small></div></div>}
+      {!splits && amt > 0 && <button type="button" className="sms-link smx-splitbtn" onClick={() => patch(x.id, { _splits: [{ cat: x._cat, amount: String(Math.round(amt / 2 * 100) / 100) }, { cat: '', amount: String(Math.round(amt / 2 * 100) / 100) }] })}><Scissors size={13} /> Split into categories</button>}
     </div>}
     <button type="button" className={`smx-quote ${open ? 'open' : ''}`} dir="auto" onClick={() => setOpen(o => !o)} aria-expanded={open}>{x.body}</button>
+    {dup && <p className="smx-alert"><TriangleAlert size={14} /> Looks like “{dup.description || dup.category}” on {dup.transaction_date} is already in Transactions.</p>}
+    {bal && <p className={`smx-bal ${bal.ok ? 'ok' : 'bad'}`}>{bal.ok ? `Balance matches the bank (${fmt(bal.sms)}) after adding this.` : `Bank says ${fmt(bal.sms)}, Pocket would show ${fmt(bal.expected)} (difference ${bal.diff > 0 ? '+' : '−'}${fmt(Math.abs(bal.diff))}).`}</p>}
     {!x.account_id && !editing && <p className="sms-warn">{x._acc ? <>Matched by guess. <button type="button" className="sms-link" onClick={() => onRemember(x)}>Remember {x.sender || 'this sender'}{last4 ? ` · ••${last4}` : ''} for {accName}</button></> : 'No account matched. Tap Edit to choose one.'}</p>}
     {!x.account_id && editing && x._acc && <p className="sms-warn"><button type="button" className="sms-link" onClick={() => onRemember(x)}>Remember {x.sender || 'this sender'}{last4 ? ` · ••${last4}` : ''} for {accName}</button></p>}
     <footer className="smx-foot">
@@ -88,7 +110,7 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
   </article>;
 }
 
-export function SmsPage({ accounts, session, supabase, currency = 'EGP', gender = '', onApprove, onPendingChange, setToast }) {
+export function SmsPage({ accounts, transactions = [], session, supabase, currency = 'EGP', gender = '', onApprove, onPendingChange, setToast }) {
   const userId = session?.user?.id;
   const [tab, setTab] = useState('inbox');
   const [items, setItems] = useState([]);
@@ -101,6 +123,9 @@ export function SmsPage({ accounts, session, supabase, currency = 'EGP', gender 
   const [loading, setLoading] = useState(true);
   const [openAcc, setOpenAcc] = useState(null);
   const [editingIds, setEditingIds] = useState({});
+  const [selectMode, setSelectMode] = useState(false);
+  const [sel, setSel] = useState([]);
+  const [bulk, setBulk] = useState({ cat: '', acc: '' });
   const [fAcc, setFAcc] = useState('');
   const [q, setQ] = useState('');
   const [hStatus, setHStatus] = useState('all');
@@ -145,15 +170,22 @@ export function SmsPage({ accounts, session, supabase, currency = 'EGP', gender 
     const amount = Number(x._amount);
     if (!(amount > 0)) { setEditing(x.id, true); setToast('Enter the amount first'); return false; }
     if (!x._acc) { setEditing(x.id, true); setToast('Choose the account'); return false; }
-    const cat = x._cat || (x._type === 'Income' ? 'Other income' : 'Other');
+    const parts = x._splits || null;
+    if (parts && Math.abs(amount - parts.reduce((n, r) => n + (Number(r.amount) || 0), 0)) >= 0.01) { setEditing(x.id, true); setToast('The split parts must add up to the full amount'); return false; }
     const acc = accounts.find(a => String(a.id) === String(x._acc));
-    const saved = await onApprove({ transaction_date: localISODate(new Date(x.received_at)), type: x._type, category: cat, subcategory: null, description: x._desc || (x.sender ? `SMS · ${x.sender}` : 'Bank SMS'), amount, need_want: x._type === 'Expense' ? 'Need' : null, fixed_variable: 'Variable', payment_method: acc?.name || 'Unassigned', account_id: x._acc, to_account_id: null, goal_id: null, debt_id: null, recurring: false, notes: `From bank SMS: ${x.body}`.slice(0, 500) });
-    if (!saved) return false;
-    const upd = { status: 'approved', transaction_id: saved.id, category: cat, merchant: x._desc || x.merchant || null, amount, txn_type: x._type, account_id: x._acc };
+    const list = parts ? parts.map((r, i) => ({ cat: r.cat || (x._type === 'Income' ? 'Other income' : 'Other'), amount: Number(r.amount), label: `${x._desc || (x.sender ? `SMS · ${x.sender}` : 'Bank SMS')} (${i + 1}/${parts.length})` })) : [{ cat: x._cat || (x._type === 'Income' ? 'Other income' : 'Other'), amount, label: x._desc || (x.sender ? `SMS · ${x.sender}` : 'Bank SMS') }];
+    let first = null;
+    for (const part of list) {
+      const saved = await onApprove({ transaction_date: localISODate(new Date(x.received_at)), type: x._type, category: part.cat, subcategory: null, description: part.label, amount: part.amount, need_want: x._type === 'Expense' ? 'Need' : null, fixed_variable: 'Variable', payment_method: acc?.name || 'Unassigned', account_id: x._acc, to_account_id: null, goal_id: null, debt_id: null, recurring: false, notes: `From bank SMS: ${x.body}`.slice(0, 500) });
+      if (!saved) return false;
+      first = first || saved;
+    }
+    const cat = list.length > 1 ? 'Split' : list[0].cat;
+    const upd = { status: 'approved', transaction_id: first.id, category: cat, merchant: x._desc || x.merchant || null, amount, txn_type: x._type, account_id: x._acc };
     await supabase.from('sms_inbox').update(upd).eq('id', x.id);
     setItems(o => o.filter(y => y.id !== x.id));
     setHist(o => [{ ...x, ...upd }, ...o]);
-    setToast('Added to Transactions');
+    setToast(list.length > 1 ? `Added ${list.length} transactions` : 'Added to Transactions');
     return true;
   };
   const approveAll = async () => { for (const x of shown.filter(y => y._acc && Number(y._amount) > 0)) await approve(x); };
@@ -195,6 +227,24 @@ export function SmsPage({ accounts, session, supabase, currency = 'EGP', gender 
   const histShown = hist.filter(x => hit(x) && (hStatus === 'all' || x.status === hStatus) && (!fAcc || String(x.account_id) === String(fAcc)) && (!hFrom || localISODate(new Date(x.received_at)) >= hFrom));
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
   const approvedMonth = hist.filter(x => x.status === 'approved' && new Date(x.received_at) >= monthStart).length;
+  const dupFor = x => { const amt = Number(x._amount); if (!(amt > 0) || !x._acc) return null; const d = new Date(x.received_at).getTime(); return transactions.find(t => String(t.account_id) === String(x._acc) && t.type === x._type && Math.abs(Number(t.amount) - amt) < 0.005 && Math.abs(new Date(t.transaction_date).getTime() - d) <= 1.5 * 864e5) || null; };
+  const balFor = x => { const sb = findBalance(x.body); const acc = usable.find(a => String(a.id) === String(x._acc)); const amt = Number(x._amount); if (sb == null || !acc || !(amt > 0)) return null; const expected = accountFlows(acc, transactions).balance + (x._type === 'Income' ? amt : -amt); const diff = sb - expected; return { sms: sb, expected, diff, ok: Math.abs(diff) < 0.5 }; };
+  const autoMatch = x => { const cfg = configs.find(c => String(c.account_id) === String(x._acc)); const hay = `${x._desc} ${x.body}`.toLowerCase(); const amt = Number(x._amount); return x._type === 'Expense' && amt > 0 && (cfg?.auto_rules || []).some(r => r.merchant && hay.includes(String(r.merchant).toLowerCase()) && amt <= Number(r.max)); };
+  const autoDone = useRef(new Set());
+  useEffect(() => {
+    if (loading) return;
+    const todo = items.filter(x => !isNoise(x) && x._acc && !autoDone.current.has(x.id) && autoMatch(x) && !dupFor(x));
+    if (!todo.length) return;
+    todo.forEach(x => autoDone.current.add(x.id));
+    (async () => { let n = 0; for (const x of todo) { if (await approve(x)) n++; } if (n) setToast(`Auto-approved ${n} SMS`); })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, loading, configs]);
+  const picked = shown.filter(x => sel.includes(x.id));
+  const toggleSel = id => setSel(o => o.includes(id) ? o.filter(i => i !== id) : [...o, id]);
+  const bulkApply = () => { picked.forEach(x => patch(x.id, { ...(bulk.cat ? { _cat: bulk.cat, _splits: null } : {}), ...(bulk.acc ? { _acc: bulk.acc } : {}) })); setToast(`Updated ${picked.length} SMS`); };
+  const bulkApprove = async () => { for (const x of picked) await approve(x); setSel([]); };
+  const bulkDismiss = async () => { for (const x of picked) await dismiss(x); setSel([]); };
+  const exportHist = fmtName => exportTable(fmtName, 'bank-sms-history', 'Bank SMS', histShown.map(x => ({ Date: localISODate(new Date(x.received_at)), Status: x.status, Sender: x.sender || '', Type: x.txn_type || '', [`Amount (${currency})`]: x.amount ?? '', Account: accLabel(x.account_id) || '', Category: x.category || '', Description: x.merchant || '', Message: x.body })));
   const accLabel = id => usable.find(a => String(a.id) === String(id))?.name;
 
   const testResult = useMemo(() => {
@@ -225,9 +275,15 @@ export function SmsPage({ accounts, session, supabase, currency = 'EGP', gender 
 
     {tab === 'inbox' && <section className="sms-pane">
       {filters}
-      <div className="sms-pane-top"><p>{loading ? 'Loading…' : shown.length ? `${shown.length} waiting for review` : 'Nothing waiting'}</p>{shown.filter(x => x._acc && Number(x._amount) > 0).length > 1 && <button type="button" className="btn btn-primary btn-sm" onClick={approveAll}><Check size={14} /> Approve all ready ({shown.filter(x => x._acc && Number(x._amount) > 0).length})</button>}</div>
+      <div className="sms-pane-top"><p>{loading ? 'Loading…' : shown.length ? `${shown.length} waiting for review` : 'Nothing waiting'}</p><button type="button" className="btn btn-sm" onClick={() => { setSelectMode(m => !m); setSel([]); }}>{selectMode ? 'Done selecting' : 'Select'}</button>{shown.filter(x => x._acc && Number(x._amount) > 0).length > 1 && <button type="button" className="btn btn-primary btn-sm" onClick={approveAll}><Check size={14} /> Approve all ready ({shown.filter(x => x._acc && Number(x._amount) > 0).length})</button>}</div>
       {!loading && !payments.length && <div className="sms-empty"><MessageSquare size={26} /><b>No SMS yet</b><small>Connect your phone, then new bank messages show up here.</small><button type="button" className="btn btn-primary btn-sm" onClick={() => setTab('connect')}>Connect phone</button></div>}
-      <div className="smx-list">{shown.map(x => <SmsCard key={x.id} x={x} usable={usable} expCats={expCats} currency={currency} fmt={fmt} patch={patch} onApprove={approve} onDismiss={dismiss} onRemember={remember} editing={!!editingIds[x.id]} setEditing={setEditing} />)}</div>
+      {selectMode && <div className="smx-bulk"><label className="smx-bulk-all"><input type="checkbox" checked={shown.length > 0 && picked.length === shown.length} onChange={e => setSel(e.target.checked ? shown.map(x => x.id) : [])} /> {picked.length} selected</label>
+        <select value={bulk.cat} onChange={e => setBulk(o => ({ ...o, cat: e.target.value }))} aria-label="Set category"><option value="">Category…</option>{[...new Set([...expCats, ...incomeCategories])].map(c => <option key={c}>{c}</option>)}</select>
+        <select value={bulk.acc} onChange={e => setBulk(o => ({ ...o, acc: e.target.value }))} aria-label="Set account"><option value="">Account…</option>{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
+        <button type="button" className="btn btn-sm" disabled={!picked.length || (!bulk.cat && !bulk.acc)} onClick={bulkApply}>Apply</button>
+        <button type="button" className="btn btn-sm" disabled={!picked.length} onClick={bulkDismiss}><X size={14} /> Dismiss</button>
+        <button type="button" className="btn btn-primary btn-sm" disabled={!picked.length} onClick={bulkApprove}><Check size={14} /> Approve</button></div>}
+      <div className="smx-list">{shown.map(x => <SmsCard key={x.id} x={x} selectMode={selectMode} selected={sel.includes(x.id)} onSelect={toggleSel} dup={dupFor(x)} bal={balFor(x)} usable={usable} expCats={expCats} currency={currency} fmt={fmt} patch={patch} onApprove={approve} onDismiss={dismiss} onRemember={remember} editing={!!editingIds[x.id]} setEditing={setEditing} />)}</div>
       {noise.length > 0 && <details className="sms-other"><summary>Not a payment ({noise.length}) <small>OTP codes, offers…</small></summary>
         {noise.map(x => <div className="sms-other-row" key={x.id}><p dir="auto">{x.body}</p><button type="button" className="btn btn-sm" onClick={() => dismiss(x)}><X size={14} /> Dismiss</button></div>)}
         <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={async () => { for (const x of noise) await dismiss(x); }}>Dismiss all</button></div></details>}
@@ -235,6 +291,7 @@ export function SmsPage({ accounts, session, supabase, currency = 'EGP', gender 
 
     {tab === 'history' && <section className="sms-pane">
       {filters}
+      <div className="sms-actions"><MenuButton label="Export" icon={Download} items={[{ label: 'CSV', description: 'Plain text, opens anywhere', icon: FileText, onClick: () => exportHist('csv') }, { label: 'Excel', description: '.xlsx spreadsheet', icon: FileSpreadsheet, onClick: () => exportHist('xlsx') }]} disabled={!histShown.length} /></div>
       {!histShown.length ? <div className="sms-empty"><History size={26} /><b>Nothing here</b><small>Approved and dismissed messages appear here.</small></div> :
         <div className="smx-list">{histShown.map(x => <article className="smx-row" key={x.id}>
           <span className={`smx-dot ${x.status}`} />

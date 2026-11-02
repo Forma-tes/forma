@@ -72,3 +72,23 @@ export function matchAccount(configs, sender, last4) {
   }
   return best;
 }
+
+// Balance printed in the SMS ("Available balance EGP 8,200.50"), or null.
+export function findBalance(raw) {
+  const text = normalizeDigits(raw).replace(/\s+/g, ' ');
+  const m = new RegExp(`(?:available\\s*balance|avail\\.?\\s*bal(?:ance)?|current\\s*balance|balance|bal|الرصيد\\s*(?:المتاح|الحالي)?|رصيد(?:ك|ك الحالي)?)[^0-9]{0,22}(?:EGP|LE|L\\.E\\.?|E£|£E|£|جنيه|ج\\.م|جم)?\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`, 'i').exec(text);
+  return m ? Number(m[1].replace(/,/g, '')) : null;
+}
+
+const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Build an amount regex from a sample SMS and the amount the user sees in it.
+export function buildAmountPattern(sample, amountText) {
+  const text = normalizeDigits(sample); const a = normalizeDigits(amountText).trim();
+  if (!a) return null;
+  const num = a.replace(/,/g, '');
+  const re = new RegExp(`${num.split('').map(c => (c === '.' ? '\\.' : `,?${c}`)).join('').replace(/^,\?/, '')}`);
+  const m = re.exec(text); if (!m) return null;
+  const before = text.slice(Math.max(0, m.index - 14), m.index).replace(/\s+$/, '').replace(/^\s+/, '');
+  const prefix = before.length ? esc(before).replace(/\s+/g, '\\s*') : '';
+  return `${prefix}\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`;
+}
