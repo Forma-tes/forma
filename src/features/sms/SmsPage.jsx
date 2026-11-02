@@ -59,6 +59,10 @@ function AccountConfig({ account, cfg, userId, supabase, onSaved, setToast, open
 }
 
 const ago = d => { if (!d) return 'No SMS yet'; const m = Math.round((Date.now() - new Date(d).getTime()) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
+const mapPending = (x, cfgs, memo) => {
+  const cfg = x.account_id ? cfgs.find(k => k.account_id === x.account_id) : matchAccount(cfgs, x.sender, findLast4(normalizeDigits(x.body)));
+  return { ...x, account_id: x.account_id || cfg?.account_id || null, _type: x.txn_type || 'Expense', _amount: x.amount ?? '', _cat: x.category || memo[String(x.merchant || '').trim().toLowerCase()] || cfg?.default_category || '', _desc: x.merchant || '', _acc: x.account_id || cfg?.account_id || '' };
+};
 const isNoise = x => x.amount == null && !x.txn_type;
 
 function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismiss, onRemember, editing, setEditing, selectMode, selected, onSelect, dup, bal }) {
@@ -146,16 +150,34 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
     const all = [...(i.data || []), ...hrows];
     setLastSms(all.reduce((m, r) => (!m || r.created_at > m ? r.created_at : m), null));
     if (i.error || c.error) { const e = i.error || c.error; setToast(e.message.includes('does not exist') ? 'SMS tables are not installed yet — run the SMS migration in Supabase first.' : e.message); }
-    setItems((i.data || []).map(x => {
-      const cfg = x.account_id ? (c.data || []).find(k => k.account_id === x.account_id) : matchAccount(c.data || [], x.sender, findLast4(normalizeDigits(x.body)));
-      return { ...x, account_id: x.account_id || cfg?.account_id || null, _type: x.txn_type || 'Expense', _amount: x.amount ?? '', _cat: x.category || memo[String(x.merchant || '').trim().toLowerCase()] || cfg?.default_category || '', _desc: x.merchant || '', _acc: x.account_id || cfg?.account_id || '' };
-    }));
+    setItems((i.data || []).map(x => mapPending(x, c.data || [], memo)));
     setHist(hrows);
     setConfigs(c.data || []);
     setToken(t.data?.token || '');
     setLoading(false);
   }, [supabase, setToast]);
   useEffect(() => { load(); }, [load]);
+  const live = useRef({ items: [], configs: [], hist: [] });
+  live.current = { items, configs, hist };
+  const poll = useCallback(async () => {
+    const { data } = await supabase.from('sms_inbox').select('*').eq('status', 'pending').order('received_at', { ascending: false });
+    if (!data) return;
+    const have = new Set(live.current.items.map(x => x.id));
+    const fresh = data.filter(x => !have.has(x.id));
+    if (!fresh.length) return;
+    const memo = {}; live.current.hist.filter(r => r.status === 'approved' && r.category).forEach(r => { const k = String(r.merchant || '').trim().toLowerCase(); if (k && !memo[k]) memo[k] = r.category; });
+    const mapped = fresh.map(x => mapPending(x, live.current.configs, memo));
+    setItems(o => [...mapped.filter(m => !o.some(y => y.id === m.id)), ...o]);
+    setLastSms(new Date().toISOString());
+    setToast(fresh.length === 1 ? 'New SMS arrived' : `${fresh.length} new SMS arrived`);
+  }, [supabase, setToast]);
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === 'visible') poll(); };
+    const id = setInterval(tick, 30000);
+    document.addEventListener('visibilitychange', tick);
+    window.addEventListener('focus', tick);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', tick); window.removeEventListener('focus', tick); };
+  }, [poll]);
   const payments = useMemo(() => items.filter(x => !isNoise(x)), [items]);
   const noise = useMemo(() => items.filter(isNoise), [items]);
   useEffect(() => { onPendingChange?.(items.length); }, [items.length, onPendingChange]);
