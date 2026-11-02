@@ -652,3 +652,7 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .sms-pane p,.sms-pane small,.sms-pane code,.sms-pane li,.sms-card p,.sms-empty small,.sms-acc-head small{text-transform:none}
 .sms-pane .field span{text-transform:none}
 .sms-pane .field{min-width:0}.sms-pane .field input,.sms-pane .field select,.sms-pane .field textarea{width:100%;box-sizing:border-box}
+.metric-grid.acc-metrics{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+@media(max-width:560px){.metric-grid.acc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.goal-amounts>div:last-child{align-items:flex-end;text-align:right}
+@media(min-width:951px){.page-heading>div:first-child{flex:1 1 auto;min-width:0}.page-heading .heading-actions{flex-wrap:nowrap;flex-shrink:0}}
