@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   const lastName = titleCase(body.last_name);
   const fullName = `${firstName} ${lastName}`.trim();
   const gender = String(body.gender || 'prefer_not_to_say');
-  const allowedFeatures = ['overview','transactions','accounts','calendar','budgets','goals','subscriptions','debts','insights','reports','expense_categories','vehicle_management'];
+  const allowedFeatures = ['overview','transactions','accounts','calendar','budgets','goals','subscriptions','debts','insights','reports','expense_categories','vehicle_management','bank_sms'];
   const enabledFeatures = Array.isArray(body.enabled_features) ? body.enabled_features.map(String).filter((feature: string) => allowedFeatures.includes(feature)) : [];
   if (!firstName || !lastName) return json({ error: 'First name and last name are required.' }, 400);
   if (!['male','female','prefer_not_to_say'].includes(gender)) return json({ error: 'Choose a valid gender option.' }, 400);
