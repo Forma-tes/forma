@@ -52,6 +52,9 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
   const [items, setItems] = useState([]);
   const [configs, setConfigs] = useState([]);
   const [token, setToken] = useState('');
+  const [lastSms, setLastSms] = useState(null);
+  const [cstep, setCstep] = useState(1);
+  const [testing, setTesting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openAcc, setOpenAcc] = useState(initialAccountId);
   const [platform, setPlatform] = useState(/android/i.test(navigator.userAgent) ? 'android' : 'iphone');
@@ -62,13 +65,17 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [i, c, t] = await Promise.all([
+    const [i, c, t, h, l] = await Promise.all([
       supabase.from('sms_inbox').select('*').eq('status', 'pending').order('received_at', { ascending: false }),
       supabase.from('account_sms_config').select('*'),
       supabase.from('sms_tokens').select('token').maybeSingle(),
+      supabase.from('sms_inbox').select('merchant,category').eq('status', 'approved').not('category', 'is', null).order('created_at', { ascending: false }).limit(300),
+      supabase.from('sms_inbox').select('created_at').order('created_at', { ascending: false }).limit(1),
     ]);
+    const memo = {}; (h.data || []).forEach(r => { const k = String(r.merchant || '').trim().toLowerCase(); if (k && !memo[k]) memo[k] = r.category; });
+    setLastSms(l.data?.[0]?.created_at || null);
     if (i.error || c.error) setToast((i.error || c.error).message.includes('does not exist') ? 'SMS tables are not installed yet — run the SMS migration in Supabase first.' : (i.error || c.error).message);
-    setItems((i.data || []).map(x => ({ ...x, _type: x.txn_type || 'Expense', _amount: x.amount ?? '', _cat: x.category || '', _desc: x.merchant || '', _acc: x.account_id || '' })));
+    setItems((i.data || []).map(x => ({ ...x, _type: x.txn_type || 'Expense', _amount: x.amount ?? '', _cat: x.category || memo[String(x.merchant || '').trim().toLowerCase()] || '', _desc: x.merchant || '', _acc: x.account_id || '' })));
     setConfigs(c.data || []);
     setToken(t.data?.token || '');
     setLoading(false);
@@ -85,10 +92,22 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
     const acc = accounts.find(a => String(a.id) === String(x._acc));
     const saved = await onApprove({ transaction_date: localISODate(new Date(x.received_at)), type: x._type, category: cat, subcategory: null, description: x._desc || (x.sender ? `SMS · ${x.sender}` : 'Bank SMS'), amount, need_want: x._type === 'Expense' ? 'Need' : null, fixed_variable: 'Variable', payment_method: acc?.name || 'Unassigned', account_id: x._acc, to_account_id: null, goal_id: null, debt_id: null, recurring: false, notes: `From bank SMS: ${x.body}`.slice(0, 500) });
     if (!saved) return;
-    await supabase.from('sms_inbox').update({ status: 'approved', transaction_id: saved.id }).eq('id', x.id);
+    await supabase.from('sms_inbox').update({ status: 'approved', transaction_id: saved.id, category: cat, merchant: x._desc || x.merchant || null }).eq('id', x.id);
     setItems(o => o.filter(y => y.id !== x.id));
     setToast('Added to Transactions');
   };
+  const approveAll = async () => { const ready = items.filter(x => x._acc && Number(x._amount) > 0); for (const x of ready) { await approve(x); } };
+  const sendTest = async () => {
+    if (!token) { setToast('Create your token first'); return; }
+    setTesting(true);
+    try {
+      const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, sender: 'Pocket Test', body: 'Test: card ending 0000 was charged EGP 1.00 at Pocket Test' }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok && j.ok) { setToast('Test SMS arrived. Check your Inbox.'); await load(); } else setToast(j.error || 'The test did not go through');
+    } catch { setToast('Could not reach the SMS address'); }
+    setTesting(false);
+  };
+  const ago = d => { if (!d) return 'No SMS received yet'; const m = Math.round((Date.now() - new Date(d).getTime()) / 60000); return m < 1 ? 'Last SMS: just now' : m < 60 ? `Last SMS: ${m} min ago` : m < 1440 ? `Last SMS: ${Math.round(m / 60)} h ago` : `Last SMS: ${Math.round(m / 1440)} d ago`; };
   const dismiss = async x => { await supabase.from('sms_inbox').update({ status: 'dismissed' }).eq('id', x.id); setItems(o => o.filter(y => y.id !== x.id)); };
   const makeToken = async () => {
     const t = newToken();
@@ -112,7 +131,7 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
     <div className="sms-tabs" role="tablist">{tabs.map(([k, l, I, n]) => <button type="button" role="tab" aria-selected={tab === k} key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><I size={15} />{l}{n ? <em>{n}</em> : null}</button>)}</div>
 
     {tab === 'inbox' && <section className="sms-pane">
-      <div className="sms-pane-top"><p>{loading ? 'Loading…' : items.length ? `${items.length} waiting for review` : 'Nothing waiting'}</p><button type="button" className="btn btn-sm" onClick={load}><RefreshCw size={14} /> Refresh</button></div>
+      <div className="sms-pane-top"><p>{loading ? 'Loading…' : items.length ? `${items.length} waiting for review` : 'Nothing waiting'}</p><div className="sms-actions">{items.filter(x => x._acc && Number(x._amount) > 0).length > 1 && <button type="button" className="btn btn-primary btn-sm" onClick={approveAll}><Check size={14} /> Approve all ready ({items.filter(x => x._acc && Number(x._amount) > 0).length})</button>}<button type="button" className="btn btn-sm" onClick={load}><RefreshCw size={14} /> Refresh</button></div></div>
       {!loading && !items.length && <div className="sms-empty"><MessageSquare size={26} /><b>No SMS yet</b><small>Connect your phone, then new bank messages show up here.</small><button type="button" className="btn btn-primary btn-sm" onClick={() => setTab('connect')}>Connect phone</button></div>}
       {items.map(x => <div className="sms-item" key={x.id}>
         <div className="sms-item-msg"><b>{x.sender || 'Unknown sender'}</b><small>{new Date(x.received_at).toLocaleString()}</small><p dir="auto">{x.body}</p></div>
@@ -134,27 +153,30 @@ export function SmsHubModal({ accounts, session, supabase, currency = 'EGP', gen
     </section>}
 
     {tab === 'connect' && <section className="sms-pane">
-      <div className="sms-card"><h4>1 · Your private token</h4><p>This identifies your phone. Never share it.</p>
+      <div className="sms-steps" role="tablist">{[['Token', !!token], ['Bank', configs.some(c => (c.senders || []).length || (c.card_last4 || []).length)], ['Phone', !!lastSms]].map(([l, done], i) => <button type="button" key={l} className={`${cstep === i + 1 ? 'on' : ''} ${done ? 'done' : ''}`} onClick={() => setCstep(i + 1)}><i>{done ? <Check size={12} /> : i + 1}</i>{l}</button>)}</div>
+      {cstep === 1 && <div className="sms-card"><h4>Create your private token</h4><p>This tells Pocket the SMS is yours. Never share it.</p>
         {token ? <div className="sms-copy"><code>{token}</code><button type="button" className="icon-btn" aria-label="Copy token" onClick={() => copy(token, setToast)}><Copy size={15} /></button></div> : null}
-        <button type="button" className="btn btn-sm" onClick={makeToken}>{token ? <><RefreshCw size={14} /> Regenerate</> : 'Create token'}</button></div>
-      <div className="sms-card"><h4>2 · Webhook address</h4><div className="sms-copy"><code>{endpoint}</code><button type="button" className="icon-btn" aria-label="Copy address" onClick={() => copy(endpoint, setToast)}><Copy size={15} /></button></div>
-        <p>Method POST · JSON body</p><div className="sms-copy"><code>{jsonBody}</code><button type="button" className="icon-btn" aria-label="Copy body" onClick={() => copy(jsonBody, setToast)}><Copy size={15} /></button></div></div>
-      <div className="sms-card"><h4>3 · Forward the SMS</h4>
-        <div className="sms-seg"><button type="button" className={platform === 'iphone' ? 'on' : ''} onClick={() => setPlatform('iphone')}>iPhone</button><button type="button" className={platform === 'android' ? 'on' : ''} onClick={() => setPlatform('android')}>Android</button></div>
-        {platform === 'iphone' ? <ol>
-          <li>Open <b>Shortcuts</b> → <b>Automation</b> → <b>+</b> → <b>Message</b>.</li>
-          <li>Under <b>Sender</b>, add your bank (e.g. CIB). Choose <b>Run Immediately</b>.</li>
-          <li>Add the action <b>Get Contents of URL</b>. URL = the address above. Method <b>POST</b>, Request Body <b>JSON</b>.</li>
-          <li>Add fields: <code>token</code> = your token, <code>sender</code> = <i>Shortcut Input → Sender</i>, <code>body</code> = <i>Shortcut Input → Content</i>.</li>
-          <li>Save. Repeat for each bank sender.</li>
-        </ol> : <ol>
-          <li>Install <b>SMS Forwarder</b> (or Tasker / Macrodroid) and allow SMS access.</li>
-          <li>Add a rule: sender contains your bank name → forward to <b>Webhook</b>.</li>
-          <li>URL = the address above, method <b>POST</b>, content type <code>application/json</code>.</li>
-          <li>Body: <code>{'{"token":"…","sender":"[from]","body":"[content]"}'}</code> (use your app's placeholders).</li>
-          <li>Save and send yourself a test message.</li>
-        </ol>}
-        <p className="sms-hint">Tip: use the Test tab to check how a message is read.</p></div>
+        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={makeToken}>{token ? <><RefreshCw size={14} /> Regenerate</> : 'Create token'}</button><button type="button" className="btn btn-primary btn-sm" disabled={!token} onClick={() => setCstep(2)}>Next</button></div></div>}
+      {cstep === 2 && <div className="sms-card"><h4>Tell Pocket which bank is which account</h4><p>{configs.filter(c => (c.senders || []).length || (c.card_last4 || []).length).length ? `${configs.filter(c => (c.senders || []).length || (c.card_last4 || []).length).length} account(s) set up.` : 'Add the bank name and the last 4 digits for each account.'}</p>
+        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setTab('accounts')}><Settings2 size={14} /> Set up accounts</button><button type="button" className="btn btn-sm" onClick={() => setCstep(1)}>Back</button><button type="button" className="btn btn-primary btn-sm" onClick={() => setCstep(3)}>Next</button></div></div>}
+      {cstep === 3 && <>
+        <div className="sms-card"><h4>Forward the SMS from your phone</h4>
+          <div className="sms-seg"><button type="button" className={platform === 'iphone' ? 'on' : ''} onClick={() => setPlatform('iphone')}>iPhone</button><button type="button" className={platform === 'android' ? 'on' : ''} onClick={() => setPlatform('android')}>Android</button></div>
+          <p>Webhook address</p><div className="sms-copy"><code>{endpoint}</code><button type="button" className="icon-btn" aria-label="Copy address" onClick={() => copy(endpoint, setToast)}><Copy size={15} /></button></div>
+          {platform === 'android' && <><p>Body (JSON)</p><div className="sms-copy"><code>{jsonBody}</code><button type="button" className="icon-btn" aria-label="Copy body" onClick={() => copy(jsonBody, setToast)}><Copy size={15} /></button></div></>}
+          {platform === 'iphone' ? <ol>
+            <li>Open <b>Shortcuts</b> → <b>Automation</b> → <b>+</b> → <b>Message</b>.</li>
+            <li>Choose your bank as <b>Sender</b> (or <b>Message Contains</b> <code>EGP</code>). Pick <b>Run Immediately</b>.</li>
+            <li>Add <b>Get Contents of URL</b>: URL = the address above, Method <b>POST</b>, Request Body <b>JSON</b>.</li>
+            <li>Fields: <code>token</code> = your token · <code>sender</code> = <i>Shortcut Input → Sender</i> · <code>body</code> = <i>Shortcut Input → Content</i>.</li>
+          </ol> : <ol>
+            <li>Install <b>SMS Forwarder</b> and allow SMS access.</li>
+            <li>New rule: sender contains your bank → forward to <b>Webhook</b> (POST, <code>application/json</code>).</li>
+            <li>Paste the address and the JSON body above.</li>
+          </ol>}</div>
+        <div className="sms-card"><h4>Check it works</h4><p>{ago(lastSms)}</p>
+          <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(2)}>Back</button><button type="button" className="btn btn-primary btn-sm" disabled={testing} onClick={sendTest}>{testing ? 'Sending…' : 'Send a test SMS'}</button></div>
+          <p className="sms-hint">The test appears in your Inbox. Dismiss it after checking.</p></div></>}
     </section>}
 
     {tab === 'test' && <section className="sms-pane">

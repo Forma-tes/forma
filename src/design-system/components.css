@@ -714,3 +714,8 @@ button:hover>.cat-emoji,.tx-choice-card:hover .cat-emoji,.category-admin-card:ho
 .emoji-custom input{border:1px solid var(--border,#e5e7eb)!important;border-radius:12px!important;padding:11px 12px!important;background:var(--surface,#fff)!important;outline:none}
 .emoji-custom input:focus{border-color:#3157f6!important;box-shadow:0 0 0 3px rgba(49,87,246,.18)}
 .tx-subcategory-card .cat-sub-icon{margin-right:2px}
+.sms-steps{display:flex;gap:8px}
+.sms-steps button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid var(--border,#e5e7eb);background:var(--surface,#fff);border-radius:12px;padding:10px 8px;font:inherit;font-size:13.5px;font-weight:700;color:var(--muted,#6b7280);cursor:pointer}
+.sms-steps button i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--surface-soft);font-size:11px}
+.sms-steps button.on{border-color:#3157f6;color:#3157f6}
+.sms-steps button.done i{background:#15803d;color:#fff}
