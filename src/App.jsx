@@ -9,6 +9,7 @@ import { storedTheme, saveTheme, bootTheme } from './lib/theme.js';
 import { WorkspaceSkeleton } from './components/ui/WorkspaceSkeleton.jsx';
 import { AccountModal } from './features/accounts/AccountModal.jsx';
 import { AccountsPage } from './features/accounts/AccountsPage.jsx';
+import { SmsHubModal } from './features/accounts/SmsHubModal.jsx';
 import { AccessManagementPage } from './features/admin/AccessManagementPage.jsx';
 import { EmailStatusBar } from './components/ui/EmailStatusBar.jsx';
 import { AccessRestricted } from './features/admin/AccessRestricted.jsx';
@@ -131,6 +132,8 @@ function App(){
   const [cardPay,setCardPay] = useState(null);
   const [providerPay,setProviderPay] = useState(null);
   const [accountsView,setAccountsView] = useState('grid');
+  const [smsHub,setSmsHub] = useState(null);
+  const [pendingSms,setPendingSms] = useState(0);
   const requestConfirm=(title,description,onConfirm,confirmLabel='Delete',options={})=>setConfirmDialog({title,description,onConfirm,confirmLabel,...options});
   const [editing,setEditing] = useState(null);
   const [toast,setToast] = useState('');
@@ -341,6 +344,7 @@ function App(){
         if(!r.error)setRecurring(r.data||[]);
         if(!a.error)setAccounts(a.data||[]);
         if(!d.error)setDebts(d.data||[]);
+        supabase.from('sms_inbox').select('id',{count:'exact',head:true}).eq('status','pending').then(r=>{if(!r.error&&alive)setPendingSms(r.count||0)});
         if(errors.length)setDataLoadError(`Some data could not be loaded: ${[...new Set(errors)].join(' · ')}`);
       } catch(error) {
         if(alive)setDataLoadError(error?.message||'Could not load your workspace data.');
@@ -1013,7 +1017,7 @@ function App(){
         {['Access management','Admin access','Access requests'].includes(page)&&isAdmin&&<AccessManagementPage supabase={supabase} onToast={setToast} users={adminUsers} loading={adminLoading} profile={profile} onUpdate={updateUserAccess} onDelete={deleteManagedUser} onCreate={createManagedUser} onRefresh={refreshAdminUsers} initialTab={page==='Admin access'?'users':'requests'}/>}
         {canSeeCurrentPage&&page==='Overview'&&<Overview {...{recurring,onboardingKey:`pocket-onboarding-${session?.user?.id||'local'}`,onboardingSteps:[{key:'account',title:'Add an account or wallet',hint:'Cash, bank or e-wallet — where your money lives',done:accounts.some(a=>!isLiability(a)),action:()=>{setEditing(null);setModal('account')}},{key:'tx',title:'Record your first transaction',hint:'An expense or income, takes 20 seconds',done:transactions.length>0,action:()=>{if(!accounts.length){setToast('Add an account first, then record a transaction.');return}setEditing(null);setModal('transaction')}},{key:'budget',title:'Set a monthly budget',hint:'Pick a category and a limit',done:budgets.length>0,action:()=>{setEditing(null);setModal('budget')}},{key:'goal',title:'Create a savings goal',hint:'Something to save towards',done:goals.length>0,action:()=>{setEditing(null);setModal('goal')}},{key:'bill',title:'Add a recurring bill',hint:'Rent, subscriptions, installments',done:recurring.length>0,action:()=>{setEditing(null);setModal('recurring')}}],debts,creditActions,month,setMonth,transactions,accounts,monthTx,income,expenses,net,savingsRate,monthlySeries,categoryData,needs,wants,monthBudgets,totalBudget,totalSaved,goalTarget,upcoming,goals,setPage,setModal,setEditing,setToast,displayName,greeting,profileAvatar,session,supabase,currency,setVehicleSidebarTab,canViewVehicles:allowedFeatures.includes('vehicle_management')}}/>}
         {canSeeCurrentPage&&page==='Transactions'&&<TransactionsPage {...{transactions,reportTx,accounts,debts,filtered,search,setSearch,typeFilter,setTypeFilter,categoryFilter,setCategoryFilter,amountSort,setAmountSort,setModal,setEditing,setPage,setToast,removeRecord,setTransactions,handleImport,exportCSV,exportTransactionsAs,downloadTemplateAs,currency,requestConfirm,recordDebtInstallment,activeCategoryOptions:getExpenseCategories(profile?.gender)}}/>}
-        {canSeeCurrentPage&&page==='Accounts'&&<AccountsPage {...{debts,creditActions,accountsView,setAccountsView,accounts,transactions,setModal,setEditing,removeRecord,setAccounts,currency,requestConfirm,defaultAccountId,setDefaultAccountId}}/>}
+        {canSeeCurrentPage&&page==='Accounts'&&<AccountsPage {...{debts,creditActions,accountsView,setAccountsView,accounts,transactions,setModal,setEditing,removeRecord,setAccounts,currency,requestConfirm,defaultAccountId,setDefaultAccountId,pendingSms}} openSms={(tab,accountId)=>setSmsHub({tab:tab||'inbox',accountId:accountId||null})}/>}
         {canSeeCurrentPage&&page==='Cash flow calendar'&&<CashFlowCalendar {...{transactions,recurring,accounts,debts,month,setMonth,currency}}/>}
         {canSeeCurrentPage&&page==='Debts & installments'&&<DebtsPage {...{debts,accounts,transactions,debtFocus,setDebtFocus,credit:creditActions,setAccounts,setModal,setEditing,removeRecord,setDebts,currency,requestConfirm,recordDebtInstallment,setDebtPaymentTarget,setToast}}/>}
         {canSeeCurrentPage&&(page==='Insights & reports'||page==='Insights & forecast'||page==='Reports')&&<InsightsReportsPage {...{transactions:reportTx,month,setMonth,budgets,recurring,goals,debts,currency,setPage,accounts,showVehicles:allowedFeatures.includes('vehicle_management')}}/>}
@@ -1031,6 +1035,7 @@ function App(){
      {modal==='app-settings'&&<SettingsModal {...{onClose:()=>setModal(null),design,setDesign,sidebarSize,setSidebarSize,isAdmin,backupForUsers,setBackupVisibility,exportCSV,exportBackup,handleImport,restoreBackup,session,supabase,onOpenProfile:()=>setModal('profile')}}/>}
     {modal==='profile'&&<AccountProfileModal {...{sendEmailVerification,addAccountEmail,onClose:()=>setModal(null),openAvatarPicker:gender=>{setAvatarPickerGender(gender||session?.user?.user_metadata?.gender||'prefer_not_to_say');setModal('avatar-picker')},session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
     {modal==='avatar-picker'&&<AvatarPickerModal current={profileAvatar} gender={avatarPickerGender} onClose={()=>setModal('profile')} onChoose={avatar=>{setProfileAvatar(avatar);setModal('profile')}} />}
+    {smsHub&&<SmsHubModal accounts={accounts} session={session} supabase={supabase} currency={currency} gender={session?.user?.user_metadata?.gender||''} initialTab={smsHub.tab} initialAccountId={smsHub.accountId} setToast={setToast} onPendingChange={setPendingSms} onClose={()=>setSmsHub(null)} onApprove={async payload=>{const saved=await saveRecord('transactions',payload);if(saved)setTransactions(o=>[saved,...o]);return saved}}/>}
     {modal==='account'&&<AccountModal initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveAccount}/> }
     {modal==='account-from-transaction'&&<AccountModal initial={null} onClose={()=>setModal('transaction')} onSave={async form=>{const payload={name:form.name.trim(),type:form.type,opening_balance:Number(form.opening_balance||0),opening_balance_date:form.opening_balance_date||localISODate(),color:form.color||'#6c7cf5'};const saved=await saveRecord('financial_accounts',payload);if(!saved)return;setAccounts(old=>[saved,...old]);setModal('transaction');setToast('Account added. Select it for your transaction.')}}/>}
     {modal==='debt'&&<DebtModal currency={currency} accounts={accounts} debts={debts} transactions={transactions} convertTx={convertTx} providerAccounts={convertTx&&convertTx.type!=='Income'?accounts.filter(a=>String(a.id)===String(convertTx.account_id)):accounts.filter(isProvider)} presetProviderId={debtPresetProvider} onChooseAccountKind={kind=>{setEditing(null);setDebtPresetProvider('');setCreditKind(kind);setModal('credit-account')}} initial={editing} onClose={()=>{setModal(null);setEditing(null);setDebtPresetProvider('');setConvertTx(null)}} onSave={saveDebt}/> }
