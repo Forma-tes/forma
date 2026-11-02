@@ -777,3 +777,12 @@ button:hover>.cat-emoji,.tx-choice-card:hover .cat-emoji,.category-admin-card:ho
 .sms-helper small,.sms-rules small{color:var(--muted,#6b7280);text-transform:none}.sms-helper b,.sms-rules b{text-transform:none}
 .sms-helper textarea,.sms-helper input,.sms-rule input{width:100%;box-sizing:border-box;border-radius:10px;border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff);color:inherit;padding:8px 10px;font:inherit;font-size:13.5px;text-transform:none}
 .sms-helper-row{display:flex;gap:8px}.sms-rule{display:grid;grid-template-columns:1fr 100px auto;gap:8px;align-items:center}.sms-rules .btn{justify-self:start}
+
+/* Bank SMS polish */
+.smx-summary{margin-bottom:4px}.sms-panel{margin-top:4px}
+.smx-list{align-items:stretch}
+.smx-card{display:flex;flex-direction:column;gap:12px;border-left-width:3px}
+.smx-card .smx-foot{margin-top:auto}
+.smx-card .smx-quote{min-height:42px}
+.smx-top{flex-wrap:nowrap}
+@media(max-width:560px){.smx-foot{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:6px}.smx-foot .btn-primary{grid-column:auto!important}.smx-foot .btn{padding-left:6px;padding-right:6px;white-space:nowrap}.smx-bulk select{max-width:none;flex:1 1 120px}}
