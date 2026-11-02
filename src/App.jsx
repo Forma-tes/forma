@@ -34,6 +34,7 @@ import { RecurringPage } from './features/recurring/RecurringPage.jsx';
 import { ExpenseCategoriesPage } from './features/settings/ExpenseCategoriesPage.jsx';
 import { SettingsModal } from './features/settings/SettingsModal.jsx';
 import { ImportModal } from './features/transactions/ImportModal.jsx';
+import { setCategoryIconOverrides } from './lib/categoryIcons.js';
 import { TransactionModal } from './features/transactions/TransactionModal.jsx';
 import { TransactionsPage } from './features/transactions/TransactionsPage.jsx';
 import { PROFILE_AVATARS, defaultAvatarForGender } from './lib/avatars.js';
@@ -380,6 +381,7 @@ function App(){
         if(v.defaultAccountId!==undefined){setDefaultAccountId(v.defaultAccountId||'');void 0}
         if(v.accountsView==='list'||v.accountsView==='grid')setAccountsView(v.accountsView);
         if(typeof v.workspaceSectionName==='string'&&v.workspaceSectionName.trim()){setWorkspaceSectionName(v.workspaceSectionName.trim().slice(0,32));setWorkspaceSectionDraft(v.workspaceSectionName.trim().slice(0,32));}
+        if(v.categoryIcons&&typeof v.categoryIcons==='object')setCategoryIconOverrides(v.categoryIcons);
         if(Array.isArray(v.expenseCategories)){void 0;setExpenseCategoriesOverride(v.expenseCategories)}
         if(v.subcategories&&typeof v.subcategories==='object'){setCustomSubcategoriesOverride(v.subcategories);}
       }

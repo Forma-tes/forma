@@ -683,3 +683,34 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .debt-done-list{display:grid;gap:2px;padding-bottom:8px}
 .debt-done-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border,#eef0f4)}
 .debt-done-row b{display:block;font-size:14px}.debt-done-row small{color:var(--muted,#6b7280);text-transform:none}
+
+/* ---- Category emoji icons: animated + picker ---- */
+.cat-emoji{display:inline-block;line-height:1;transform-origin:50% 80%;will-change:transform}
+@keyframes catFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes catWiggle{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(-12deg)}93%{transform:rotate(10deg)}97%{transform:rotate(-6deg)}}
+@keyframes catPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes catBounce{0%,70%,100%{transform:translateY(0)}78%{transform:translateY(-5px)}86%{transform:translateY(0)}92%{transform:translateY(-2px)}}
+.cat-anim-0{animation:catFloat 3.2s ease-in-out var(--d) infinite}
+.cat-anim-1{animation:catWiggle 4.5s ease-in-out var(--d) infinite}
+.cat-anim-2{animation:catPulse 3s ease-in-out var(--d) infinite}
+.cat-anim-3{animation:catBounce 3.8s ease-in-out var(--d) infinite}
+button:hover>.cat-emoji,.tx-choice-card:hover .cat-emoji,.category-admin-card:hover .cat-emoji{animation:catPulse .6s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.cat-emoji{animation:none!important}}
+.emoji-picker{display:grid;gap:10px}
+.emoji-custom{display:flex;gap:10px;align-items:center}
+.emoji-current{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:var(--surface-soft);border:1.5px solid #3157f6;flex-shrink:0}
+.emoji-custom input{flex:1;min-width:0;text-transform:none}
+.emoji-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.emoji-tabs button{border:0;background:var(--surface-soft);color:var(--muted,#6b7280);border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;font-weight:700;white-space:nowrap;cursor:pointer}
+.emoji-tabs button.on{background:#3157f6;color:#fff}
+.emoji-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px;max-height:190px;overflow-y:auto;padding:6px;border:1px solid var(--border,#e5e7eb);border-radius:12px}
+.emoji-grid button{border:0;background:none;font-size:23px;line-height:1;padding:7px 0;border-radius:10px;cursor:pointer}
+.emoji-grid button:hover{background:var(--surface-soft)}.emoji-grid button.on{background:rgba(49,87,246,.16);outline:2px solid #3157f6}
+.tx-choice-icon .cat-emoji{font-size:22px}
+.cat-sub-icon{margin-right:6px;font-size:15px}
+.cat-icon-btn{border:0;cursor:pointer}.cat-icon-btn:hover{box-shadow:0 0 0 2px #3157f6}
+.subcategory-chip .chip-icon{border:0;background:none;padding:0 4px 0 0;display:inline-flex;align-items:center;cursor:pointer}
+.category-wizard-field .emoji-picker{margin-top:6px}
+.emoji-custom input{border:1px solid var(--border,#e5e7eb)!important;border-radius:12px!important;padding:11px 12px!important;background:var(--surface,#fff)!important;outline:none}
+.emoji-custom input:focus{border-color:#3157f6!important;box-shadow:0 0 0 3px rgba(49,87,246,.18)}
+.tx-subcategory-card .cat-sub-icon{margin-right:2px}
