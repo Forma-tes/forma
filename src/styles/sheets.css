@@ -211,3 +211,5 @@ html.pocket-sheet-open .notification-toast { visibility: hidden; pointer-events:
   .modal-backdrop .form-grid:has(select) { grid-template-columns: 1fr !important; }
   .modal-backdrop select { text-overflow: ellipsis; }
 }
+.settings-accordion-list > *{flex-shrink:0}
+.settings-accordion-list{display:flex;flex-direction:column}
