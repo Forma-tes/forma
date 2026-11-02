@@ -2,6 +2,7 @@ import { AnimatedNumber } from '../../components/ui/AnimatedNumber.jsx';
 import { CreditCard, ShoppingBag } from 'lucide-react';
 import { dueLabel, dueTone, daysUntil, money } from '../../lib/credit.js';
 import { shortDate } from '../../lib/format.js';
+import { providerTheme } from '../../lib/providerThemes.js';
 
 export function DueChip({ date }) {
   if (!date) return null;
@@ -24,41 +25,36 @@ export function CardVisual({ account, line1, line2, icon: Icon = CreditCard, kin
   </div>;
 }
 
+// Credit-card shaped face (Visa proportions) used for cards and installment apps everywhere.
+export function PaymentCard({ account, kind = 'card', used = 0, limit = 0, next = null, currency, menu = null, onOpen, children }) {
+  const fmt = money(currency);
+  const t = kind === 'app' ? providerTheme(account) : { a: account.color || '#3157f6', b: `color-mix(in srgb,${account.color || '#3157f6'} 55%,#0b1033)` };
+  const pct = limit > 0 ? Math.min(100, used / limit * 100) : 0;
+  const Icon = kind === 'app' ? ShoppingBag : CreditCard;
+  return <div className="pc-wrap">
+    <div className={`pc-face ${onOpen ? 'pc-click' : ''}`} style={{ '--pc-a': t.a, '--pc-b': t.b }} onClick={onOpen} role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} onKeyDown={e => { if (onOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen(); } }} aria-label={onOpen ? `Open ${account.name}` : undefined}>
+      <div className="pc-top"><div className="pc-id"><span className="pc-mono">{kind === 'app' ? (account.name || '?').trim().charAt(0).toUpperCase() : <Icon size={16} />}</span><span><small>{kind === 'app' ? 'Installment app' : 'Credit card'}</small><b>{account.name}</b></span></div>{menu && <div className="pc-menu" onClick={e => e.stopPropagation()}>{menu}</div>}</div>
+      <div className="pc-mid"><small>{limit > 0 ? 'Available' : 'No limit set'}</small><strong>{limit > 0 ? fmt(Math.max(0, limit - used)) : fmt(used)}</strong>
+        <div className="pc-bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div>
+        <small>{fmt(used)} {kind === 'app' ? 'committed' : 'used'}{limit > 0 ? ` of ${fmt(limit)}` : ''}</small></div>
+      <div className="pc-bottom"><div><small>Next payment</small><b>{next ? fmt(next.amount) : 'All clear'}</b></div>{next ? <span className="pc-due"><DueChip date={next.due} /></span> : <span className="pc-ok">Nothing due</span>}</div>
+    </div>
+    {children && <div className="pc-actions">{children}</div>}
+  </div>;
+}
+
 // Big tile used on the Debts & installments list and the Overview strip.
 export function CardTile({ card, summary, currency, onOpen, onPay }) {
   const fmt = money(currency);
   const next = summary.next;
-  return <section className="panel cc-tile cc-tile-card">
-    <CardVisual account={card} line1={card.statement_day ? `Statement on the ${card.statement_day}th` : 'Statement day not set'} line2={card.grace_days != null ? `Pay within ${card.grace_days} days` : ''} />
-    <div className="cc-tile-body">
-      <div>
-        <div className="cc-row-between"><span className="cc-label">Next payment</span>{next ? <DueChip date={next.due} /> : <span className="cc-chip ok">All paid</span>}</div>
-        {next ? <><div className="cc-amount"><AnimatedNumber value={fmt(next.remaining)} /></div><div className="cc-sub">Due {shortDate(next.due)}</div></> : <div className="cc-amount ok">All clear</div>}
-      </div>
-      <LimitBar used={summary.owed} limit={summary.limit} currency={currency} />
-      <div className="cc-actions">{next && <button className="btn btn-primary" onClick={() => onPay(card)}>Pay {fmt(next.remaining)}</button>}<button className="btn btn-secondary" onClick={() => onOpen(card)}>View details</button></div>
-    </div>
-  </section>;
+  return <PaymentCard account={card} kind="card" used={summary.owed} limit={summary.limit} next={next ? { amount: next.remaining, due: next.due } : null} currency={currency} onOpen={() => onOpen(card)}>
+    {next && <button className="btn btn-primary btn-sm" onClick={() => onPay(card)}>Pay {fmt(next.remaining)}</button>}<button className="btn btn-secondary btn-sm" onClick={() => onOpen(card)}>View details</button>
+  </PaymentCard>;
 }
 
 export function ProviderTile({ provider, summary, currency, onOpen, onPay }) {
-  const fmt = money(currency);
   const next = summary.next;
-  const pct = summary.limit > 0 ? Math.min(100, summary.used / summary.limit * 100) : 0;
-  const plans = summary.active.length;
-  return <section className="panel cc-tile cc-tile-app" style={{ '--cc-a': provider.color || '#6c7cf5' }}>
-    <button type="button" className="cc-app-id" onClick={() => onOpen(provider)} aria-label={`Open ${provider.name}`}>
-      <span className="cc-app-mono">{(provider.name || '?').trim().charAt(0).toUpperCase()}</span>
-      <span className="cc-app-name"><b>{provider.name}</b><small>{plans} active plan{plans === 1 ? '' : 's'}{summary.monthly > 0 ? ` · ${fmt(summary.monthly)} / month` : ''}</small></span>
-    </button>
-    <div className="cc-app-commit">
-      <div className="cc-limit-line"><span className="cc-sub">Committed</span><b>{summary.limit > 0 ? `${fmt(summary.used)} of ${fmt(summary.limit)}` : fmt(summary.used)}</b></div>
-      <div className="cc-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)} aria-label="Installment limit committed"><i className={pct >= 100 ? 'full' : pct > 80 ? 'hi' : ''} style={{ width: `${pct}%` }} /></div>
-      <small className="cc-sub">{summary.limit > 0 ? `${fmt(Math.max(0, summary.limit - summary.used))} available` : 'No limit set'}</small>
-    </div>
-    <div className="cc-app-next">
-      {next ? <><span className="cc-label">Next payment</span><b>{fmt(next.amount)}</b><DueChip date={next.due} /></> : <span className="cc-chip ok">{plans ? 'Not scheduled' : 'No active plans'}</span>}
-    </div>
-    <div className="cc-app-actions">{next && <button className="btn btn-primary btn-sm" onClick={() => onPay(provider, next)}>Pay</button>}<button className="btn btn-secondary btn-sm" onClick={() => onOpen(provider)}>Details</button></div>
-  </section>;
+  return <PaymentCard account={provider} kind="app" used={summary.used} limit={summary.limit} next={next ? { amount: next.amount, due: next.due } : null} currency={currency} onOpen={() => onOpen(provider)}>
+    {next && <button className="btn btn-primary btn-sm" onClick={() => onPay(provider, next)}>Pay</button>}<button className="btn btn-secondary btn-sm" onClick={() => onOpen(provider)}>Details</button>
+  </PaymentCard>;
 }
