@@ -795,3 +795,4 @@ button:hover>.cat-emoji,.tx-choice-card:hover .cat-emoji,.category-admin-card:ho
 :root[data-theme="dark"] .smx-chip{color:#9db4ff;background:rgba(49,87,246,.2)}
 .smx-tear{border-top:2px dashed var(--border,#e0e5ee);margin:2px 0 0}
 .smx-card{border-left-width:1px!important;border-left-color:var(--border,#e5e8f0)!important}
+.nav-item.locked{opacity:.55}.nav-item.locked:hover{opacity:.8}.nav-lock{margin-left:auto;flex:none;opacity:.8}
