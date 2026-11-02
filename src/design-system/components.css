@@ -786,3 +786,12 @@ button:hover>.cat-emoji,.tx-choice-card:hover .cat-emoji,.category-admin-card:ho
 .smx-card .smx-quote{min-height:42px}
 .smx-top{flex-wrap:nowrap}
 @media(max-width:560px){.smx-foot{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:6px}.smx-foot .btn-primary{grid-column:auto!important}.smx-foot .btn{padding-left:6px;padding-right:6px;white-space:nowrap}.smx-bulk select{max-width:none;flex:1 1 120px}}
+/* Ticket card */
+.smx-meta{display:flex;align-items:center;gap:8px;min-width:0}.smx-meta small{color:var(--muted,#6b7280);text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.smx-av{width:26px;height:26px;border-radius:8px;font-size:12px}
+.smx-hero{display:grid;gap:2px}.smx-big{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.15;text-transform:none}.smx-big.in{color:#15803d}.smx-big.out{color:var(--ds-text,#171923)}
+:root[data-theme="dark"] .smx-big.out{color:#f3f4f8}.smx-title{font-size:15px;text-transform:none}
+.smx-chips{display:flex;flex-wrap:wrap;gap:6px}.smx-chip{background:var(--ds-brand-soft,#eaf0ff);color:#3157f6;border-radius:999px;padding:3px 11px;font-size:12.5px;font-weight:600;text-transform:none}.smx-chip.soft{background:var(--surface-soft,#f1f3f8);color:var(--muted,#6b7280)}
+:root[data-theme="dark"] .smx-chip{color:#9db4ff;background:rgba(49,87,246,.2)}
+.smx-tear{border-top:2px dashed var(--border,#e0e5ee);margin:2px 0 0}
+.smx-card{border-left-width:1px!important;border-left-color:var(--border,#e5e8f0)!important}

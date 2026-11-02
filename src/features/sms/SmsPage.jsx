@@ -75,18 +75,13 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
   const cancelEdit = () => { if (x._snap) patch(x.id, { ...x._snap, _snap: null }); setEditing(x.id, false); };
   const setSplit = (i, k, v) => patch(x.id, { _splits: splits.map((r, j) => j === i ? { ...r, [k]: v } : r) });
   return <article className={`smx-card ${isIn ? 'in' : 'out'} ${editing ? 'editing' : ''} ${selected ? 'picked' : ''}`}>
-    <header className="smx-top">
+    <div className="smx-meta">
       {selectMode && <input type="checkbox" className="smx-check" checked={!!selected} onChange={() => onSelect(x.id)} aria-label="Select this SMS" />}
       <span className="smx-av" aria-hidden="true">{(x.sender || '?').trim().charAt(0).toUpperCase()}</span>
-      <div className="smx-who"><b>{x.sender || 'Unknown sender'}</b><small>{new Date(x.received_at).toLocaleString()}</small></div>
-      <div className={`smx-amt ${isIn ? 'in' : 'out'}`}>{amt > 0 ? `${isIn ? '+' : '−'}${fmt(amt)}` : 'No amount'}</div>
-    </header>
-    {!editing ? <dl className="smx-facts">
-      <div><dt>Type</dt><dd>{isIn ? 'Money in' : 'Money out'}</dd></div>
-      <div><dt>Account</dt><dd>{accName || <em>Not matched</em>}</dd></div>
-      <div><dt>Category</dt><dd>{splits ? `Split in ${splits.length}` : (x._cat || <em>{isIn ? 'Other income' : 'Other'}</em>)}</dd></div>
-      <div><dt>Description</dt><dd>{x._desc || <em>—</em>}</dd></div>
-    </dl> : <div className="form-grid smx-edit">
+      <small>{x.sender || 'Unknown sender'} · {new Date(x.received_at).toLocaleString()}</small>
+    </div>
+    <div className="smx-hero"><div className={`smx-big ${isIn ? 'in' : 'out'}`}>{amt > 0 ? `${isIn ? '+' : '−'}${fmt(amt)}` : 'No amount'}</div>{x._desc && <b className="smx-title">{x._desc}</b>}</div>
+    {!editing ? <div className="smx-chips"><span className="smx-chip">{accName || 'No account'}</span><span className="smx-chip">{splits ? `Split in ${splits.length}` : (x._cat || (isIn ? 'Other income' : 'Other'))}</span><span className="smx-chip soft">{isIn ? 'Money in' : 'Money out'}</span></div> : <div className="form-grid smx-edit">
       <Field label="Type"><select value={x._type} onChange={e => patch(x.id, { _type: e.target.value, _cat: '', _splits: null })}><option>Expense</option><option>Income</option></select></Field>
       <Field label={`Amount (${currency})`}><input inputMode="decimal" value={x._amount} onChange={e => patch(x.id, { _amount: e.target.value })} /></Field>
       <Field label="Account"><select value={x._acc} onChange={e => patch(x.id, { _acc: e.target.value })}><option value="">Choose…</option>{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>
@@ -101,6 +96,7 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
     {bal && <p className={`smx-bal ${bal.ok ? 'ok' : 'bad'}`}>{bal.ok ? `Balance matches the bank (${fmt(bal.sms)}) after adding this.` : `Bank says ${fmt(bal.sms)}, Pocket would show ${fmt(bal.expected)} (difference ${bal.diff > 0 ? '+' : '−'}${fmt(Math.abs(bal.diff))}).`}</p>}
     {!x.account_id && !editing && <p className="sms-warn">{x._acc ? <>Matched by guess. <button type="button" className="sms-link" onClick={() => onRemember(x)}>Remember {x.sender || 'this sender'}{last4 ? ` · ••${last4}` : ''} for {accName}</button></> : 'No account matched. Tap Edit to choose one.'}</p>}
     {!x.account_id && editing && x._acc && <p className="sms-warn"><button type="button" className="sms-link" onClick={() => onRemember(x)}>Remember {x.sender || 'this sender'}{last4 ? ` · ••${last4}` : ''} for {accName}</button></p>}
+    <div className="smx-tear" />
     <footer className="smx-foot">
       <button type="button" className="btn btn-sm" onClick={() => onDismiss(x)}><X size={14} /> Dismiss</button>
       <span className="smx-spacer" />
