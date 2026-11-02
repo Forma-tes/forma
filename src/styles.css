@@ -1875,3 +1875,22 @@ body, button, input, select, textarea, table, h1, h2, h3, h4, .page-title, .sect
 .email-status-card{display:flex;flex-direction:column;gap:10px}.email-status-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .email-add-row{display:flex;gap:8px;flex-wrap:wrap}.email-add-row input{flex:1;min-width:200px}
 .auth-field-hint{display:block;margin-top:6px;font-size:12px;line-height:1.45;color:var(--muted)}
+
+/* SMS auto-import settings */
+.sms-import-settings{display:flex;flex-direction:column;gap:12px}
+.sms-key-reveal{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;border:1px dashed var(--border,#d6d9e0);background:var(--surface-2,rgba(108,124,245,.06))}
+.sms-copy-row{display:flex;gap:6px;align-items:center}
+.sms-copy-row input{flex:1;min-width:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.sms-subhead{margin:6px 0 0;font-size:14px}
+.sms-account-list{display:flex;flex-direction:column;gap:8px}
+.sms-account-row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.sms-account-row span{display:flex;flex-direction:column;min-width:0}
+.sms-account-row small{color:var(--muted,#7a8090)}
+.sms-account-row input{width:84px;text-align:center;letter-spacing:.2em}
+.sms-inbox-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sms-inbox-list li{padding:10px 12px;border-radius:10px;border:1px solid var(--border,#e3e5eb)}
+.sms-inbox-list li p{margin:6px 0 0;font-size:12px;color:var(--muted,#7a8090);word-break:break-word}
+.sms-inbox-list small{margin-inline-start:8px;color:var(--muted,#7a8090)}
+.sms-status{font-weight:600;font-size:12px}
+.sms-imported .sms-status{color:#1f9d6a}
+.sms-unparsed .sms-status,.sms-error .sms-status{color:#d0473d}
