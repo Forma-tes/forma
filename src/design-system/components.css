@@ -795,3 +795,12 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .smx-tear{border-top:2px dashed var(--border,#e0e5ee);margin:2px 0 0}
 .smx-card{border-left-width:1px!important;border-left-color:var(--border,#e5e8f0)!important}
 .nav-item.locked{opacity:.55}.nav-item.locked:hover{opacity:.8}.nav-lock{margin-left:auto;flex:none;opacity:.8}
+/* Welcome wizard */
+.ww-backdrop{z-index:1200}
+.ww{position:relative;background:var(--surface,#fff);color:var(--text,#171923);border:1px solid var(--border,#e5e8f0);border-radius:22px;width:min(480px,calc(100vw - 24px));padding:22px;display:grid;gap:12px;box-shadow:0 30px 80px rgba(15,23,42,.3);max-height:calc(100vh - 24px);overflow:auto}
+.ww-x{position:absolute;top:14px;right:14px}.ww-dots{display:flex;gap:6px;margin-right:40px}.ww-dots i{height:6px;flex:1;border-radius:9px;background:var(--surface-soft,#e4e8f2)}.ww-dots i.on{background:#3157f6}
+.ww-count{color:var(--muted,#6b7280);text-transform:none}
+.ww-body{display:grid;gap:10px;padding:8px 0 4px;justify-items:start}.ww-emoji{font-size:40px;line-height:1}.ww-body h2{margin:0;font-size:22px;text-transform:none}.ww-body p{margin:0;color:var(--muted,#6b7280);line-height:1.5;text-transform:none}
+.ww-chips{display:flex;flex-wrap:wrap;gap:8px}.ww-chips button{border:1.5px solid var(--border,#e0e5ee);background:var(--surface,#fff);color:inherit;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}.ww-chips button.on{border-color:#3157f6;background:var(--ds-brand-soft,#eef2ff);color:#3157f6}
+.ww-field{display:grid;gap:5px;width:100%}.ww-field span{font-size:12px;color:var(--muted,#6b7280);text-transform:none}.ww-field input{height:44px;border-radius:10px;border:1px solid var(--border,#e0e5ee);background:var(--surface,#fff);color:inherit;padding:0 12px;font:inherit;width:100%;box-sizing:border-box}
+.ww-cta{margin-top:4px}.ww-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}.ww-foot-r{display:flex;gap:8px}
