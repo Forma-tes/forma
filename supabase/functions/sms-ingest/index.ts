@@ -71,12 +71,14 @@ function parseSms(raw, cfg = {}) {
   return { amount: findAmount(text, cfg.amount_pattern), type: findType(text, cfg), merchant: findMerchant(text), last4: findLast4(text) };
 }
 
+// Ignore case, spaces, dashes and symbols so "BacK-AlAhly" and "BanKAlAhly" still match.
+const nz = v => lc(v).replace(/[^a-z0-9\u0600-\u06FF]/g, '');
 function matchAccount(configs, sender, last4) {
-  const s = lc(sender).trim(); let best = null, score = 0;
+  const s = nz(sender); let best = null, score = 0;
   for (const c of configs) {
     if (c.enabled === false) continue;
     let sc = 0;
-    if (s && (c.senders || []).some(x => lc(x).trim() && (s === lc(x).trim() || s.includes(lc(x).trim())))) sc += 2;
+    if (s && (c.senders || []).some(x => nz(x) && (s === nz(x) || s.includes(nz(x)) || nz(x).includes(s)))) sc += 2;
     if (last4 && (c.card_last4 || []).some(x => String(x).trim() === last4)) sc += 3;
     if (sc > score) { score = sc; best = c; }
   }
@@ -121,20 +123,24 @@ Deno.serve(async (req) => {
   if (!tk) return json({ ok: false, error: 'Invalid token' }, 401);
   const userId = tk.user_id;
 
-  const { data: allowed } = await service.rpc('check_rate_limit', { p_key: `sms:${userId}`, p_max: 60, p_window_seconds: 600 });
+  const { data: allowed } = await service.rpc('check_rate_limit', { p_key: `sms:${userId}`, p_max: 200, p_window_seconds: 600 });
   if (allowed === false) return json({ ok: false, error: 'Too many messages. Try again soon.' }, 429);
 
   const hash = await sha(`${sender}|${body}`);
-  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  const { data: dup } = await service.from('sms_inbox').select('id').eq('user_id', userId).eq('body_hash', hash).gte('created_at', since).limit(1);
+  let received = new Date();
+  const hasDate = !!when && !isNaN(new Date(when).getTime());
+  if (hasDate) received = new Date(when);
+  // Live SMS: ignore the same text within 10 minutes. Catch-up SMS carry their own timestamp, so the same
+  // text received within 15 minutes of that time (a live copy stored on arrival) is ignored however old it is.
+  let dupQuery = service.from('sms_inbox').select('id').eq('user_id', userId).eq('body_hash', hash).limit(1);
+  dupQuery = hasDate ? dupQuery.gte('received_at', new Date(received.getTime() - 15 * 60 * 1000).toISOString()).lte('received_at', new Date(received.getTime() + 15 * 60 * 1000).toISOString()) : dupQuery.gte('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString());
+  const { data: dup } = await dupQuery;
   if (dup && dup.length) return json({ ok: true, duplicate: true });
 
   const { data: configs } = await service.from('account_sms_config').select('*').eq('user_id', userId);
   const last4 = findLast4(normalizeDigits(body));
   const cfg = matchAccount(configs || [], sender, last4);
   const parsed = parseSms(body, cfg || {});
-  let received = new Date();
-  if (when) { const d = new Date(when); if (!isNaN(d.getTime())) received = d; }
 
   const { error } = await service.from('sms_inbox').insert({
     user_id: userId,

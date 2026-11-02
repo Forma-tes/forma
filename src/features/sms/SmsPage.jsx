@@ -326,7 +326,7 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
     </section>}
 
     {tab === 'connect' && <section className="sms-pane">
-      <div className="sms-steps" role="tablist">{[['Token', !!token], ['Bank', configs.some(c => (c.senders || []).length || (c.card_last4 || []).length)], ['Phone', !!lastSms]].map(([l, done], i) => <button type="button" key={l} className={`${cstep === i + 1 ? 'on' : ''} ${done ? 'done' : ''}`} onClick={() => setCstep(i + 1)}><i>{done ? <Check size={12} /> : i + 1}</i>{l}</button>)}</div>
+      <div className="sms-steps" role="tablist">{[['Token', !!token], ['Bank', configs.some(c => (c.senders || []).length || (c.card_last4 || []).length)], ['Phone', !!lastSms], ['Catch-up', false]].map(([l, done], i) => <button type="button" key={l} className={`${cstep === i + 1 ? 'on' : ''} ${done ? 'done' : ''}`} onClick={() => setCstep(i + 1)}><i>{done ? <Check size={12} /> : i + 1}</i>{l}</button>)}</div>
       {cstep === 1 && <div className="sms-card"><h4>Create your private token</h4><p>This tells Pocket the SMS is yours. Never share it.</p>
         {token ? <div className="sms-copy"><code>{token}</code><button type="button" className="icon-btn" aria-label="Copy token" onClick={() => copy(token, setToast)}><Copy size={15} /></button></div> : null}
         <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={makeToken}>{token ? <><RefreshCw size={14} /> Regenerate</> : 'Create token'}</button><button type="button" className="btn btn-primary btn-sm" disabled={!token} onClick={() => setCstep(2)}>Next</button></div></div>}
@@ -348,8 +348,22 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
             <li>Paste the address and the JSON body above.</li>
           </ol>}</div>
         <div className="sms-card"><h4>Check it works</h4><p>{lastSms ? `Last SMS: ${ago(lastSms)}` : 'No SMS received yet'}</p>
-          <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(2)}>Back</button><button type="button" className="btn btn-primary btn-sm" disabled={testing} onClick={sendTest}>{testing ? 'Sending…' : 'Send a test SMS'}</button></div>
+          <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(2)}>Back</button><button type="button" className="btn btn-sm" disabled={testing} onClick={sendTest}>{testing ? 'Sending…' : 'Send a test SMS'}</button><button type="button" className="btn btn-primary btn-sm" onClick={() => setCstep(4)}>Next: catch-up</button></div>
           <p className="sms-hint">The test appears in your Inbox. Dismiss it after checking.</p></div></>}
+      {cstep === 4 && <div className="sms-card"><h4>Automatic catch-up</h4>
+        <p>Live forwarding can miss a message (phone offline, battery saver). A second automation re-sends the last day of bank SMS by itself. Messages already in Pocket are skipped, so nothing is added twice.</p>
+        {platform === 'iphone' ? <ol>
+          <li><b>Shortcuts</b> → <b>Automation</b> → <b>+</b> → <b>Time of Day</b>, daily, <b>Run Immediately</b>.</li>
+          <li>Add <b>Find Messages</b>: Date is in the last <b>1 day</b> and Content contains <code>EGP</code>.</li>
+          <li>Add <b>Repeat with Each</b> (the messages), and inside it <b>Get Contents of URL</b> with the same address, POST, JSON.</li>
+          <li>Fields: <code>token</code>, <code>sender</code> = <i>Repeat Item → Sender</i>, <code>body</code> = <i>Repeat Item → Content</i>, <code>date</code> = <i>Repeat Item → Date</i> formatted as <b>ISO 8601</b>.</li>
+        </ol> : <ol>
+          <li>In <b>SMS Forwarder</b> turn on <b>Retry failed</b> so messages sent while offline are re-sent.</li>
+          <li>Keep the rule's JSON body the same and add <code>"date":"&lt;Timestamp&gt;"</code> if the app offers it.</li>
+        </ol>}
+        <div className="sms-seg"><button type="button" className={platform === 'iphone' ? 'on' : ''} onClick={() => setPlatform('iphone')}>iPhone</button><button type="button" className={platform === 'android' ? 'on' : ''} onClick={() => setPlatform('android')}>Android</button></div>
+        <p className="sms-hint">{lastSms ? `Last SMS in Pocket: ${ago(lastSms)}.` : 'No SMS in Pocket yet.'} The page also checks for new SMS every 30 seconds.</p>
+        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(3)}>Back</button></div></div>}
     </section>}
 
     {tab === 'test' && <section className="sms-pane">
