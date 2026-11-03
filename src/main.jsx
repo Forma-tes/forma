@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import App from './App.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import './styles.css';
@@ -12,5 +13,10 @@ import './styles/auth-responsive.css';
 import './design-system/motion.css';
 import './styles/login.css';
 
-createRoot(document.getElementById('root')).render(<ErrorBoundary><App /></ErrorBoundary>);
+createRoot(document.getElementById('root')).render(
+  <ErrorBoundary>
+    <App />
+    <Analytics />
+  </ErrorBoundary>
+);
 import './styles/dark-contrast.css';
