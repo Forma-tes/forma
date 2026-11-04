@@ -268,3 +268,8 @@
 @media(max-width:480px){.pocket-loading-screen{padding:calc(18px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}.pocket-loading-card{padding:28px 20px 24px}}
 @media(prefers-reduced-motion:reduce){.pocket-loading-orbit,.pocket-loading-orbit-core,.pocket-loading-status-dot{animation:none}.pocket-loading-progress span{animation:none;width:100%;transform:none}}
 .pocket-loading-screen,.pocket-loading-screen *{text-transform:none!important}
+/* Loading orbit: only the ring spins, the P mark stays perfectly still */
+.pocket-loading-orbit{border:0;animation:none}
+.pocket-loading-orbit::before{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid var(--soft);border-top-color:var(--brand);animation:pocket-spin 1s linear infinite;box-sizing:border-box}
+.pocket-loading-orbit-core{animation:none;transform:none}
+@media(prefers-reduced-motion:reduce){.pocket-loading-orbit::before{animation:none}}
