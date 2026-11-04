@@ -8,7 +8,7 @@ import { fmt } from '../../lib/format.js';
 
 let savedAccountFilter='all';
 const thisMonthKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
-let savedPeriod={mode:'all',month:thisMonthKey()};
+let savedPeriod={mode:'this',month:thisMonthKey()};
 const monthLabel=k=>{const [y,m]=String(k).split('-').map(Number);return y&&m?new Date(y,m-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}):''};
 const PAGE_SIZE=25;
 
