@@ -804,3 +804,28 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .ww-chips{display:flex;flex-wrap:wrap;gap:8px}.ww-chips button{border:1.5px solid var(--border,#e0e5ee);background:var(--surface,#fff);color:inherit;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}.ww-chips button.on{border-color:#3157f6;background:var(--ds-brand-soft,#eef2ff);color:#3157f6}
 .ww-field{display:grid;gap:5px;width:100%}.ww-field span{font-size:12px;color:var(--muted,#6b7280);text-transform:none}.ww-field input{height:44px;border-radius:10px;border:1px solid var(--border,#e0e5ee);background:var(--surface,#fff);color:inherit;padding:0 12px;font:inherit;width:100%;box-sizing:border-box}
 .ww-cta{margin-top:4px}.ww-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}.ww-foot-r{display:flex;gap:8px}
+
+/* Period switch for summary cards */
+.period-switch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.period-seg{display:inline-flex;background:var(--surface-soft,#f1f3f8);border:1px solid var(--border,#e5e8f0);border-radius:12px;padding:3px;max-width:100%}
+.period-seg button{border:0;background:none;color:var(--muted,#6b7280);font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:9px;cursor:pointer;white-space:nowrap;text-transform:none}
+.period-seg button.on{background:var(--surface,#fff);color:#3157f6;box-shadow:0 1px 4px rgba(15,23,42,.12)}
+:root[data-theme="dark"] .period-seg button.on{background:#27324a;color:#9db4ff}
+.period-month{height:38px;border-radius:10px;border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff);color:inherit;padding:0 10px;font:inherit;font-size:13.5px;min-width:0}
+@media(max-width:560px){.period-switch{display:grid}.period-seg{display:grid;grid-template-columns:repeat(3,1fr)}.period-seg button{padding:8px 4px;font-size:12.5px}.period-month{width:100%}}
+
+/* Recurring payments: full cards on small screens, no sideways scroll */
+@media(max-width:820px){
+ .rec-table,.rec-table tbody,.rec-table tr,.rec-table td{display:block;width:100%}
+ .rec-table thead{display:none}
+ .table-panel:has(.rec-table) .table-wrap{overflow:visible}
+ .rec-table tbody{display:grid;gap:12px;padding:0 12px 12px}
+ .rec-table tr{border:1px solid var(--border,#e5e8f0);border-radius:16px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;background:var(--surface,#fff)}
+ .rec-table td{padding:0!important;border:0!important;min-width:0}
+ .rec-table td:first-child{grid-column:1/-1}
+ .rec-table td[data-label]:not(:first-child):not(.rec-actions)::before{content:attr(data-label);display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted,#6b7280);margin-bottom:3px}
+ .rec-table td.rec-actions{grid-column:1/-1;border-top:1px dashed var(--border,#e5e8f0)!important;padding-top:10px!important}
+ .rec-table .row-actions{display:flex;gap:8px;justify-content:flex-end}
+ .rec-table .row-actions .btn{margin-right:auto}
+ .rec-table .pay-by{display:block}
+}
