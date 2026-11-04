@@ -850,3 +850,15 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
  .table-toolbar .filter-group select{width:100%;max-width:none;min-width:0}
 }
 @media(max-width:1100px){.onboarding-steps{grid-template-columns:1fr}}
+
+/* Bank SMS — simpler flow */
+.sms-conn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:99px;font-size:12px;font-weight:700;background:var(--surface-soft);color:var(--muted);border:1px solid var(--border)}
+.sms-conn::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.6}
+.sms-conn.on{color:var(--ds-success);background:color-mix(in srgb,var(--ds-success) 12%,transparent)}.sms-conn.on::before{opacity:1}
+.sms-sub{margin-bottom:12px}
+.smx-quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.smx-quick label{display:flex;flex-direction:column;gap:4px;min-width:0}.smx-quick select{width:100%;min-width:0}
+@media(max-width:520px){.smx-quick{grid-template-columns:1fr}}
+.sms-wait{display:flex;align-items:center;gap:8px;margin:14px 0 4px;padding:11px 14px;border-radius:12px;font-weight:700;font-size:13px;background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent)}
+.sms-wait.ok{background:color-mix(in srgb,var(--ds-success) 12%,transparent);color:var(--ds-success)}
+.sms-trouble{display:grid;gap:8px;padding:6px 2px;font-size:13px}.sms-trouble p{margin:0}

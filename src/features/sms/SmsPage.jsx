@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Copy, Inbox, History, MessageSquare, Pencil, RefreshCw, RotateCcw, Search, Settings2, X, Clock, CheckCircle2, Download, FileSpreadsheet, FileText, Plus, Scissors, Trash2, TriangleAlert } from 'lucide-react';
+import { Check, ChevronDown, Copy, Inbox, History, MessageSquare, Pencil, RefreshCw, RotateCcw, Search, Settings2, X, Clock, CheckCircle2, Download, Eye, EyeOff, FileSpreadsheet, FileText, Plus, Scissors, Trash2, TriangleAlert } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from '../../components/ui/Field.jsx';
 import { PageHeading } from '../../components/ui/PageHeading.jsx';
@@ -10,6 +10,7 @@ import { exportTable } from '../../lib/transferFile.js';
 import { MenuButton } from '../../components/ui/MenuButton.jsx';
 import { buildAmountPattern, findBalance, findLast4, matchAccount, normalizeDigits, parseSms } from '../../lib/smsParser.js';
 
+const TEST_SENDER = 'Pocket Test';
 const csv = v => String(v || '').split(/[,\n،]/).map(x => x.trim()).filter(Boolean);
 const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(16).padStart(2, '0')).join('');
 const copy = async (text, setToast) => { try { await navigator.clipboard.writeText(text); setToast?.('Copied'); } catch { setToast?.('Could not copy — select and copy manually'); } };
@@ -85,7 +86,7 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
       <small>{x.sender || 'Unknown sender'} · {new Date(x.received_at).toLocaleString()}</small>
     </div>
     <div className="smx-hero"><div className={`smx-big ${isIn ? 'in' : 'out'}`}>{amt > 0 ? `${isIn ? '+' : '−'}${fmt(amt)}` : 'No amount'}</div>{x._desc && <b className="smx-title">{x._desc}</b>}</div>
-    {!editing ? <div className="smx-chips"><span className="smx-chip">{accName || 'No account'}</span><span className="smx-chip">{splits ? `Split in ${splits.length}` : (x._cat || (isIn ? 'Other income' : 'Other'))}</span><span className="smx-chip soft">{isIn ? 'Money in' : 'Money out'}</span></div> : <div className="form-grid smx-edit">
+    {!editing ? <div className="smx-quick"><label><small>Account</small><select value={x._acc} onChange={e => patch(x.id, { _acc: e.target.value })}><option value="">Choose…</option>{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>{splits ? <span className="smx-chip">Split in {splits.length}</span> : <label><small>Category</small><select value={x._cat} onChange={e => patch(x.id, { _cat: e.target.value })}><option value="">{isIn ? 'Other income' : 'Other'}</option>{cats.map(c => <option key={c}>{c}</option>)}</select></label>}</div> : <div className="form-grid smx-edit">
       <Field label="Type"><select value={x._type} onChange={e => patch(x.id, { _type: e.target.value, _cat: '', _splits: null })}><option>Expense</option><option>Income</option></select></Field>
       <Field label={`Amount (${currency})`}><input inputMode="decimal" value={x._amount} onChange={e => patch(x.id, { _amount: e.target.value })} /></Field>
       <Field label="Account"><select value={x._acc} onChange={e => patch(x.id, { _acc: e.target.value })}><option value="">Choose…</option>{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>
@@ -98,7 +99,7 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
     <button type="button" className={`smx-quote ${open ? 'open' : ''}`} dir="auto" onClick={() => setOpen(o => !o)} aria-expanded={open}>{x.body}</button>
     {dup && <p className="smx-alert"><TriangleAlert size={14} /> Looks like “{dup.description || dup.category}” on {dup.transaction_date} is already in Transactions.</p>}
     {bal && <p className={`smx-bal ${bal.ok ? 'ok' : 'bad'}`}>{bal.ok ? `Balance matches the bank (${fmt(bal.sms)}) after adding this.` : `Bank says ${fmt(bal.sms)}, Pocket would show ${fmt(bal.expected)} (difference ${bal.diff > 0 ? '+' : '−'}${fmt(Math.abs(bal.diff))}).`}</p>}
-    {!x.account_id && !editing && <p className="sms-warn">{x._acc ? <>Matched by guess. <button type="button" className="sms-link" onClick={() => onRemember(x)}>Remember {x.sender || 'this sender'}{last4 ? ` · ••${last4}` : ''} for {accName}</button></> : 'No account matched. Tap Edit to choose one.'}</p>}
+    {!x.account_id && !editing && <p className="sms-warn">{x._acc ? <>Matched by guess. <button type="button" className="sms-link" onClick={() => onRemember(x)}>Remember {x.sender || 'this sender'}{last4 ? ` · ••${last4}` : ''} for {accName}</button></> : 'Choose the account above.'}</p>}
     {!x.account_id && editing && x._acc && <p className="sms-warn"><button type="button" className="sms-link" onClick={() => onRemember(x)}>Remember {x.sender || 'this sender'}{last4 ? ` · ••${last4}` : ''} for {accName}</button></p>}
     <div className="smx-tear" />
     <footer className="smx-foot">
@@ -120,6 +121,8 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
   const [lastSms, setLastSms] = useState(null);
   const [cstep, setCstep] = useState(1);
   const [testing, setTesting] = useState(false);
+  const [testOk, setTestOk] = useState(false);
+  const [showTok, setShowTok] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openAcc, setOpenAcc] = useState(null);
   const [editingIds, setEditingIds] = useState({});
@@ -145,9 +148,9 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
       supabase.from('sms_tokens').select('token').maybeSingle(),
       supabase.from('sms_inbox').select('*').in('status', ['approved', 'dismissed']).order('received_at', { ascending: false }).limit(300),
     ]);
-    const hrows = h.data || [];
+    const hrows = (h.data || []).filter(r => r.sender !== TEST_SENDER);
     const memo = {}; hrows.filter(r => r.status === 'approved' && r.category).forEach(r => { const k = String(r.merchant || '').trim().toLowerCase(); if (k && !memo[k]) memo[k] = r.category; });
-    const all = [...(i.data || []), ...hrows];
+    const all = [...(i.data || []).filter(r => r.sender !== TEST_SENDER), ...hrows];
     setLastSms(all.reduce((m, r) => (!m || r.created_at > m ? r.created_at : m), null));
     if (i.error || c.error) { const e = i.error || c.error; setToast(e.message.includes('does not exist') ? 'SMS tables are not installed yet — run the SMS migration in Supabase first.' : e.message); }
     setItems((i.data || []).map(x => mapPending(x, c.data || [], memo)));
@@ -157,13 +160,14 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
     setLoading(false);
   }, [supabase, setToast]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (!loading && userId && !token) { const t = newToken(); supabase.from('sms_tokens').upsert({ user_id: userId, token: t }, { onConflict: 'user_id' }).then(({ error }) => { if (!error) setToken(t); }); } }, [loading, userId, token, supabase]);
   const live = useRef({ items: [], configs: [], hist: [] });
   live.current = { items, configs, hist };
   const poll = useCallback(async () => {
     const { data } = await supabase.from('sms_inbox').select('*').eq('status', 'pending').order('received_at', { ascending: false });
     if (!data) return;
     const have = new Set(live.current.items.map(x => x.id));
-    const fresh = data.filter(x => !have.has(x.id));
+    const fresh = data.filter(x => !have.has(x.id) && x.sender !== TEST_SENDER);
     if (!fresh.length) return;
     const memo = {}; live.current.hist.filter(r => r.status === 'approved' && r.category).forEach(r => { const k = String(r.merchant || '').trim().toLowerCase(); if (k && !memo[k]) memo[k] = r.category; });
     const mapped = fresh.map(x => mapPending(x, live.current.configs, memo));
@@ -173,11 +177,11 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
   }, [supabase, setToast]);
   useEffect(() => {
     const tick = () => { if (document.visibilityState === 'visible') poll(); };
-    const id = setInterval(tick, 30000);
+    const id = setInterval(tick, tab === 'connect' && !lastSms ? 5000 : 30000);
     document.addEventListener('visibilitychange', tick);
     window.addEventListener('focus', tick);
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', tick); window.removeEventListener('focus', tick); };
-  }, [poll]);
+  }, [poll, tab, lastSms]);
   const payments = useMemo(() => items.filter(x => !isNoise(x)), [items]);
   const noise = useMemo(() => items.filter(isNoise), [items]);
   useEffect(() => { onPendingChange?.(items.length); }, [items.length, onPendingChange]);
@@ -226,9 +230,9 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
     if (!token) { setToast('Create your token first'); return; }
     setTesting(true);
     try {
-      const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, sender: 'Pocket Test', body: 'Test: card ending 0000 was charged EGP 1.00 at Pocket Test' }) });
+      const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, sender: TEST_SENDER, body: 'Test: card ending 0000 was charged EGP 1.00 at Pocket Test' }) });
       const j = await r.json().catch(() => ({}));
-      if (r.ok && j.ok) { setToast('Test SMS arrived. Check your Inbox.'); await load(); } else setToast(j.error || 'The test did not go through');
+      if (r.ok && j.ok) { await supabase.from('sms_inbox').update({ status: 'dismissed' }).eq('sender', TEST_SENDER).eq('status', 'pending'); setToast('Test passed ✓ Pocket received it. It was not added to your Inbox.'); setTestOk(true); await load(); } else setToast(j.error || 'The test did not go through');
     } catch { setToast('Could not reach the SMS address'); }
     setTesting(false);
   };
@@ -274,7 +278,9 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
   }, [test, configs, accounts]);
 
   const jsonBody = `{"token":"${token || 'YOUR_TOKEN'}","sender":"<Sender>","body":"<Message>"}`;
-  const tabs = [['inbox', 'Inbox', Inbox, items.length], ['history', 'History', History], ['banks', 'Banks', Settings2], ['connect', 'Connect phone', MessageSquare], ['test', 'Test', Check]];
+  const inSettings = ['banks', 'connect', 'test'].includes(tab);
+  const tabs = [['inbox', 'Inbox', Inbox, items.length], ['history', 'History', History], [inSettings ? tab : 'connect', 'Settings', Settings2]];
+  const subnav = <div className="sms-seg sms-sub" role="tablist">{[['connect', 'Phone'], ['banks', 'Banks'], ['test', 'Try an SMS']].map(([k, l]) => <button type="button" key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>;
   const filters = <div className="smx-filters">
     <label className="smx-search"><Search size={15} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search merchant or message" aria-label="Search SMS" /></label>
     <select value={fAcc} onChange={e => setFAcc(e.target.value)} aria-label="Filter by account"><option value="">All accounts</option>{tab === 'inbox' && <option value="none">No account</option>}{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
@@ -282,14 +288,14 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
   </div>;
 
   return <div className="sms-page">
-    <PageHeading eyebrow="AUTOMATIC TRACKING" title="Bank SMS" subtitle="Bank messages land here first. You review them before they become transactions." actions={<button type="button" className="btn" onClick={load}><RefreshCw size={15} /> Refresh</button>} />
+    <PageHeading eyebrow="AUTOMATIC TRACKING" title="Bank SMS" subtitle="Bank messages land here first. You review them before they become transactions." actions={<><span className={`sms-conn ${lastSms ? 'on' : ''}`}>{lastSms ? `Connected · last SMS ${ago(lastSms)}` : 'Not connected yet'}</span><button type="button" className="btn" onClick={load}><RefreshCw size={15} /> Refresh</button></>} />
     <div className="smx-summary">
       <div><span className="smx-sico"><Inbox size={16} /></span><b>{items.length}</b><small>Pending</small></div>
       <div><span className="smx-sico"><Clock size={16} /></span><b>{lastSms ? ago(lastSms) : '—'}</b><small>Last SMS</small></div>
       <div><span className="smx-sico"><CheckCircle2 size={16} /></span><b>{approvedMonth}</b><small>Approved this month</small></div>
     </div>
     <div className="panel sms-panel">
-    <div className="sms-tabs" role="tablist">{tabs.map(([k, l, I, n]) => <button type="button" role="tab" aria-selected={tab === k} key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><I size={15} />{l}{n ? <em>{n}</em> : null}</button>)}</div>
+    <div className="sms-tabs" role="tablist">{tabs.map(([k, l, I, n]) => <button type="button" role="tab" aria-selected={k === 'inbox' || k === 'history' ? tab === k : inSettings} key={l} className={(k === 'inbox' || k === 'history' ? tab === k : inSettings) ? 'on' : ''} onClick={() => setTab(k)}><I size={15} />{l}{n ? <em>{n}</em> : null}</button>)}</div>
 
     {tab === 'inbox' && <section className="sms-pane">
       {filters}
@@ -320,53 +326,55 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
     </section>}
 
     {tab === 'banks' && <section className="sms-pane">
+      {subnav}
       <p className="sms-hint">For each account, tell Pocket which bank sender and card digits belong to it. Matching messages are linked to that account automatically.</p>
       {usable.length ? usable.map(a => <AccountConfig key={a.id + (configs.find(c => c.account_id === a.id)?.updated_at || '')} account={a} cfg={configs.find(c => c.account_id === a.id)} userId={userId} supabase={supabase} categories={expCats} setToast={setToast} open={String(openAcc) === String(a.id)} onToggle={() => setOpenAcc(o => String(o) === String(a.id) ? null : a.id)} onSaved={row => setConfigs(o => [...o.filter(c => c.account_id !== row.account_id), row])} />) : <div className="sms-empty"><b>No accounts yet</b><small>Add an account first.</small></div>}
       <div className="sms-actions"><button type="button" className="btn btn-sm" disabled={testing} onClick={sendTest}>{testing ? 'Sending…' : 'Send test SMS'}</button></div>
     </section>}
 
     {tab === 'connect' && <section className="sms-pane">
-      <div className="sms-steps" role="tablist">{[['Token', !!token], ['Bank', configs.some(c => (c.senders || []).length || (c.card_last4 || []).length)], ['Phone', !!lastSms], ['Catch-up', false]].map(([l, done], i) => <button type="button" key={l} className={`${cstep === i + 1 ? 'on' : ''} ${done ? 'done' : ''}`} onClick={() => setCstep(i + 1)}><i>{done ? <Check size={12} /> : i + 1}</i>{l}</button>)}</div>
-      {cstep === 1 && <div className="sms-card"><h4>Create your private token</h4><p>This tells Pocket the SMS is yours. Never share it.</p>
-        {token ? <div className="sms-copy"><code>{token}</code><button type="button" className="icon-btn" aria-label="Copy token" onClick={() => copy(token, setToast)}><Copy size={15} /></button></div> : null}
-        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={makeToken}>{token ? <><RefreshCw size={14} /> Regenerate</> : 'Create token'}</button><button type="button" className="btn btn-primary btn-sm" disabled={!token} onClick={() => setCstep(2)}>Next</button></div></div>}
-      {cstep === 2 && <div className="sms-card"><h4>Tell Pocket which bank is which account</h4><p>{configs.filter(c => (c.senders || []).length || (c.card_last4 || []).length).length ? `${configs.filter(c => (c.senders || []).length || (c.card_last4 || []).length).length} account(s) set up.` : 'Add the bank name and the last 4 digits for each account.'}</p>
-        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setTab('banks')}><Settings2 size={14} /> Set up accounts</button><button type="button" className="btn btn-sm" onClick={() => setCstep(1)}>Back</button><button type="button" className="btn btn-primary btn-sm" onClick={() => setCstep(3)}>Next</button></div></div>}
-      {cstep === 3 && <>
-        <div className="sms-card"><h4>Forward the SMS from your phone</h4>
+      {subnav}
+      {(() => { const bankDone = configs.some(c => (c.senders || []).length || (c.card_last4 || []).length); const steps = [['Token', !!token], ['Phone', !!lastSms], ['Banks', bankDone]]; return <div className="sms-steps" role="tablist">{steps.map(([l, done], i) => <button type="button" key={l} className={`${cstep === i + 1 ? 'on' : ''} ${done ? 'done' : ''}`} onClick={() => setCstep(i + 1)}><i>{done ? <Check size={12} /> : i + 1}</i>{l}</button>)}</div>; })()}
+      {cstep === 1 && <div className="sms-card"><h4>Your private token</h4><p>Created for you automatically. It tells Pocket the SMS is yours. Never share it.</p>
+        <div className="sms-copy"><code>{token ? (showTok ? token : `${token.slice(0, 4)}••••••••••••${token.slice(-4)}`) : 'Creating…'}</code><button type="button" className="icon-btn" aria-label={showTok ? 'Hide token' : 'Show token'} onClick={() => setShowTok(v => !v)}>{showTok ? <EyeOff size={15} /> : <Eye size={15} />}</button><button type="button" className="icon-btn" aria-label="Copy token" disabled={!token} onClick={() => copy(token, setToast)}><Copy size={15} /></button></div>
+        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => { if (!token || window.confirm('Make a new token? Your phone will stop working until you paste the new token into the Shortcut.')) makeToken(); }}><RefreshCw size={14} /> New token</button><button type="button" className="btn btn-primary btn-sm" disabled={!token} onClick={() => setCstep(2)}>Next</button></div></div>}
+      {cstep === 2 && <>
+        <div className="sms-card"><h4>Add the Shortcut on your phone</h4>
           <div className="sms-seg"><button type="button" className={platform === 'iphone' ? 'on' : ''} onClick={() => setPlatform('iphone')}>iPhone</button><button type="button" className={platform === 'android' ? 'on' : ''} onClick={() => setPlatform('android')}>Android</button></div>
-          <p>Webhook address</p><div className="sms-copy"><code>{endpoint}</code><button type="button" className="icon-btn" aria-label="Copy address" onClick={() => copy(endpoint, setToast)}><Copy size={15} /></button></div>
-          {platform === 'android' && <><p>Body (JSON)</p><div className="sms-copy"><code>{jsonBody}</code><button type="button" className="icon-btn" aria-label="Copy body" onClick={() => copy(jsonBody, setToast)}><Copy size={15} /></button></div></>}
+          <p>1 · Address</p><div className="sms-copy"><code>{endpoint}</code><button type="button" className="icon-btn" aria-label="Copy address" onClick={() => copy(endpoint, setToast)}><Copy size={15} /></button></div>
+          <p>2 · Token</p><div className="sms-copy"><code>{token ? `${token.slice(0, 4)}••••••••••••${token.slice(-4)}` : '—'}</code><button type="button" className="icon-btn" aria-label="Copy token" disabled={!token} onClick={() => copy(token, setToast)}><Copy size={15} /></button></div>
+          {platform === 'android' && <><p>3 · Body (JSON)</p><div className="sms-copy"><code>{jsonBody}</code><button type="button" className="icon-btn" aria-label="Copy body" onClick={() => copy(jsonBody, setToast)}><Copy size={15} /></button></div></>}
           {platform === 'iphone' ? <ol>
             <li>Open <b>Shortcuts</b> → <b>Automation</b> → <b>+</b> → <b>Message</b>.</li>
-            <li>Choose <b>Message Contains</b> <code>EGP</code> (or your bank as <b>Sender</b>). Pick <b>Run Immediately</b>.</li>
-            <li>Add <b>Get Contents of URL</b>: URL = the address above, Method <b>POST</b>, Request Body <b>JSON</b>.</li>
-            <li>Fields: <code>token</code> = your token · <code>sender</code> = <i>Shortcut Input → Sender</i> · <code>body</code> = <i>Shortcut Input → Content</i>.</li>
+            <li>Sender <b>contains</b> your bank name (or Message <b>contains</b> <code>EGP</code>). Choose <b>Run Immediately</b>.</li>
+            <li>Add <b>Get Contents of URL</b>: URL = the address, Method <b>POST</b>, Request Body <b>JSON</b>.</li>
+            <li>Add 3 fields: <code>token</code> = your token · <code>sender</code> = <i>Shortcut Input → Sender</i> · <code>body</code> = <i>Shortcut Input → Content</i>.</li>
           </ol> : <ol>
             <li>Install <b>SMS Forwarder</b> and allow SMS access.</li>
             <li>New rule: sender contains your bank → forward to <b>Webhook</b> (POST, <code>application/json</code>).</li>
             <li>Paste the address and the JSON body above.</li>
-          </ol>}</div>
-        <div className="sms-card"><h4>Check it works</h4><p>{lastSms ? `Last SMS: ${ago(lastSms)}` : 'No SMS received yet'}</p>
-          <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(2)}>Back</button><button type="button" className="btn btn-sm" disabled={testing} onClick={sendTest}>{testing ? 'Sending…' : 'Send a test SMS'}</button><button type="button" className="btn btn-primary btn-sm" onClick={() => setCstep(4)}>Next: catch-up</button></div>
-          <p className="sms-hint">The test appears in your Inbox. Dismiss it after checking.</p></div></>}
-      {cstep === 4 && <div className="sms-card"><h4>Automatic catch-up</h4>
-        <p>Live forwarding can miss a message (phone offline, battery saver). A second automation re-sends the last day of bank SMS by itself. Messages already in Pocket are skipped, so nothing is added twice.</p>
-        {platform === 'iphone' ? <ol>
-          <li><b>Shortcuts</b> → <b>Automation</b> → <b>+</b> → <b>Time of Day</b>, daily, <b>Run Immediately</b>.</li>
-          <li>Add <b>Find Messages</b>: Date is in the last <b>1 day</b> and Content contains <code>EGP</code>.</li>
-          <li>Add <b>Repeat with Each</b> (the messages), and inside it <b>Get Contents of URL</b> with the same address, POST, JSON.</li>
-          <li>Fields: <code>token</code>, <code>sender</code> = <i>Repeat Item → Sender</i>, <code>body</code> = <i>Repeat Item → Content</i>, <code>date</code> = <i>Repeat Item → Date</i> formatted as <b>ISO 8601</b>.</li>
-        </ol> : <ol>
-          <li>In <b>SMS Forwarder</b> turn on <b>Retry failed</b> so messages sent while offline are re-sent.</li>
-          <li>Keep the rule's JSON body the same and add <code>"date":"&lt;Timestamp&gt;"</code> if the app offers it.</li>
-        </ol>}
-        <div className="sms-seg"><button type="button" className={platform === 'iphone' ? 'on' : ''} onClick={() => setPlatform('iphone')}>iPhone</button><button type="button" className={platform === 'android' ? 'on' : ''} onClick={() => setPlatform('android')}>Android</button></div>
-        <p className="sms-hint">{lastSms ? `Last SMS in Pocket: ${ago(lastSms)}.` : 'No SMS in Pocket yet.'} The page also checks for new SMS every 30 seconds.</p>
-        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(3)}>Back</button></div></div>}
+          </ol>}
+          <div className={`sms-wait ${lastSms ? 'ok' : ''}`}>{lastSms ? <><Check size={15} /> Connected. Last SMS {ago(lastSms)}.</> : <><Clock size={15} /> Waiting for your first SMS… send yourself a message that matches your rule.</>}</div>
+          <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(1)}>Back</button><button type="button" className="btn btn-sm" disabled={testing} onClick={sendTest}>{testing ? 'Sending…' : 'Send a test'}</button><button type="button" className="btn btn-primary btn-sm" onClick={() => setCstep(3)}>Next</button></div>
+          <p className="sms-hint">Don’t press ▶ inside Shortcuts to test. With no real SMS it sends an empty message and you’ll see “Missing SMS body”. Use “Send a test” here instead.</p></div>
+        <details className="sms-other"><summary>Something not working?</summary><div className="sms-trouble"><p><b>“Missing SMS body”</b> — you pressed ▶ in Shortcuts. It only works on a real SMS.</p><p><b>“Invalid token”</b> — the token in the Shortcut is old. Copy it again.</p><p><b>Nothing arrives</b> — Sender filter must be “contains” (not “is”), and Run Immediately must be on.</p></div></details>
+        <details className="sms-other"><summary>Advanced: automatic catch-up <small>optional</small></summary>
+          <p>Live forwarding can miss a message (phone offline, battery saver). A second automation re-sends the last day of bank SMS. Messages already in Pocket are skipped.</p>
+          {platform === 'iphone' ? <ol>
+            <li><b>Shortcuts</b> → <b>Automation</b> → <b>+</b> → <b>Time of Day</b>, daily, <b>Run Immediately</b>.</li>
+            <li>Add <b>Find Messages</b>: Date is in the last <b>1 day</b> and Content contains <code>EGP</code>.</li>
+            <li>Add <b>Repeat with Each</b>, and inside it <b>Get Contents of URL</b> with the same address, POST, JSON.</li>
+            <li>Fields: <code>token</code>, <code>sender</code> = <i>Repeat Item → Sender</i>, <code>body</code> = <i>Repeat Item → Content</i>, <code>date</code> = <i>Repeat Item → Date</i> as <b>ISO 8601</b>.</li>
+          </ol> : <ol>
+            <li>In <b>SMS Forwarder</b> turn on <b>Retry failed</b>.</li>
+            <li>Keep the same JSON body and add <code>"date":"&lt;Timestamp&gt;"</code> if the app offers it.</li>
+          </ol>}</details></>}
+      {cstep === 3 && <div className="sms-card"><h4>Link each bank to an account</h4><p>{configs.filter(c => (c.senders || []).length || (c.card_last4 || []).length).length ? `${configs.filter(c => (c.senders || []).length || (c.card_last4 || []).length).length} account(s) set up.` : 'You can skip this. The first time an SMS arrives, tap “Remember” on its card and Pocket links that bank for you.'}</p>
+        <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={() => setCstep(2)}>Back</button><button type="button" className="btn btn-sm" onClick={() => setTab('banks')}><Settings2 size={14} /> Set up accounts</button><button type="button" className="btn btn-primary btn-sm" onClick={() => setTab('inbox')}>Done</button></div></div>}
     </section>}
 
     {tab === 'test' && <section className="sms-pane">
+      {subnav}
       <p className="sms-hint">Paste a bank SMS to see how Pocket reads it. Nothing is saved.</p>
       <div className="form-grid"><Field label="Sender (optional)"><input value={test.sender} onChange={e => setTest(o => ({ ...o, sender: e.target.value }))} placeholder="CIB" /></Field><Field label="Message" wide><textarea rows={4} dir="auto" value={test.body} onChange={e => setTest(o => ({ ...o, body: e.target.value }))} placeholder="Paste the SMS here" /></Field></div>
       {testResult && <div className="sms-result"><div><small>Type</small><b>{testResult.type === 'Income' ? 'Money in' : testResult.type === 'Expense' ? 'Money out' : 'Not detected'}</b></div><div><small>Amount</small><b>{testResult.amount ?? 'Not detected'}</b></div><div><small>Merchant</small><b>{testResult.merchant || '—'}</b></div><div><small>Account</small><b>{testResult.account || 'No match'}</b></div></div>}
