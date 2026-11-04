@@ -1,4 +1,4 @@
-import halanFace from '../assets/cards/halan.webp';
+import halanLogo from '../assets/cards/halan-logo.svg';
 import valuLogo from '../assets/cards/valu.svg';
 import amanLogo from '../assets/cards/aman.webp';
 import souhoolaLogo from '../assets/cards/souhoola.webp';
@@ -8,14 +8,14 @@ import forsaLogo from '../assets/cards/forsa.webp';
 import premiumLogo from '../assets/cards/premium-card.webp';
 
 // Card looks for installment apps. Brand colors, plus the logo / card image files supplied by the app owner.
-// `face` = a full card image used as the whole card; `logo` = a logo shown on a white plate over the brand-colored card.
+// `accent` = optional highlight color for the card swoosh; `logo` = a logo shown on a white plate over the brand-colored card.
 export const PROVIDER_THEMES = {
   Valu: { a: '#00b3a4', b: '#064e4a', logo: valuLogo },
   Aman: { a: '#19b0c9', b: '#0a5f73', logo: amanLogo },
   Souhoola: { a: '#7a2cf0', b: '#2e0a6b', logo: souhoolaLogo },
   Contact: { a: '#2e3180', b: '#14153f', logo: contactLogo },
   Sympl: { a: '#ff3b5c', b: '#8a1030', logo: symplLogo },
-  Halan: { a: '#2a2f2f', b: '#0c0f0f', face: halanFace },
+  Halan: { a: '#2d3333', b: '#0b0e0e', accent: '#1ed58c', logo: halanLogo },
   Forsa: { a: '#12b3a8', b: '#0b1f5c', logo: forsaLogo },
   Shahry: { a: '#e0561d', b: '#7a1d0c' },
   Mogo: { a: '#0e8f5a', b: '#063b2a' },
