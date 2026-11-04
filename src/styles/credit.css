@@ -143,3 +143,8 @@
 @media(max-width:560px){.pc-wrap{max-width:none}.pc-face{padding:16px 18px}.pc-mid strong{font-size:23px}.cc-grid-cards,.cc-list-apps,.acc-grid-liability{grid-template-columns:1fr!important}}
 .pc-preview{display:flex;justify-content:center;margin:4px 0 18px}.pc-preview .pc-wrap{max-width:340px}
 .cc-provider-btn{display:flex;align-items:center;justify-content:center;gap:7px}.cc-provider-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+
+/* Card artwork layer (chip, contactless, swoosh) */
+.pc-face:before,.pc-face:after{display:none}
+.pc-face>.pc-art{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.pc-face>.pc-art~*{position:relative;z-index:1}
