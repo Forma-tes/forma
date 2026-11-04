@@ -2,8 +2,8 @@
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 export const normalizeDigits = s => String(s || '').replace(/[٠-٩]/g, d => AR_DIGITS.indexOf(d)).replace(/٫/g, '.').replace(/٬/g, ',');
 
-const DEBIT = ['purchase', 'purchased', 'spent', 'debited', 'debit', 'withdrawn', 'withdrawal', 'paid', 'payment', 'pos ', 'transferred to', 'sent', 'charged', 'سحب', 'خصم', 'مشتريات', 'شراء', 'تم دفع', 'دفع', 'تحويل صادر', 'تم تحويل'];
-const CREDIT = ['credited', 'credit ', 'deposit', 'deposited', 'received', 'refund', 'salary', 'transferred from', 'incoming', 'اضافة', 'إضافة', 'ايداع', 'إيداع', 'استلام', 'تم استلام', 'تحويل وارد', 'راتب', 'استرداد'];
+const DEBIT = ['purchase', 'purchased', 'spent', 'debited', 'debit', 'withdrawn', 'withdrawal', 'paid', 'payment', 'pos ', 'transferred to', 'sent', 'charged', 'سحب', 'خصم', 'مشتريات', 'شراء', 'تم دفع', 'دفع', 'تحويل صادر', 'تم تحويل', 'تنفيذ تحويل', 'تم تنفيذ', 'من حسابكم', 'تم سداد', 'سداد'];
+const CREDIT = ['credited', 'credit ', 'deposit', 'deposited', 'received', 'refund', 'salary', 'transferred from', 'incoming', 'اضافة', 'إضافة', 'ايداع', 'إيداع', 'استلام', 'تم استلام', 'تحويل وارد', 'راتب', 'استرداد', 'استقبال', 'تم استقبال', 'الى حسابكم'];
 const NOISE_BEFORE = /(balance|available|avail|limit|bal|رصيد|الرصيد|المتاح|حد)[^0-9]{0,18}$/i;
 const CUR = '(?:EGP|LE|L\\.E\\.?|E£|£E|£|جنيه|ج\\.م|جم|USD|\\$)';
 
@@ -25,9 +25,10 @@ function findAmount(text, custom) {
   return found[0] || null;
 }
 
+const arNorm = s => String(s || '').toLowerCase().replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u0652]/g, '');
 function earliest(text, list) {
-  const t = lc(text); let best = null;
-  for (const k of list) { const w = lc(k).trim(); if (!w) continue; const i = t.indexOf(w); if (i >= 0 && (!best || i < best.i)) best = { i, k }; }
+  const t = arNorm(text); let best = null;
+  for (const k of list) { const w = arNorm(k).trim(); if (!w) continue; const i = t.indexOf(w); if (i >= 0 && (!best || i < best.i)) best = { i, k }; }
   return best;
 }
 
@@ -45,7 +46,9 @@ function findType(text, cfg = {}) {
 }
 
 function findMerchant(text) {
-  const m = /(?:\bat|\bfrom|\bto|@|لدى|من|إلى|الى|عند)\s+([A-Za-z0-9؀-ۿ&'._\- ]{2,34}?)(?=\s*(?:on|with|using|card|ending|bal|available|avail|\.|,|;|\n|$|في|بتاريخ|رصيد|بطاقة))/i.exec(text);
+  const STOP = '(?!(?:حساب|الحساب|بمبلغ|رقم|بطاقة)|(?:card|account|acct)\\b)';
+  const re = new RegExp(`(?:\\bat|\\bfrom|\\bto|@|لدى|من|إلى|الى|عند)\\s+${STOP}([A-Za-z0-9\u0600-\u06FF&'._\\- ]{2,34}?)(?=\\s*(?:on|with|using|card|ending|bal|available|avail|\\.|,|;|\\n|$|\\sفي\\s|بتاريخ|رصيد|بطاقة))`, 'i');
+  const m = re.exec(text);
   return m ? m[1].trim() : '';
 }
 
@@ -56,7 +59,7 @@ export function findLast4(text) {
 
 export function parseSms(raw, cfg = {}) {
   const text = normalizeDigits(raw).replace(/\s+/g, ' ').trim();
-  return { amount: findAmount(text, cfg.amount_pattern), type: findType(text, cfg), merchant: findMerchant(text), last4: findLast4(text) };
+  return { amount: findAmount(text, cfg.amount_pattern), type: findType(text, cfg), merchant: findMerchant(text) || (/تحويل|transfer/i.test(text) ? 'Transfer' : ''), last4: findLast4(text) };
 }
 
 // Ignore case, spaces, dashes and symbols so "BacK-AlAhly" and "BanKAlAhly"-style spellings still compare fairly.
