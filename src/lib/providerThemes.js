@@ -15,7 +15,7 @@ export const PROVIDER_THEMES = {
   Souhoola: { a: '#7a2cf0', b: '#2e0a6b', logo: souhoolaLogo },
   Contact: { a: '#2e3180', b: '#14153f', logo: contactLogo },
   Sympl: { a: '#ff3b5c', b: '#8a1030', logo: symplLogo },
-  Halan: { a: '#2d3333', b: '#0b0e0e', accent: '#1ed58c', logo: halanLogo },
+  Halan: { a: '#2d3333', b: '#0b0e0e', accent: '#1ed58c', band: 'M318 -20 H392 L214 304 H140 Z', logoRight: true, logo: halanLogo },
   Forsa: { a: '#12b3a8', b: '#0b1f5c', logo: forsaLogo },
   Shahry: { a: '#e0561d', b: '#7a1d0c' },
   Mogo: { a: '#0e8f5a', b: '#063b2a' },

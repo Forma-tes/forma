@@ -161,3 +161,6 @@
 .pc-face.pc-has-face .pc-bottom{gap:6px}
 .pc-logo{overflow:hidden;box-sizing:border-box}
 .pc-logo img{height:26px!important;width:auto;max-width:84px;max-height:26px}
+
+.pc-face.pc-logo-right .pc-id{flex:1;flex-direction:row-reverse;justify-content:space-between;align-items:center}
+.pc-face.pc-logo-right .pc-id>span:last-child{text-align:left}
