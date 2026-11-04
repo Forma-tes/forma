@@ -233,7 +233,7 @@
 @keyframes lg2-float{from{translate:0 0}to{translate:0 -12px}}
 @media(max-width:1200px){.lg2-art{width:300px}.lg2-obj.o1{width:210px;left:-70px}.lg2-obj.o2{left:90px;width:116px}.lg2-obj.o3{width:112px}.lg2-obj.o4{width:230px;right:-80px}.lg2-obj.o5{width:176px;right:20px}.lg2-obj.o6{width:128px}}
 @media(max-width:980px){.lg2-art{display:none}.lg2-brand{left:24px;top:24px}}
-@media(max-width:480px){.lg2-center{padding:88px 16px 48px;justify-content:flex-start}.lg2 .lg-form-head h1{font-size:28px;line-height:34px}.lg2 .lg-form-head p{font-size:15px;line-height:22px}.lg2-brand{left:20px;top:20px}}
+@media(max-width:480px){.lg2-center{padding:88px 16px 48px;justify-content:center}.lg2 .lg-form-head h1{font-size:28px;line-height:34px}.lg2 .lg-form-head p{font-size:15px;line-height:22px}.lg2-brand{left:20px;top:20px}}
 
 @media(max-width:900px){.lg-side{margin-bottom:44px}}
 
