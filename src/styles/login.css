@@ -243,7 +243,7 @@
    ========================================================================== */
 .pocket-loading-screen{
   --bg:#f7f8fa;--surface:#ffffff;--soft:#eef0f6;--line:#e5e8f0;--text:#171923;--muted:#6c7182;--brand:#3157f6;--blob:rgba(120,130,155,.2);--shadow:0 20px 60px rgba(24,32,57,.08);
-  position:relative;isolation:isolate;min-height:100vh;min-height:100dvh;overflow:hidden;display:grid;place-items:center;padding:28px;
+  position:relative;isolation:isolate;min-height:100vh;min-height:100dvh;overflow:hidden;display:grid;place-items:center;padding:calc(28px + env(safe-area-inset-top)) calc(28px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(28px + env(safe-area-inset-left));
   background:var(--bg);color:var(--text);font-family:'Manrope',Arial,sans-serif;
 }
 .pocket-loading-screen[data-lg-theme="dark"]{--bg:#131925;--surface:#1d2432;--soft:#2a3345;--line:#30384a;--text:#edf0f8;--muted:#a2abc0;--blob:rgba(110,125,170,.18);--shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -265,6 +265,6 @@
 @keyframes pocket-spin{to{transform:rotate(360deg)}}
 @keyframes pocket-pulse{0%,100%{opacity:1}50%{opacity:.35}}
 @keyframes pocket-loading-progress{from{transform:translateX(-35%);width:28%}to{transform:translateX(240%);width:42%}}
-@media(max-width:480px){.pocket-loading-screen{padding:18px}.pocket-loading-card{padding:28px 20px 24px}}
+@media(max-width:480px){.pocket-loading-screen{padding:calc(18px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}.pocket-loading-card{padding:28px 20px 24px}}
 @media(prefers-reduced-motion:reduce){.pocket-loading-orbit,.pocket-loading-orbit-core,.pocket-loading-status-dot{animation:none}.pocket-loading-progress span{animation:none;width:100%;transform:none}}
 .pocket-loading-screen,.pocket-loading-screen *{text-transform:none!important}

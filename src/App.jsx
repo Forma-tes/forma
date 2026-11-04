@@ -989,6 +989,15 @@ function App(){
     convertPurchase:(provider,tx)=>{setEditing(null);setConvertTx(tx);setDebtPresetProvider(provider.id);setModal('debt')},
     addPlan:provider=>{setEditing(null);setDebtPresetProvider(provider.id);setModal('debt')}
   };
+  // Keep the browser / phone status-bar colour in sync with the screen behind it (loading, login or app, light or dark).
+  useEffect(()=>{
+    const meta=document.querySelector('meta[name="theme-color"]');
+    if(!meta)return;
+    const loading=cloudReady&&(authLoading||(session&&!profileLoaded));
+    if(loading){meta.setAttribute('content',bootTheme()==='dark'?'#131925':'#f7f8fa');return;}
+    const id=requestAnimationFrame(()=>{try{const c=getComputedStyle(document.body).backgroundColor;if(c&&c!=='rgba(0, 0, 0, 0)')meta.setAttribute('content',c);}catch{}});
+    return ()=>cancelAnimationFrame(id);
+  },[authLoading,session,profileLoaded,theme]);
   if(cloudReady && (authLoading || (session && !profileLoaded))){
     let loadTheme='light';
     loadTheme=bootTheme();
