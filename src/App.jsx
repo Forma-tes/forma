@@ -277,7 +277,11 @@ function App(){
       setSession(s);
       setAuthLoading(false);
     });
-    return ()=>{alive=false;subscription.unsubscribe()};
+    // Coming back with the browser Back button (e.g. from Google sign-in) restores the page from the
+    // back/forward cache with the old "busy" state, so the Sign in button would stay on "Please wait…".
+    const onPageShow=e=>{if(e.persisted){setBusy(false);setAuthLoading(false);}};
+    window.addEventListener('pageshow',onPageShow);
+    return ()=>{alive=false;subscription.unsubscribe();window.removeEventListener('pageshow',onPageShow)};
   },[]);
   useEffect(()=>{
     let alive=true;
