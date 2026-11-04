@@ -1,19 +1,29 @@
-// Brand-inspired card looks for installment apps. Colors only — no logos are copied.
+import halanFace from '../assets/cards/halan.webp';
+import valuLogo from '../assets/cards/valu.svg';
+import amanLogo from '../assets/cards/aman.webp';
+import souhoolaLogo from '../assets/cards/souhoola.webp';
+import contactLogo from '../assets/cards/contact.webp';
+import symplLogo from '../assets/cards/sympl.webp';
+import forsaLogo from '../assets/cards/forsa.webp';
+import premiumLogo from '../assets/cards/premium-card.webp';
+
+// Card looks for installment apps. Brand colors, plus the logo / card image files supplied by the app owner.
+// `face` = a full card image used as the whole card; `logo` = a logo shown on a white plate over the brand-colored card.
 export const PROVIDER_THEMES = {
-  Valu: { a: '#5b2a86', b: '#e8426f' },
-  Aman: { a: '#0f7a4a', b: '#f08a1c' },
-  Souhoola: { a: '#0b4f8a', b: '#19b5c9' },
-  Contact: { a: '#c8102e', b: '#5a0a1a' },
-  Sympl: { a: '#6d3fe0', b: '#2a1670' },
-  Halan: { a: '#2f4cdd', b: '#0a1a63' },
-  Forsa: { a: '#0f8f7e', b: '#0b3d52' },
+  Valu: { a: '#00b3a4', b: '#064e4a', logo: valuLogo },
+  Aman: { a: '#19b0c9', b: '#0a5f73', logo: amanLogo },
+  Souhoola: { a: '#7a2cf0', b: '#2e0a6b', logo: souhoolaLogo },
+  Contact: { a: '#2e3180', b: '#14153f', logo: contactLogo },
+  Sympl: { a: '#ff3b5c', b: '#8a1030', logo: symplLogo },
+  Halan: { a: '#2a2f2f', b: '#0c0f0f', face: halanFace },
+  Forsa: { a: '#12b3a8', b: '#0b1f5c', logo: forsaLogo },
   Shahry: { a: '#e0561d', b: '#7a1d0c' },
   Mogo: { a: '#0e8f5a', b: '#063b2a' },
   Klivvr: { a: '#1f1f2e', b: '#6d3fe0' },
   Seven: { a: '#d6336c', b: '#5b0f2e' },
   TRU: { a: '#0a7ea4', b: '#062c3f' },
   Mylo: { a: '#e8a317', b: '#7a4a05' },
-  'Premium Card': { a: '#2a2f3d', b: '#0c0e14' },
+  'Premium Card': { a: '#d8232a', b: '#16161a', logo: premiumLogo },
 };
 const clean = s => String(s || '').trim().toLowerCase();
 export function providerTheme(account) {
