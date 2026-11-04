@@ -834,3 +834,19 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
  .rec-table .row-actions{display:flex;gap:6px;justify-content:flex-end;align-items:center}
  .rec-table .row-actions .btn{margin-right:auto;padding:5px 14px}
 }
+
+/* Responsive fixes (mobile + tablet) */
+@media(max-width:680px){
+ .main-area{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+ .sms-tabs{-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent);padding-right:24px;scroll-snap-type:x proximity;scrollbar-width:none}
+ .sms-tabs::-webkit-scrollbar{display:none}
+ .sms-tabs button{scroll-snap-align:start;padding:10px 10px}
+}
+@media(max-width:1100px){
+ .table-toolbar{flex-wrap:wrap;gap:10px}
+ .table-toolbar .search-field{flex:1 1 100%;min-width:0;width:100%}
+ .table-toolbar .filter-group{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;width:100%}
+ .table-toolbar .filter-group .filter-icon{display:none}
+ .table-toolbar .filter-group select{width:100%;max-width:none;min-width:0}
+}
+@media(max-width:1100px){.onboarding-steps{grid-template-columns:1fr}}
