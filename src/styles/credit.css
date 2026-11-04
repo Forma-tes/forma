@@ -169,3 +169,4 @@
 .pc-face.pc-has-face{background-size:100% 100%;padding:0 18px 14px 20px;justify-content:flex-end}
 .pc-face.pc-has-face .pc-mid{max-width:50%}
 .pc-face.pc-has-face:after{background:linear-gradient(0deg,rgba(0,0,0,.5),rgba(0,0,0,0) 45%)}
+.pc-face.pc-has-face{background-color:#0b0b0b}
