@@ -862,3 +862,18 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .sms-wait{display:flex;align-items:center;gap:8px;margin:14px 0 4px;padding:11px 14px;border-radius:12px;font-weight:700;font-size:13px;background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent)}
 .sms-wait.ok{background:color-mix(in srgb,var(--ds-success) 12%,transparent);color:var(--ds-success)}
 .sms-trouble{display:grid;gap:8px;padding:6px 2px;font-size:13px}.sms-trouble p{margin:0}
+
+/* Bank SMS — swipe rows */
+.smx-swipe{position:relative;border-radius:18px;overflow:hidden;touch-action:pan-y}
+.smx-swipe>.smx-card{position:relative;z-index:1;margin:0;transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .24s;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.smx-swipe .smx-card:is(.editing) , .smx-swipe .smx-card select, .smx-swipe .smx-card input{user-select:auto;-webkit-user-select:auto}
+.smx-bg{position:absolute;inset:0;display:flex;align-items:center;gap:8px;padding:0 24px;font-weight:800;font-size:14px;color:#fff;opacity:0;transition:opacity .12s}
+.smx-bg.ap{background:var(--ds-success);justify-content:flex-start}
+.smx-bg.di{background:var(--ds-danger);justify-content:flex-end}
+.smx-swipe.ap .smx-bg.ap,.smx-swipe.di .smx-bg.di{opacity:1}
+.smx-swipe.gone-r>.smx-card{transform:translateX(115%);opacity:0}
+.smx-swipe.gone-l>.smx-card{transform:translateX(-115%);opacity:0}
+.smx-tip{margin:0 0 10px;font-size:12px;color:var(--muted)}
+.smx-card.smx-hint{animation:smxNudge 2.6s ease-in-out .8s 2}
+@keyframes smxNudge{0%,100%{transform:none}30%{transform:translateX(70px)}60%{transform:translateX(-50px)}}
+@media (prefers-reduced-motion:reduce){.smx-card.smx-hint{animation:none}.smx-swipe>.smx-card{transition:none}}

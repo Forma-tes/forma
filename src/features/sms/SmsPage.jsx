@@ -79,7 +79,16 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
   const startEdit = () => { patch(x.id, { _snap: { _type: x._type, _amount: x._amount, _acc: x._acc, _cat: x._cat, _desc: x._desc, _splits: x._splits || null } }); setEditing(x.id, true); };
   const cancelEdit = () => { if (x._snap) patch(x.id, { ...x._snap, _snap: null }); setEditing(x.id, false); };
   const setSplit = (i, k, v) => patch(x.id, { _splits: splits.map((r, j) => j === i ? { ...r, [k]: v } : r) });
-  return <article className={`smx-card ${isIn ? 'in' : 'out'} ${editing ? 'editing' : ''} ${selected ? 'picked' : ''}`}>
+  const [dx, setDx] = useState(0);
+  const [gone, setGone] = useState(0);
+  const drag = useRef(null);
+  const [hint] = useState(() => { try { return !localStorage.getItem('pocket.smsSwipeHint'); } catch { return false; } });
+  const onDown = e => { if (editing || selectMode || e.button > 0 || e.target.closest('select,input,button,textarea,a,summary,.smx-quote')) return; drag.current = { x: e.clientX, y: e.clientY, on: false }; };
+  const onMove = e => { const d = drag.current; if (!d) return; const mx = e.clientX - d.x; if (!d.on) { if (Math.abs(e.clientY - d.y) > 12 && Math.abs(mx) < 12) { drag.current = null; return; } if (Math.abs(mx) < 8) return; d.on = true; try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ } } setDx(Math.max(-170, Math.min(170, mx))); };
+  const onUp = async () => { const d = drag.current; drag.current = null; if (!d || !d.on) return; const v = dx; if (v > 90) { setGone(1); setDx(0); const ok = await onApprove(x); if (ok === false) setGone(0); } else if (v < -90) { setGone(-1); setDx(0); await onDismiss(x); } else setDx(0); try { localStorage.setItem('pocket.smsSwipeHint', '1'); } catch { /* ignore */ } };
+  const mode = dx > 6 ? 'ap' : dx < -6 ? 'di' : '';
+  return <div className={`smx-swipe ${mode} ${gone > 0 ? 'gone-r' : gone < 0 ? 'gone-l' : ''}`}><div className="smx-bg ap" aria-hidden="true"><Check size={18} /> Approve</div><div className="smx-bg di" aria-hidden="true">Dismiss <X size={18} /></div>
+  <article onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} style={dx ? { transform: `translateX(${dx}px)`, transition: 'none' } : undefined} className={`smx-card ${isIn ? 'in' : 'out'} ${editing ? 'editing' : ''} ${selected ? 'picked' : ''} ${hint ? 'smx-hint' : ''}`}>
     <div className="smx-meta">
       {selectMode && <input type="checkbox" className="smx-check" checked={!!selected} onChange={() => onSelect(x.id)} aria-label="Select this SMS" />}
       <span className="smx-av" aria-hidden="true">{(x.sender || '?').trim().charAt(0).toUpperCase()}</span>
@@ -108,7 +117,7 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
       {editing ? <button type="button" className="btn btn-sm" onClick={cancelEdit}>Cancel edit</button> : <button type="button" className="btn btn-sm" onClick={startEdit}><Pencil size={14} /> Edit</button>}
       <button type="button" className="btn btn-primary btn-sm" onClick={() => onApprove(x)}><Check size={14} /> Approve</button>
     </footer>
-  </article>;
+  </article></div>;
 }
 
 export function SmsPage({ accounts, transactions = [], session, supabase, currency = 'EGP', gender = '', onApprove, onPendingChange, setToast }) {
@@ -307,6 +316,7 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
         <button type="button" className="btn btn-sm" disabled={!picked.length || (!bulk.cat && !bulk.acc)} onClick={bulkApply}>Apply</button>
         <button type="button" className="btn btn-sm" disabled={!picked.length} onClick={bulkDismiss}><X size={14} /> Dismiss</button>
         <button type="button" className="btn btn-primary btn-sm" disabled={!picked.length} onClick={bulkApprove}><Check size={14} /> Approve</button></div>}
+      <p className="smx-tip">Swipe a row right to approve, left to dismiss. On a computer, drag it or use the buttons.</p>
       <div className="smx-list">{shown.map(x => <SmsCard key={x.id} x={x} selectMode={selectMode} selected={sel.includes(x.id)} onSelect={toggleSel} dup={dupFor(x)} bal={balFor(x)} usable={usable} expCats={expCats} currency={currency} fmt={fmt} patch={patch} onApprove={approve} onDismiss={dismiss} onRemember={remember} editing={!!editingIds[x.id]} setEditing={setEditing} />)}</div>
       {noise.length > 0 && <details className="sms-other"><summary>Not a payment ({noise.length}) <small>OTP codes, offers…</small></summary>
         {noise.map(x => <div className="sms-other-row" key={x.id}><p dir="auto">{x.body}</p><button type="button" className="btn btn-sm" onClick={() => dismiss(x)}><X size={14} /> Dismiss</button></div>)}
