@@ -970,3 +970,18 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 :root[data-theme="dark"] .cfd-pill .amt{color:#f2b062}
 @media (max-width:720px){.cfd-hint{display:none}.cfd-card{flex-basis:132px}}
 @media (prefers-reduced-motion:reduce){.cfd-card,.cfd-today,.cfd-card:before,.cfd-fill i,.cfd-belt.run{animation:none!important;opacity:1;transform:none}.cfd-fill i{width:var(--w)}}
+
+/* Day transactions: slide-in rows */
+.cfr-list{display:flex;flex-direction:column;gap:10px}
+.cfr-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:18px;border:1px solid var(--line,#e5e7eb);background:var(--card,#fff);opacity:0;animation:cfrIn .6s cubic-bezier(.2,.9,.3,1) forwards;animation-delay:calc(var(--i)*.09s)}
+.cfr-ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-weight:800;flex:none;background:#fde0e3;color:#b4233a}
+.cfr-row.income .cfr-ic{background:#d6f5e8;color:#0f7a56}.cfr-row.due .cfr-ic{background:#fdecd0;color:#a8620a}
+.cfr-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.cfr-info b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cfr-info span{font-size:12px;opacity:.65}
+.cfr-amt{font-weight:700;white-space:nowrap;color:#b4233a}.cfr-row.income .cfr-amt{color:#0f7a56}.cfr-row.due .cfr-amt{color:#a8620a}
+@keyframes cfrIn{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:none}}
+:root[data-theme="dark"] .cfr-row{background:#141a24;border-color:#262e3c}
+:root[data-theme="dark"] .cfr-ic{background:rgba(255,141,151,.18);color:#ffb7be}
+:root[data-theme="dark"] .cfr-row.income .cfr-ic{background:rgba(79,209,165,.18);color:#8df0cd}
+:root[data-theme="dark"] .cfr-row.due .cfr-ic{background:rgba(242,176,98,.18);color:#f5c27d}
+:root[data-theme="dark"] .cfr-amt{color:#ffb7be}:root[data-theme="dark"] .cfr-row.income .cfr-amt{color:#8df0cd}:root[data-theme="dark"] .cfr-row.due .cfr-amt{color:#f5c27d}
+@media (prefers-reduced-motion:reduce){.cfr-row{animation:none;opacity:1}}
