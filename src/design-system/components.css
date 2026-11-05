@@ -919,3 +919,54 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .year-picker{min-width:130px}
 @media(max-width:560px){.month-picker{min-width:0;flex:1}}
 .year-picker select{background-image:none!important;padding-right:0}
+
+/* Cash flow calendar: day cards deck + bills belt */
+.cfd{margin-bottom:18px}
+.cfd-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:15px}
+.cfd-hint{margin-inline-start:auto;font-size:12px;color:var(--muted,#6b7280)}
+.cfd-row{display:flex;gap:12px;perspective:1200px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x proximity}
+.cfd-card{flex:1 0 118px;min-height:250px;border-radius:22px;padding:16px 14px;display:flex;flex-direction:column;gap:10px;text-align:start;position:relative;overflow:hidden;cursor:pointer;font:inherit;color:inherit;border:1px solid var(--line,#e5e7eb);background:var(--card,#fff);scroll-snap-align:start;transform-origin:50% 100%;animation:cfdFan .9s cubic-bezier(.2,.9,.25,1) both;animation-delay:calc(var(--i)*.09s)}
+.cfd-card:disabled{opacity:.4;cursor:default}
+.cfd-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.14) 50%,transparent 65%);transform:translateX(-120%);animation:cfdShine 6s ease-in-out infinite;animation-delay:calc(var(--i)*.7s)}
+.cfd-card.is-sel{outline:2px solid #3157f6;outline-offset:2px}
+.cfd-top{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:1px;opacity:.75}
+.cfd-day{font-size:44px;font-weight:700;letter-spacing:-2px;line-height:1}
+.cfd-fill{height:6px;border-radius:6px;background:rgba(120,130,150,.25);overflow:hidden}
+.cfd-fill i{display:block;height:100%;border-radius:6px;width:0;background:currentColor;animation:cfdFill 1.2s .3s cubic-bezier(.2,.8,.2,1) forwards}
+.cfd-items{margin-top:auto;display:flex;flex-direction:column;gap:5px;font-size:12px}
+.cfd-items>span{display:flex;justify-content:space-between;gap:6px}
+.cfd-items>span>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cfd-items small{opacity:.7}
+.cfd-net{font-size:19px;font-weight:700;letter-spacing:-.5px}
+.cfd-pos{background:linear-gradient(160deg,#d6f5e8,#fff 70%);color:#0f7a56}
+.cfd-neg{background:linear-gradient(160deg,#fde0e3,#fff 70%);color:#b4233a}
+.cfd-due{background:linear-gradient(160deg,#fdecd0,#fff 70%);color:#a8620a}
+.cfd-empty,.cfd-out{color:#64708a}
+.cfd-card .cfd-items,.cfd-card .cfd-day{color:var(--text,#111827)}
+.cfd-today{background:linear-gradient(160deg,#3157f6,#1b2a5c);border-color:#6f8bff;color:#fff;animation:cfdFan .9s cubic-bezier(.2,.9,.25,1) both,cfdBob 3s ease-in-out infinite;animation-delay:calc(var(--i)*.09s),1s}
+.cfd-today .cfd-items,.cfd-today .cfd-day{color:#fff}
+.cfd-upwrap{margin-top:8px}.cfd-uptitle{font-size:12px;font-weight:700;color:var(--muted,#6b7280);margin-bottom:8px}
+.cfd-belt-mask.loop{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.cfd-belt-mask:not(.loop){overflow-x:auto}
+.cfd-belt{display:flex;gap:12px;width:max-content}
+.cfd-belt.run{animation:cfdBelt 28s linear infinite}
+.cfd-belt-mask:hover .cfd-belt{animation-play-state:paused}
+.cfd-pill{display:flex;gap:10px;align-items:center;padding:11px 16px;border-radius:16px;border:1px solid var(--line,#e5e7eb);background:var(--card,#fff);color:inherit;font:inherit;font-size:13px;white-space:nowrap;cursor:pointer}
+.cfd-pill i{width:10px;height:10px;border-radius:50%;background:#f2b062}
+.cfd-pill span{opacity:.65}.cfd-pill .amt{color:#a8620a}
+@keyframes cfdFan{0%{opacity:0;transform:translateY(60px) rotateX(30deg) rotateZ(var(--rz))}100%{opacity:1;transform:none}}
+@keyframes cfdShine{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@keyframes cfdFill{to{width:var(--w)}}
+@keyframes cfdBob{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@keyframes cfdBelt{to{transform:translateX(-25%)}}
+:root[data-theme="dark"] .cfd-card{background:#141a24;border-color:#2a3344}
+:root[data-theme="dark"] .cfd-pos{background:linear-gradient(160deg,#1c4a43,#141a24 70%);color:#8df0cd}
+:root[data-theme="dark"] .cfd-neg{background:linear-gradient(160deg,#4a2a33,#141a24 70%);color:#ffb7be}
+:root[data-theme="dark"] .cfd-due{background:linear-gradient(160deg,#4a3820,#141a24 70%);color:#f5c27d}
+:root[data-theme="dark"] .cfd-empty,:root[data-theme="dark"] .cfd-out{color:#aab3c8}
+:root[data-theme="dark"] .cfd-card .cfd-items,:root[data-theme="dark"] .cfd-card .cfd-day{color:#eceff7}
+:root[data-theme="dark"] .cfd-today .cfd-items,:root[data-theme="dark"] .cfd-today .cfd-day{color:#fff}
+:root[data-theme="dark"] .cfd-pill{background:#141a24;border-color:#262e3c}
+:root[data-theme="dark"] .cfd-pill .amt{color:#f2b062}
+@media (max-width:720px){.cfd-hint{display:none}.cfd-card{flex-basis:132px}}
+@media (prefers-reduced-motion:reduce){.cfd-card,.cfd-today,.cfd-card:before,.cfd-fill i,.cfd-belt.run{animation:none!important;opacity:1;transform:none}.cfd-fill i{width:var(--w)}}
