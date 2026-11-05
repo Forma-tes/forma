@@ -905,3 +905,17 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 /* Bank SMS card fields: styled selects/inputs instead of browser defaults */
 .smx-card select,.smx-card input:not([type=checkbox]):not([type=radio]){height:38px;width:100%;border:1px solid var(--ds-border,#e3e6ee);border-radius:10px;padding:0 10px;background:var(--ds-surface,#fff);color:inherit;font:inherit;font-size:13px;min-width:0}
 .smx-card select:focus-visible,.smx-card input:focus-visible{outline:2px solid #3157f6;outline-offset:1px}
+
+/* Date dropdowns (month + year): one pill style everywhere — calendar icon, bold label, chevron */
+.month-picker,.year-picker{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;height:44px;min-width:180px;padding:0 18px;border:1px solid var(--ds-border,#e3e6ee);border-radius:14px;background:var(--ds-surface,#fff);color:var(--ds-text,#1f2430);font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 1px 2px rgba(20,28,45,.04)}
+.month-picker:hover,.year-picker:hover{border-color:#b9c3e8}
+.month-picker:focus-within,.year-picker:focus-within{border-color:#3157f6;box-shadow:0 0 0 3px #3157f622}
+.month-picker svg,.year-picker svg{flex:none;color:inherit}
+.month-picker input,.year-picker select{border:0;outline:0;background:transparent;color:inherit;font:inherit;font-weight:700;font-size:14px;width:auto;padding:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+.month-picker input{width:136px}
+.year-picker select{width:auto;min-width:48px}
+.month-picker::after,.year-picker::after{content:"";flex:none;width:7px;height:7px;margin:-3px 0 0 2px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);pointer-events:none}
+.year-picker select{position:static}
+.year-picker{min-width:130px}
+@media(max-width:560px){.month-picker{min-width:0;flex:1}}
+.year-picker select{background-image:none!important;padding-right:0}
