@@ -99,16 +99,16 @@
   --ds-warn: #f0a458; --ds-warn-soft: #3b2c17;
   --ds-bad: #ff8790;  --ds-bad-soft: #3d1d24;
   --ds-chip-brand-soft: #2b3358;
-  --ds-soft: #222b3b;
-  --ds-page: #131925;
-  --ds-surface: #1d2432;
-  --ds-text: #edf0f8;
-  --ds-text-muted: #a2abc0;
-  --ds-border: #30384a;
-  --ds-control-bg: #222b3b;
-  --ds-control-border: #394256;
-  --ds-control-text: #e7ebf5;
-  --ds-secondary-text: #e7ebf5;
+  --ds-soft: #262f41;
+  --ds-page: #151a24;
+  --ds-surface: #1c2230;
+  --ds-text: #eceff7;
+  --ds-text-muted: #9aa4ba;
+  --ds-border: #2d3647;
+  --ds-control-bg: #262f41;
+  --ds-control-border: #3a4558;
+  --ds-control-text: #e4e8f2;
+  --ds-secondary-text: #e4e8f2;
 }
 
 /* ---- Optional accent themes (set data-design on <html>) ---- */
