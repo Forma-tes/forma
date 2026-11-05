@@ -901,3 +901,7 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .smi-rec,.smi-alert{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:9px 0;border-top:1px solid var(--border)}.smi-rec small,.smi-alert small{display:block;color:var(--muted)}.smi-alert{justify-content:flex-start;color:var(--ds-warning)}.smi-alert.bad{color:var(--ds-danger)}.smi-alert div{color:var(--ink)}
 .smi-card svg{width:100%;height:90px}.smi-axis{display:flex;justify-content:space-between}
 @media(max-width:760px){.smi-kpis{grid-template-columns:1fr 1fr}.smi-grid{grid-template-columns:1fr}.smd-row{flex-wrap:wrap}}
+
+/* Bank SMS card fields: styled selects/inputs instead of browser defaults */
+.smx-card select,.smx-card input:not([type=checkbox]):not([type=radio]){height:38px;width:100%;border:1px solid var(--ds-border,#e3e6ee);border-radius:10px;padding:0 10px;background:var(--ds-surface,#fff);color:inherit;font:inherit;font-size:13px;min-width:0}
+.smx-card select:focus-visible,.smx-card input:focus-visible{outline:2px solid #3157f6;outline-offset:1px}
