@@ -219,4 +219,4 @@ html.pocket-sheet-open .notification-toast { visibility: hidden; pointer-events:
 .modal>.profile-settings-form{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .modal>.profile-settings-form>*{flex-shrink:0}
 .modal>.profile-settings-form>.profile-settings-footer{position:sticky;bottom:0;z-index:2;margin-top:auto;background:var(--panel,var(--surface,#fff));padding:12px 0 max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border,#eef0f4)}
-:root[data-theme="dark"] .modal>.profile-settings-form>.profile-settings-footer{background:var(--ds-surface,#1b2230);border-color:#2d3647}
+:root[data-theme="dark"] .modal>.profile-settings-form>.profile-settings-footer{background:var(--ds-surface,#1b2230);border-color:#262e3c}

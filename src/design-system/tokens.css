@@ -99,14 +99,14 @@
   --ds-warn: #f0a458; --ds-warn-soft: #3b2c17;
   --ds-bad: #ff8790;  --ds-bad-soft: #3d1d24;
   --ds-chip-brand-soft: #2b3358;
-  --ds-soft: #262f41;
-  --ds-page: #151a24;
-  --ds-surface: #1c2230;
+  --ds-soft: #202837;
+  --ds-page: #0c1017;
+  --ds-surface: #141a24;
   --ds-text: #eceff7;
   --ds-text-muted: #9aa4ba;
-  --ds-border: #2d3647;
-  --ds-control-bg: #262f41;
-  --ds-control-border: #3a4558;
+  --ds-border: #262e3c;
+  --ds-control-bg: #202837;
+  --ds-control-border: #323c4e;
   --ds-control-text: #e4e8f2;
   --ds-secondary-text: #e4e8f2;
 }

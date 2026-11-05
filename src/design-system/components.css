@@ -84,7 +84,7 @@ select option { font-family: var(--ds-font-ui); font-weight: 500; }
 .modal-backdrop,:root[data-theme="dark"] .modal-backdrop{background:rgba(12,16,28,.62)!important;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 :root[data-theme="dark"] .modal-backdrop{background:rgba(0,0,0,.72)!important}
 :root[data-theme="dark"] .modal-backdrop>.modal,:root[data-theme="dark"] .modal-backdrop>.modal-shell{outline:0;box-shadow:0 24px 70px rgba(0,0,0,.6)}
-:root[data-theme="dark"] .modal-backdrop .btn-secondary{background:#262f41!important;color:#e4e8f2!important;border-color:#3a4558!important}
+:root[data-theme="dark"] .modal-backdrop .btn-secondary{background:#202837!important;color:#e4e8f2!important;border-color:#323c4e!important}
 
 /* Headings with a leading icon: icon and text share one centered line, system-wide */
 :is(h1,h2,h3,h4):has(>svg:first-child),.panel-header h2:has(>svg),.modal-head h2:has(>svg),.modal-header h2:has(>svg){display:flex!important;align-items:center;gap:8px}
@@ -149,10 +149,10 @@ select:not([multiple]):not([size]){
 .menu-item-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
 .menu-item-copy b{font-size:14px;font-weight:600;text-transform:none}.menu-item-copy small{font-size:12px;color:var(--ds-text-muted,#6c7182);text-transform:none}
 .menu-divider{height:1px;margin:6px 8px;background:var(--ds-border,var(--border,#e4e6ee))}
-:root[data-theme="dark"] .menu-popover{background:#1c2230;border-color:#2d3647;box-shadow:0 14px 38px rgba(0,0,0,.5)}
+:root[data-theme="dark"] .menu-popover{background:#141a24;border-color:#262e3c;box-shadow:0 14px 38px rgba(0,0,0,.5)}
 :root[data-theme="dark"] .menu-item{color:#eceff7}:root[data-theme="dark"] .menu-item:hover,:root[data-theme="dark"] .menu-item:focus-visible{background:#262f42}
 :root[data-theme="dark"] .menu-item-icon{background:rgba(120,135,255,.14);color:#a5b0ff}
-:root[data-theme="dark"] .menu-item-copy small{color:#9aa4bb}:root[data-theme="dark"] .menu-divider{background:#2d3647}
+:root[data-theme="dark"] .menu-item-copy small{color:#9aa4bb}:root[data-theme="dark"] .menu-divider{background:#262e3c}
 @media(max-width:640px){.menu-popover{left:0;right:auto;min-width:min(270px,calc(100vw - 32px))}}
 /* ---- Transactions: three stat cards, table runs edge to edge ---- */
 .metric-grid.metric-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -298,7 +298,7 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 .tx-table .tx-group-row td{padding:10px 20px!important;background:var(--surface-soft,#f6f7fb);border-bottom:1px solid var(--border,#eef0f5)}
 .tx-table .tx-group-row td span{font-size:12px;font-weight:700;color:var(--text,#1d2230);text-transform:none}
 .tx-table .tx-group-row td small{margin-left:10px;font-size:11.5px;color:var(--muted,#8b92a5);text-transform:none}
-:root[data-theme="dark"] .tx-table .tx-group-row td{background:#222a3a;border-color:#2d3647}
+:root[data-theme="dark"] .tx-table .tx-group-row td{background:#1a212d;border-color:#262e3c}
 :root[data-theme="dark"] .tx-table .tx-group-row td span{color:#e9ecf5}
 .tx-table tbody tr.tx-group-row:hover{background:transparent}
 .table-more{display:flex;justify-content:center;padding:14px;border-top:1px solid var(--border,#eef0f5)}
@@ -347,7 +347,7 @@ main .category-admin-heading h1,main .page-heading h1{font-size:29px;font-weight
 .vehicle-add-wizard>.modal-head{flex:none}
 .vehicle-add-wizard>form,.vehicle-add-wizard>.vehicle-wizard-form{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .vehicle-add-wizard .vehicle-form-actions,.vehicle-add-wizard .admin-wizard-actions{position:sticky;bottom:0;z-index:2;margin-top:12px;padding:12px 0 calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border,#edf0f5);background:var(--ds-surface,var(--panel,#fff))}
-:root[data-theme="dark"] .vehicle-add-wizard .vehicle-form-actions,:root[data-theme="dark"] .vehicle-add-wizard .admin-wizard-actions{border-top-color:#2d3647}
+:root[data-theme="dark"] .vehicle-add-wizard .vehicle-form-actions,:root[data-theme="dark"] .vehicle-add-wizard .admin-wizard-actions{border-top-color:#262e3c}
 @media(max-width:680px){.vehicle-add-wizard .vehicle-form-actions .btn{flex:1}}
 .vehicle-add-wizard .vehicle-wizard-form>*{flex-shrink:0}
 
@@ -463,8 +463,8 @@ main .page-heading{position:relative;z-index:40}
 .debt-pay-summary p{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--muted,#7a8194)}
 .debt-pay-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 24px 22px}
 .debt-pay-actions .btn{min-height:44px;padding:0 20px}
-:root[data-theme="dark"] .debt-pay-close{border-color:#2d3647}:root[data-theme="dark"] .debt-pay-close:hover{background:#262f42}
-:root[data-theme="dark"] .debt-pay-summary{background:#1a2132;border-color:#2d3647}
+:root[data-theme="dark"] .debt-pay-close{border-color:#262e3c}:root[data-theme="dark"] .debt-pay-close:hover{background:#262f42}
+:root[data-theme="dark"] .debt-pay-summary{background:#1a2132;border-color:#262e3c}
 @media(max-width:640px){
  .debt-pay-head{padding:6px 18px 2px}.debt-pay-body{padding:14px 18px 4px}.debt-pay-row{grid-template-columns:1fr}
  .debt-pay-actions{padding:14px 18px calc(18px + env(safe-area-inset-bottom));flex-direction:column-reverse}.debt-pay-actions .btn{width:100%}
@@ -472,7 +472,7 @@ main .page-heading{position:relative;z-index:40}
 .debt-pay :is(p,small,span,b,label,div){text-transform:none}.debt-pay .debt-pay-eyebrow{text-transform:uppercase}
 .debt-pay-field input,.debt-pay-field select{border:1px solid var(--ds-border,#dfe2ec);background:var(--ds-surface,#fff);color:var(--ink,#171923);outline:0;box-shadow:none;transition:border-color .15s,box-shadow .15s}
 .debt-pay-field input:focus,.debt-pay-field select:focus{border-color:var(--ds-brand,#3157f6);box-shadow:0 0 0 3px rgba(49,87,246,.16)}
-:root[data-theme="dark"] .debt-pay-field input,:root[data-theme="dark"] .debt-pay-field select{background:#151c2b;border-color:#2d3647;color:#eceff7}
+:root[data-theme="dark"] .debt-pay-field input,:root[data-theme="dark"] .debt-pay-field select{background:#151c2b;border-color:#262e3c;color:#eceff7}
 
 /* ==========================================================================
    Consistency pass: one size/shape for every button, brand blue for every
@@ -605,7 +605,7 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .tx-wizard-track{display:flex;gap:6px;height:6px;margin-top:14px;background:transparent!important;overflow:visible;border-radius:0}
 .tx-wizard-track>span{flex:1 1 0;width:auto!important;height:100%;border-radius:99px;background:var(--ds-border);transition:background .25s ease}
 .tx-wizard-track>span.on{background:var(--ds-brand)}
-:root[data-theme="dark"] .tx-wizard-track>span{background:#2d3647}
+:root[data-theme="dark"] .tx-wizard-track>span{background:#262e3c}
 :root[data-theme="dark"] .tx-wizard-track>span.on{background:#5c7dff}
 
 /* Spending breakdown: legend as a clean list on phones */

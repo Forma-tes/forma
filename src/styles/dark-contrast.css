@@ -58,7 +58,7 @@
 :root[data-theme="dark"] .recharts-tooltip-label{color:#171923!important}
 
 /* Toast + tinted icon chips: dark surfaces instead of bright light ones */
-:root[data-theme="dark"] .notification-toast{background:#1c2230;border:1px solid #2d3647;color:#eceff7}
+:root[data-theme="dark"] .notification-toast{background:#141a24;border:1px solid #262e3c;color:#eceff7}
 :root[data-theme="dark"] .notification-toast-copy>b{color:#eceff7!important}
 :root[data-theme="dark"] .notification-toast-icon{background:rgba(255,135,144,.16)}
 :root[data-theme="dark"] .tx-income,:root[data-theme="dark"] .metric-icon.green{background:rgba(86,201,160,.16)!important;color:#56c9a0!important}
@@ -72,11 +72,11 @@
 .smx-bg.ap{background:#17805a}
 
 /* Plain .btn (no variant) had the browser's light grey in dark mode; SMS card fields too */
-:root[data-theme="dark"] .btn:where(:not(.btn-primary,.btn-secondary,.btn-danger,.btn-ghost,.btn-link)){background:#262f41;color:#e4e8f2;border-color:#3a4558}
+:root[data-theme="dark"] .btn:where(:not(.btn-primary,.btn-secondary,.btn-danger,.btn-ghost,.btn-link)){background:#202837;color:#e4e8f2;border-color:#323c4e}
 :root[data-theme="dark"] .btn:where(:not(.btn-primary,.btn-secondary,.btn-danger,.btn-ghost,.btn-link)):hover{background:#2a3448}
-:root[data-theme="dark"] .smx-card select,:root[data-theme="dark"] .smx-card input:not([type=checkbox]):not([type=radio]){background:#262f41;color:#e4e8f2;border-color:#3a4558}
+:root[data-theme="dark"] .smx-card select,:root[data-theme="dark"] .smx-card input:not([type=checkbox]):not([type=radio]){background:#202837;color:#e4e8f2;border-color:#323c4e}
 :root[data-theme="dark"] .smx-card select:focus-visible,:root[data-theme="dark"] .smx-card input:focus-visible{outline-color:#a9b8ff}
-:root[data-theme="dark"] .smx-chips2 select{background:#262f41;color:#e4e8f2;border-color:#3a4558}
+:root[data-theme="dark"] .smx-chips2 select{background:#202837;color:#e4e8f2;border-color:#323c4e}
 
 /* ===== Dark palette v2 =====
    page #151a24 > sidebar/topbar #181e2a > card #1c2230 > nested #222a3a > control #262f41
@@ -93,9 +93,12 @@
 :root[data-theme="dark"] .btn-primary{background:#3d63f6;color:#fff;box-shadow:none}
 :root[data-theme="dark"] .btn-primary:hover{background:#5174ff}
 :root[data-theme="dark"] .modal-backdrop{background:rgba(8,11,17,.62)}
-:root[data-theme="dark"] .modal{background:#1c2230;border:1px solid #2d3647}
-:root[data-theme="dark"] .progress-track,:root[data-theme="dark"] .report-bar{background:#2a3347}
-:root[data-theme="dark"] .upgrade-progress{background:#2a3347}
+:root[data-theme="dark"] .modal{background:#141a24;border:1px solid #262e3c}
+:root[data-theme="dark"] .progress-track,:root[data-theme="dark"] .report-bar{background:#252d3d}
+:root[data-theme="dark"] .upgrade-progress{background:#252d3d}
 :root[data-theme="dark"] .insight-bullet{background:rgba(120,148,255,.16)!important;color:#9db2ff!important}
-:root[data-theme="dark"] .recharts-default-tooltip{background:#262f41!important;border:1px solid #3a4558!important}
+:root[data-theme="dark"] .recharts-default-tooltip{background:#202837!important;border:1px solid #323c4e!important}
 :root[data-theme="dark"] .recharts-tooltip-label,:root[data-theme="dark"] .recharts-tooltip-item{color:#eceff7!important}
+:root[data-theme="dark"] .month-picker,:root[data-theme="dark"] .year-picker,:root[data-theme="dark"] .month-picker input,:root[data-theme="dark"] .year-picker select{color:#c3cadb}
+:root[data-theme="dark"] input::placeholder,:root[data-theme="dark"] textarea::placeholder{color:#8791a8;opacity:1}
+:root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] textarea{color-scheme:dark}
