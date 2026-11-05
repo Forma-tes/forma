@@ -877,3 +877,27 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .smx-card.smx-hint{animation:smxNudge 2.6s ease-in-out .8s 2}
 @keyframes smxNudge{0%,100%{transform:none}30%{transform:translateX(70px)}60%{transform:translateX(-50px)}}
 @media (prefers-reduced-motion:reduce){.smx-card.smx-hint{animation:none}.smx-swipe>.smx-card{transition:none}}
+
+/* Bank SMS — advanced */
+.sms-chipbtn{border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:99px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.sms-chipbtn:hover{color:var(--ink);border-color:color-mix(in srgb,var(--accent) 40%,var(--border))}
+.sms-chipbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}.sms-chipbtn.ghost{border-style:dashed}
+.smx-chips2{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}.smx-chips2 select{height:32px;border-radius:99px;padding:0 10px;font-size:12px}
+.smx-groups{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 9%,transparent)}.smx-groups>span{font-size:12px;font-weight:800;color:var(--accent)}
+.smx-conf{margin-left:auto;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px}
+.smx-conf.sure{background:color-mix(in srgb,var(--ds-success) 14%,transparent);color:var(--ds-success)}
+.smx-conf.check{background:color-mix(in srgb,var(--ds-warning) 18%,transparent);color:var(--ds-warning)}
+.smx-sug,.smx-xfer{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 0;font-size:12.5px;font-weight:700;color:var(--accent)}
+.smx-rate{display:flex;flex-direction:column;gap:5px;margin:8px 0}.smx-rate span{display:flex;align-items:center;gap:10px}.smx-rate input{width:110px}
+.smx-undo{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:18px;background:#283142;color:#fff;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(20,27,45,.35);font-weight:600;font-size:13px}
+.smx-undo button{background:none;border:0;color:#8fa5ff;font-weight:800;cursor:pointer}
+.sms-quick{display:grid;gap:8px;margin:10px 0}.sms-quick>div{display:flex;flex-wrap:wrap;gap:8px}
+.sms-pill.warn{background:color-mix(in srgb,var(--ds-warning) 16%,transparent);color:var(--ds-warning)}
+.smd{display:grid;gap:14px}.smd-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--border)}.smd-row>div{flex:1;min-width:0}.smd-row small{display:block;color:var(--muted);overflow-wrap:anywhere}
+.smd-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--surface-soft);color:var(--accent);flex:none}.smd-sub{margin:18px 0 6px}
+.smi-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.smi-kpis>div{border:1px solid var(--border);border-radius:14px;padding:14px;background:var(--surface-soft);display:grid;gap:2px}.smi-kpis b{font-size:24px}.smi-kpis span,.smi-kpis small{color:var(--muted);font-size:12px}
+.smi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.smi-card{border:1px solid var(--border);border-radius:14px;padding:16px}.smi-card.wide{grid-column:1/-1}.smi-card h4{margin:0 0 12px}
+.smi-bar{margin-bottom:12px}.smi-bar>div{display:flex;justify-content:space-between;gap:8px}.smi-bar small{color:var(--muted)}.smi-bar i{display:block;height:7px;border-radius:9px;background:var(--surface-soft);margin-top:6px;overflow:hidden}.smi-bar u{display:block;height:100%;background:var(--accent);border-radius:9px}
+.smi-rec,.smi-alert{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:9px 0;border-top:1px solid var(--border)}.smi-rec small,.smi-alert small{display:block;color:var(--muted)}.smi-alert{justify-content:flex-start;color:var(--ds-warning)}.smi-alert.bad{color:var(--ds-danger)}.smi-alert div{color:var(--ink)}
+.smi-card svg{width:100%;height:90px}.smi-axis{display:flex;justify-content:space-between}
+@media(max-width:760px){.smi-kpis{grid-template-columns:1fr 1fr}.smi-grid{grid-template-columns:1fr}.smd-row{flex-wrap:wrap}}

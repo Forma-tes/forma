@@ -5,7 +5,7 @@ export const normalizeDigits = s => String(s || '').replace(/[٠-٩]/g, d => AR_
 const DEBIT = ['purchase', 'purchased', 'spent', 'debited', 'debit', 'withdrawn', 'withdrawal', 'paid', 'payment', 'pos ', 'transferred to', 'sent', 'charged', 'سحب', 'خصم', 'مشتريات', 'شراء', 'تم دفع', 'دفع', 'تحويل صادر', 'تم تحويل', 'تنفيذ تحويل', 'تم تنفيذ', 'من حسابكم', 'تم سداد', 'سداد'];
 const CREDIT = ['credited', 'credit ', 'deposit', 'deposited', 'received', 'refund', 'salary', 'transferred from', 'incoming', 'اضافة', 'إضافة', 'ايداع', 'إيداع', 'استلام', 'تم استلام', 'تحويل وارد', 'راتب', 'استرداد', 'استقبال', 'تم استقبال', 'الى حسابكم'];
 const NOISE_BEFORE = /(balance|available|avail|limit|bal|رصيد|الرصيد|المتاح|حد)[^0-9]{0,18}$/i;
-const CUR = '(?:EGP|LE|L\\.E\\.?|E£|£E|£|جنيه|ج\\.م|جم|USD|\\$)';
+const CUR = '(?:EGP|LE|L\\.E\\.?|E£|£E|£|جنيه|ج\\.م|جم|USD|US\\$|\\$|EUR|€|SAR|AED)';
 
 const lc = s => String(s || '').toLowerCase();
 const clean = a => Number(String(a).replace(/,/g, ''));
@@ -94,4 +94,14 @@ export function buildAmountPattern(sample, amountText) {
   const before = text.slice(Math.max(0, m.index - 14), m.index).replace(/\s+$/, '').replace(/^\s+/, '');
   const prefix = before.length ? esc(before).replace(/\s+/g, '\\s*') : '';
   return `${prefix}\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`;
+}
+
+// Foreign currency printed in the SMS ("USD", "$", "EUR"…), or null for Egyptian pounds / unknown.
+export function detectCurrency(raw) {
+  const t = normalizeDigits(raw);
+  if (/(?:USD|US\$|\$)\s*[0-9]|[0-9]\s*(?:USD|\$)/i.test(t)) return 'USD';
+  if (/(?:EUR|€)\s*[0-9]|[0-9]\s*(?:EUR|€)/i.test(t)) return 'EUR';
+  if (/SAR\s*[0-9]|[0-9]\s*SAR/i.test(t)) return 'SAR';
+  if (/AED\s*[0-9]|[0-9]\s*AED/i.test(t)) return 'AED';
+  return null;
 }

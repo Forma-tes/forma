@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Copy, Inbox, History, MessageSquare, Pencil, RefreshCw, RotateCcw, Search, Settings2, X, Clock, CheckCircle2, Download, Eye, EyeOff, FileSpreadsheet, FileText, Plus, Scissors, Trash2, TriangleAlert } from 'lucide-react';
+import { ArrowLeftRight, BarChart3, Check, ChevronDown, Copy, Inbox, History, MessageSquare, Pencil, RefreshCw, RotateCcw, Search, Settings2, X, Clock, CheckCircle2, Download, Eye, EyeOff, FileSpreadsheet, FileText, Plus, Scissors, Trash2, TriangleAlert } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Field } from '../../components/ui/Field.jsx';
 import { PageHeading } from '../../components/ui/PageHeading.jsx';
@@ -8,7 +8,11 @@ import { isGoalsAccount } from '../../lib/features.js';
 import { accountFlows, money } from '../../lib/credit.js';
 import { exportTable } from '../../lib/transferFile.js';
 import { MenuButton } from '../../components/ui/MenuButton.jsx';
-import { buildAmountPattern, findBalance, findLast4, matchAccount, normalizeDigits, parseSms } from '../../lib/smsParser.js';
+import { buildAmountPattern, detectCurrency, findBalance, findLast4, matchAccount, normalizeDigits, parseSms } from '../../lib/smsParser.js';
+import { BANKS } from '../../lib/smsBanks.js';
+import { confidence, detectTransfers, groupsByMerchant, merchantKey, suggestAuto } from '../../lib/smsInsights.js';
+import { SmsInsights } from './SmsInsights.jsx';
+import { SmsDevices, SmsRulesBackup } from './SmsDevices.jsx';
 
 const TEST_SENDER = 'Pocket Test';
 const csv = v => String(v || '').split(/[,\n،]/).map(x => x.trim()).filter(Boolean);
@@ -35,6 +39,7 @@ function AccountConfig({ account, cfg, userId, supabase, onSaved, setToast, open
     <button type="button" className="sms-acc-head" onClick={onToggle} aria-expanded={open}><span><b>{account.name}</b><small>{configured ? `${(cfg.senders || []).join(', ') || '—'}${cfg.card_last4?.length ? ` · •••• ${cfg.card_last4.join(', ')}` : ''}` : 'Not set up'}</small></span><span className={`sms-pill ${configured && cfg.enabled ? "on" : ""}`}>{configured ? (cfg.enabled ? 'On' : 'Off') : 'Off'}</span><ChevronDown size={16} /></button>
     {open && <div className="sms-acc-body">
       <label className="sms-toggle"><input type="checkbox" checked={f.enabled} onChange={e => set('enabled', e.target.checked)} /> <span>Read bank SMS for this account</span></label>
+      <div className="sms-quick"><small>Quick setup — pick your bank</small><div>{BANKS.map(b => <button type="button" key={b.name} className="sms-chipbtn" onClick={() => { setF(o => ({ ...o, senders: b.senders.join(', '), debit_keywords: b.debit.join(', '), credit_keywords: b.credit.join(', ') })); }}>{b.name}</button>)}</div><small>Fills the sender and keywords. Check the sender name against a real SMS, then Save.</small></div>
       <div className="form-grid">
         <Field label="Bank sender name(s)" wide><input value={f.senders} onChange={e => set('senders', e.target.value)} placeholder="CIB, NBE, +201234…" /></Field>
         <Field label="Card / account last 4"><input inputMode="numeric" value={f.card_last4} onChange={e => set('card_last4', e.target.value)} placeholder="1234" /></Field>
@@ -66,7 +71,7 @@ const mapPending = (x, cfgs, memo) => {
 };
 const isNoise = x => x.amount == null && !x.txn_type;
 
-function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismiss, onRemember, editing, setEditing, selectMode, selected, onSelect, dup, bal }) {
+function SmsCard({ conf, sug, onAutoRule, xfer, onTransfer, cur, x, usable, expCats, currency, fmt, patch, onApprove, onDismiss, onRemember, editing, setEditing, selectMode, selected, onSelect, dup, bal }) {
   const [open, setOpen] = useState(false);
   const accName = usable.find(a => String(a.id) === String(x._acc))?.name;
   const isIn = x._type === 'Income';
@@ -93,8 +98,9 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
       {selectMode && <input type="checkbox" className="smx-check" checked={!!selected} onChange={() => onSelect(x.id)} aria-label="Select this SMS" />}
       <span className="smx-av" aria-hidden="true">{(x.sender || '?').trim().charAt(0).toUpperCase()}</span>
       <small>{x.sender || 'Unknown sender'} · {new Date(x.received_at).toLocaleString()}</small>
+      {conf && <span className={`smx-conf ${conf.level}`} title={conf.why.join(' · ')}>{conf.level === 'sure' ? '✓ Sure' : '! Check this'}</span>}
     </div>
-    <div className="smx-hero"><div className={`smx-big ${isIn ? 'in' : 'out'}`}>{amt > 0 ? `${isIn ? '+' : '−'}${fmt(amt)}` : 'No amount'}</div>{x._desc && <b className="smx-title">{x._desc}</b>}</div>
+    <div className="smx-hero"><div className={`smx-big ${isIn ? 'in' : 'out'}`}>{amt > 0 ? (cur ? `${isIn ? '+' : '−'}${cur} ${amt}` : `${isIn ? '+' : '−'}${fmt(amt)}`) : 'No amount'}</div>{x._desc && <b className="smx-title">{x._desc}</b>}</div>
     {!editing ? <div className="smx-quick"><label><small>Account</small><select value={x._acc} onChange={e => patch(x.id, { _acc: e.target.value })}><option value="">Choose…</option>{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>{splits ? <span className="smx-chip">Split in {splits.length}</span> : <label><small>Category</small><select value={x._cat} onChange={e => patch(x.id, { _cat: e.target.value })}><option value="">{isIn ? 'Other income' : 'Other'}</option>{cats.map(c => <option key={c}>{c}</option>)}</select></label>}</div> : <div className="form-grid smx-edit">
       <Field label="Type"><select value={x._type} onChange={e => patch(x.id, { _type: e.target.value, _cat: '', _splits: null })}><option>Expense</option><option>Income</option></select></Field>
       <Field label={`Amount (${currency})`}><input inputMode="decimal" value={x._amount} onChange={e => patch(x.id, { _amount: e.target.value })} /></Field>
@@ -105,6 +111,10 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
         <div className="smx-split-foot"><button type="button" className="btn btn-sm" onClick={() => patch(x.id, { _splits: [...splits, { cat: '', amount: remain > 0 ? String(Math.round(remain * 100) / 100) : '' }] })}><Plus size={14} /> Add part</button><small className={Math.abs(remain) < 0.01 ? 'ok' : 'bad'}>{Math.abs(remain) < 0.01 ? 'Parts add up' : remain > 0 ? `${fmt(remain)} left to assign` : `${fmt(-remain)} too much`}</small></div></div>}
       {!splits && amt > 0 && <button type="button" className="sms-link smx-splitbtn" onClick={() => patch(x.id, { _splits: [{ cat: x._cat, amount: String(Math.round(amt / 2 * 100) / 100) }, { cat: '', amount: String(Math.round(amt / 2 * 100) / 100) }] })}><Scissors size={13} /> Split into categories</button>}
     </div>}
+    {cur && <label className="smx-rate"><small>Exchange rate · 1 {cur} = ? {currency}</small><span><input inputMode="decimal" value={x._rate ?? ''} onChange={e => patch(x.id, { _rate: e.target.value })} placeholder="e.g. 50" aria-label="Exchange rate" /><b>{Number(x._rate) > 0 && amt > 0 ? `= ${fmt(Math.round(amt * Number(x._rate) * 100) / 100)}` : ''}</b></span></label>}
+    {conf?.level === 'check' && <p className="smx-alert"><TriangleAlert size={14} /> {conf.why.join(' · ')}. Please confirm.</p>}
+    {sug && <p className="smx-sug">Seen {sug.n}× as {x._cat || 'the same category'}. <button type="button" className="sms-link" onClick={() => onAutoRule(x, sug)}>Auto-approve {sug.merchant} up to {fmt(sug.max)}?</button></p>}
+    {xfer && <p className="smx-xfer"><ArrowLeftRight size={14} /> Looks like a transfer with {xfer.sender || 'another bank'} ({fmt(Number(xfer._amount))}). <button type="button" className="sms-link" onClick={() => onTransfer(x, xfer)}>Add as one transfer</button></p>}
     <button type="button" className={`smx-quote ${open ? 'open' : ''}`} dir="auto" onClick={() => setOpen(o => !o)} aria-expanded={open}>{x.body}</button>
     {dup && <p className="smx-alert"><TriangleAlert size={14} /> Looks like “{dup.description || dup.category}” on {dup.transaction_date} is already in Transactions.</p>}
     {bal && <p className={`smx-bal ${bal.ok ? 'ok' : 'bad'}`}>{bal.ok ? `Balance matches the bank (${fmt(bal.sms)}) after adding this.` : `Bank says ${fmt(bal.sms)}, Pocket would show ${fmt(bal.expected)} (difference ${bal.diff > 0 ? '+' : '−'}${fmt(Math.abs(bal.diff))}).`}</p>}
@@ -120,7 +130,7 @@ function SmsCard({ x, usable, expCats, currency, fmt, patch, onApprove, onDismis
   </article></div>;
 }
 
-export function SmsPage({ accounts, transactions = [], session, supabase, currency = 'EGP', gender = '', onApprove, onPendingChange, setToast }) {
+export function SmsPage({ accounts, transactions = [], session, supabase, currency = 'EGP', gender = '', onApprove, onUndoTx, onPendingChange, setToast }) {
   const userId = session?.user?.id;
   const [tab, setTab] = useState('inbox');
   const [items, setItems] = useState([]);
@@ -131,6 +141,14 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
   const [cstep, setCstep] = useState(1);
   const [testing, setTesting] = useState(false);
   const [testOk, setTestOk] = useState(false);
+  const [devices, setDevices] = useState([]);
+  const [quiet, setQuietState] = useState(() => { try { return localStorage.getItem('pocket.smsQuiet') === '1'; } catch { return false; } });
+  const setQuiet = v => { setQuietState(v); try { localStorage.setItem('pocket.smsQuiet', v ? '1' : '0'); } catch { /* ignore */ } };
+  const savedF = (() => { try { return JSON.parse(localStorage.getItem('pocket.smsFilter') || 'null'); } catch { return null; } })();
+  const [view, setView] = useState(savedF?.view || 'all');
+  const [minAmt, setMinAmt] = useState(savedF?.minAmt || 0);
+  const [range, setRange] = useState(savedF?.range || 'all');
+  const [rates, setRates] = useState({});
   const [showTok, setShowTok] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openAcc, setOpenAcc] = useState(null);
@@ -151,6 +169,8 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
 
   const load = useCallback(async () => {
     setLoading(true);
+    const dv = await supabase.from('sms_devices').select('*').order('created_at', { ascending: false });
+    setDevices(dv.error ? [] : (dv.data || []));
     const [i, c, t, h] = await Promise.all([
       supabase.from('sms_inbox').select('*').eq('status', 'pending').order('received_at', { ascending: false }),
       supabase.from('account_sms_config').select('*'),
@@ -193,33 +213,76 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
   }, [poll, tab, lastSms]);
   const payments = useMemo(() => items.filter(x => !isNoise(x)), [items]);
   const noise = useMemo(() => items.filter(isNoise), [items]);
+  useEffect(() => {
+    if (!quiet || loading || !noise.length) return;
+    const old = noise.filter(x => Date.now() - new Date(x.received_at).getTime() > 7 * 864e5);
+    if (!old.length) return;
+    supabase.from('sms_inbox').update({ status: 'dismissed' }).in('id', old.map(x => x.id)).then(() => { setItems(o => o.filter(y => !old.some(z => z.id === y.id))); setToast(`Cleared ${old.length} old OTP / offer message${old.length > 1 ? 's' : ''}`); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quiet, loading, noise.length]);
+  const foreign = useMemo(() => [...new Set(items.map(x => detectCurrency(x.body)).filter(c => c && c !== currency))], [items, currency]);
+  useEffect(() => {
+    foreign.filter(c => !rates[c]).forEach(async c => {
+      try { const r = await fetch(`https://open.er-api.com/v6/latest/${c}`); const j = await r.json(); const v = j?.rates?.[currency]; if (v) setRates(o => ({ ...o, [c]: Math.round(v * 100) / 100 })); } catch { /* user types the rate */ }
+    });
+  }, [foreign, currency]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setItems(o => o.map(x => { const c = detectCurrency(x.body); return c && c !== currency && x._rate == null && rates[c] ? { ...x, _rate: String(rates[c]) } : x; })); }, [rates, currency]);
   useEffect(() => { onPendingChange?.(items.length); }, [items.length, onPendingChange]);
 
   const patch = (id, p) => setItems(o => o.map(x => x.id === id ? { ...x, ...p } : x));
   const setEditing = (id, v) => setEditingIds(o => ({ ...o, [id]: v }));
-  const approve = async x => {
+  const curOf = x => { const c = detectCurrency(x.body); return c && c !== currency ? c : null; };
+  const approve = async (x, opts = {}) => {
     const amount = Number(x._amount);
     if (!(amount > 0)) { setEditing(x.id, true); setToast('Enter the amount first'); return false; }
     if (!x._acc) { setEditing(x.id, true); setToast('Choose the account'); return false; }
+    const cur = curOf(x); const rate = cur ? Number(x._rate) : 1;
+    if (cur && !(rate > 0)) { setEditing(x.id, true); setToast(`Enter the ${cur} exchange rate`); return false; }
+    const conv = v => Math.round(Number(v) * rate * 100) / 100;
     const parts = x._splits || null;
     if (parts && Math.abs(amount - parts.reduce((n, r) => n + (Number(r.amount) || 0), 0)) >= 0.01) { setEditing(x.id, true); setToast('The split parts must add up to the full amount'); return false; }
     const acc = accounts.find(a => String(a.id) === String(x._acc));
-    const list = parts ? parts.map((r, i) => ({ cat: r.cat || (x._type === 'Income' ? 'Other income' : 'Other'), amount: Number(r.amount), label: `${x._desc || (x.sender ? `SMS · ${x.sender}` : 'Bank SMS')} (${i + 1}/${parts.length})` })) : [{ cat: x._cat || (x._type === 'Income' ? 'Other income' : 'Other'), amount, label: x._desc || (x.sender ? `SMS · ${x.sender}` : 'Bank SMS') }];
-    let first = null;
+    const label0 = x._desc || (x.sender ? `SMS · ${x.sender}` : 'Bank SMS');
+    const list = parts ? parts.map((r, i) => ({ cat: r.cat || (x._type === 'Income' ? 'Other income' : 'Other'), amount: conv(r.amount), label: `${label0} (${i + 1}/${parts.length})` })) : [{ cat: x._cat || (x._type === 'Income' ? 'Other income' : 'Other'), amount: conv(amount), label: label0 }];
+    const note = `From bank SMS: ${x.body}${cur ? ` | Original ${cur} ${amount} @ ${rate}` : ''}`.slice(0, 500);
+    const ids = [];
     for (const part of list) {
-      const saved = await onApprove({ transaction_date: localISODate(new Date(x.received_at)), type: x._type, category: part.cat, subcategory: null, description: part.label, amount: part.amount, need_want: x._type === 'Expense' ? 'Need' : null, fixed_variable: 'Variable', payment_method: acc?.name || 'Unassigned', account_id: x._acc, to_account_id: null, goal_id: null, debt_id: null, recurring: false, notes: `From bank SMS: ${x.body}`.slice(0, 500) });
-      if (!saved) return false;
-      first = first || saved;
+      const saved = await onApprove({ transaction_date: localISODate(new Date(x.received_at)), type: x._type, category: part.cat, subcategory: null, description: part.label, amount: part.amount, need_want: x._type === 'Expense' ? 'Need' : null, fixed_variable: 'Variable', payment_method: acc?.name || 'Unassigned', account_id: x._acc, to_account_id: null, goal_id: null, debt_id: null, recurring: false, notes: note });
+      if (!saved) { if (ids.length && onUndoTx) await onUndoTx(ids); return false; }
+      ids.push(saved.id);
     }
     const cat = list.length > 1 ? 'Split' : list[0].cat;
-    const upd = { status: 'approved', transaction_id: first.id, category: cat, merchant: x._desc || x.merchant || null, amount, txn_type: x._type, account_id: x._acc };
+    const edited = Number(x.amount ?? 0) !== amount || (x.txn_type && x.txn_type !== x._type) || (x._desc || '') !== (x.merchant || '');
+    const upd = { status: 'approved', transaction_id: ids[0], category: cat, merchant: x._desc || x.merchant || null, amount, txn_type: x._type, account_id: x._acc, edited: !!edited, auto: !!opts.auto };
     await supabase.from('sms_inbox').update(upd).eq('id', x.id);
     setItems(o => o.filter(y => y.id !== x.id));
     setHist(o => [{ ...x, ...upd }, ...o]);
-    setToast(list.length > 1 ? `Added ${list.length} transactions` : 'Added to Transactions');
+    if (edited && !cur && Number(x.amount ?? 0) !== amount) learnAmount(x, amount);
+    if (opts.auto) setToast(`Auto-approved ${label0}`);
+    else if (!opts.bulk) showUndo({ x, ids, label: label0 });
     return true;
   };
-  const approveAll = async () => { for (const x of shown.filter(y => y._acc && Number(y._amount) > 0)) await approve(x); };
+  const learnAmount = async (x, amount) => {
+    const pat = buildAmountPattern(x.body, String(amount)); if (!pat) return;
+    const accId = x._acc; const cur = configs.find(c => String(c.account_id) === String(accId));
+    if (cur?.amount_pattern) return;
+    const last4 = findLast4(normalizeDigits(x.body));
+    const entry = { kind: 'amount', pattern: pat, bank: x.sender || '', at: new Date().toISOString() };
+    const row = { account_id: accId, user_id: userId, enabled: cur?.enabled ?? true, senders: cur?.senders?.length ? cur.senders : (x.sender ? [x.sender] : []), card_last4: cur?.card_last4?.length ? cur.card_last4 : (last4 ? [last4] : []), default_category: cur?.default_category || null, debit_keywords: cur?.debit_keywords || [], credit_keywords: cur?.credit_keywords || [], amount_pattern: pat, auto_rules: cur?.auto_rules || [], learned: [...(cur?.learned || []), entry].slice(-20), updated_at: new Date().toISOString() };
+    const { data, error } = await supabase.from('account_sms_config').upsert(row, { onConflict: 'account_id' }).select().single();
+    if (!error && data) { setConfigs(o => [...o.filter(c => c.account_id !== data.account_id), data]); setToast('Learned how this bank writes amounts. Next one is read for you.'); }
+  };
+  const [undo, setUndo] = useState(null);
+  const undoTimer = useRef(null);
+  const showUndo = u => { clearTimeout(undoTimer.current); setUndo(u); undoTimer.current = setTimeout(() => setUndo(null), 6000); };
+  const doUndo = async () => {
+    const u = undo; if (!u) return; clearTimeout(undoTimer.current); setUndo(null);
+    if (onUndoTx) await onUndoTx(u.ids);
+    const { error } = await supabase.from('sms_inbox').update({ status: 'pending', transaction_id: null, edited: false, auto: false }).eq('id', u.x.id);
+    if (error) { setToast(error.message); return; }
+    setToast('Undone. Back in your Inbox.'); await load();
+  };
+  const approveAll = async () => { for (const x of shown.filter(y => y._acc && Number(y._amount) > 0)) await approve(x, { bulk: true }); setToast('Approved all ready SMS'); };
   const dismiss = async x => { await supabase.from('sms_inbox').update({ status: 'dismissed' }).eq('id', x.id); setItems(o => o.filter(y => y.id !== x.id)); setHist(o => [{ ...x, status: 'dismissed' }, ...o]); };
   const restore = async x => { const { error } = await supabase.from('sms_inbox').update({ status: 'pending' }).eq('id', x.id); if (error) { setToast(error.message); return; } setToast('Moved back to Inbox'); await load(); };
   const remember = async x => {
@@ -254,7 +317,33 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
 
   const needle = q.trim().toLowerCase();
   const hit = x => !needle || `${x.body} ${x.sender || ''} ${x._desc || x.merchant || ''}`.toLowerCase().includes(needle);
-  const shown = payments.filter(x => hit(x) && (!fAcc || (fAcc === 'none' ? !x._acc : String(x._acc) === String(fAcc))));
+  const confMap = useMemo(() => Object.fromEntries(payments.map(x => [x.id, confidence(x, hist)])), [payments, hist]);
+  const isReady = x => !!x._acc && Number(x._amount) > 0;
+  const since = range === 'today' ? new Date(new Date().setHours(0, 0, 0, 0)) : range === 'week' ? new Date(Date.now() - 7 * 864e5) : range === 'month' ? new Date(new Date().getFullYear(), new Date().getMonth(), 1) : null;
+  const shown = payments.filter(x => hit(x) && (!fAcc || (fAcc === 'none' ? !x._acc : String(x._acc) === String(fAcc))) && (view === 'all' || (view === 'check' ? confMap[x.id]?.level === 'check' : isReady(x))) && (!minAmt || Number(x._amount) >= minAmt) && (!since || new Date(x.received_at) >= since));
+  const needsReview = payments.filter(x => confMap[x.id]?.level === 'check').length;
+  const readyCount = payments.filter(isReady).length;
+  const groups = groupsByMerchant(shown.filter(isReady));
+  const xfers = useMemo(() => detectTransfers(payments), [payments]);
+  const flagged = payments.filter(x => confMap[x.id]?.level === 'check').map(x => ({ ...x, _why: confMap[x.id].why }));
+  const saveFilter = () => { try { localStorage.setItem('pocket.smsFilter', JSON.stringify({ view, minAmt, range })); setToast('Filter saved. It opens like this next time.'); } catch { /* ignore */ } };
+  const approveGroup = async g => { for (const id of g.ids) { const x = items.find(y => y.id === id); if (x) await approve(x, { bulk: true }); } setToast(`Approved ${g.ids.length} ${g.label}`); };
+  const addAutoRule = async (x, sug) => {
+    const cur = configs.find(c => String(c.account_id) === String(x._acc)); if (!cur) { setToast('Link this bank to the account first'); return; }
+    const row = { ...cur, auto_rules: [...(cur.auto_rules || []), { merchant: sug.merchant, max: sug.max }], updated_at: new Date().toISOString() };
+    const { data, error } = await supabase.from('account_sms_config').upsert(row, { onConflict: 'account_id' }).select().single();
+    if (error) { setToast(error.message); return; }
+    setConfigs(o => [...o.filter(c => c.account_id !== data.account_id), data]); setToast(`Done. ${sug.merchant} up to ${fmt(sug.max)} is approved automatically.`);
+  };
+  const approveTransfer = async (a, b) => {
+    const out = a._type === 'Expense' ? a : b; const inn = out === a ? b : a;
+    if (!out._acc || !inn._acc || String(out._acc) === String(inn._acc)) { setToast('Choose two different accounts for this transfer'); return; }
+    const amount = Number(out._amount); const from = accounts.find(z => String(z.id) === String(out._acc)); const to = accounts.find(z => String(z.id) === String(inn._acc));
+    const saved = await onApprove({ transaction_date: localISODate(new Date(out.received_at)), type: 'Transfer', category: 'Transfer', subcategory: null, description: `Transfer · ${from?.name} → ${to?.name}`, amount, need_want: null, fixed_variable: 'Variable', payment_method: from?.name || 'Unassigned', account_id: out._acc, to_account_id: inn._acc, goal_id: null, debt_id: null, recurring: false, notes: `From bank SMS (both sides): ${out.body}`.slice(0, 500) });
+    if (!saved) return;
+    for (const x of [out, inn]) { const upd = { status: 'approved', transaction_id: saved.id, category: 'Transfer', merchant: 'Transfer', amount, txn_type: x._type, account_id: x._acc }; await supabase.from('sms_inbox').update(upd).eq('id', x.id); setHist(o => [{ ...x, ...upd }, ...o]); }
+    setItems(o => o.filter(y => y.id !== out.id && y.id !== inn.id)); setToast('Added one transfer from both messages');
+  };
   const histShown = hist.filter(x => hit(x) && (hStatus === 'all' || x.status === hStatus) && (!fAcc || String(x.account_id) === String(fAcc)) && (!hFrom || localISODate(new Date(x.received_at)) >= hFrom));
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
   const approvedMonth = hist.filter(x => x.status === 'approved' && new Date(x.received_at) >= monthStart).length;
@@ -267,13 +356,13 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
     const todo = items.filter(x => !isNoise(x) && x._acc && !autoDone.current.has(x.id) && autoMatch(x) && !dupFor(x));
     if (!todo.length) return;
     todo.forEach(x => autoDone.current.add(x.id));
-    (async () => { let n = 0; for (const x of todo) { if (await approve(x)) n++; } if (n) setToast(`Auto-approved ${n} SMS`); })();
+    (async () => { let n = 0; for (const x of todo) { if (await approve(x, { auto: true, bulk: true })) n++; } if (n > 1) setToast(`Auto-approved ${n} SMS`); })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, loading, configs]);
   const picked = shown.filter(x => sel.includes(x.id));
   const toggleSel = id => setSel(o => o.includes(id) ? o.filter(i => i !== id) : [...o, id]);
   const bulkApply = () => { picked.forEach(x => patch(x.id, { ...(bulk.cat ? { _cat: bulk.cat, _splits: null } : {}), ...(bulk.acc ? { _acc: bulk.acc } : {}) })); setToast(`Updated ${picked.length} SMS`); };
-  const bulkApprove = async () => { for (const x of picked) await approve(x); setSel([]); };
+  const bulkApprove = async () => { for (const x of picked) await approve(x, { bulk: true }); setSel([]); };
   const bulkDismiss = async () => { for (const x of picked) await dismiss(x); setSel([]); };
   const exportHist = fmtName => exportTable(fmtName, 'bank-sms-history', 'Bank SMS', histShown.map(x => ({ Date: localISODate(new Date(x.received_at)), Status: x.status, Sender: x.sender || '', Type: x.txn_type || '', [`Amount (${currency})`]: x.amount ?? '', Account: accLabel(x.account_id) || '', Category: x.category || '', Description: x.merchant || '', Message: x.body })));
   const accLabel = id => usable.find(a => String(a.id) === String(id))?.name;
@@ -287,9 +376,10 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
   }, [test, configs, accounts]);
 
   const jsonBody = `{"token":"${token || 'YOUR_TOKEN'}","sender":"<Sender>","body":"<Message>"}`;
-  const inSettings = ['banks', 'connect', 'test'].includes(tab);
-  const tabs = [['inbox', 'Inbox', Inbox, items.length], ['history', 'History', History], [inSettings ? tab : 'connect', 'Settings', Settings2]];
-  const subnav = <div className="sms-seg sms-sub" role="tablist">{[['connect', 'Phone'], ['banks', 'Banks'], ['test', 'Try an SMS']].map(([k, l]) => <button type="button" key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>;
+  const inSettings = ['banks', 'connect', 'test', 'devices', 'rules'].includes(tab);
+  const isTab = k => ['inbox', 'insights', 'history'].includes(k) ? tab === k : inSettings;
+  const tabs = [['inbox', 'Inbox', Inbox, items.length], ['insights', 'Insights', BarChart3], ['history', 'History', History], [inSettings ? tab : 'connect', 'Settings', Settings2]];
+  const subnav = <div className="sms-seg sms-sub" role="tablist">{[['connect', 'Phone'], ['banks', 'Banks'], ['devices', 'Devices'], ['rules', 'Learned rules'], ['test', 'Try an SMS']].map(([k, l]) => <button type="button" key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>;
   const filters = <div className="smx-filters">
     <label className="smx-search"><Search size={15} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search merchant or message" aria-label="Search SMS" /></label>
     <select value={fAcc} onChange={e => setFAcc(e.target.value)} aria-label="Filter by account"><option value="">All accounts</option>{tab === 'inbox' && <option value="none">No account</option>}{usable.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
@@ -304,10 +394,17 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
       <div><span className="smx-sico"><CheckCircle2 size={16} /></span><b>{approvedMonth}</b><small>Approved this month</small></div>
     </div>
     <div className="panel sms-panel">
-    <div className="sms-tabs" role="tablist">{tabs.map(([k, l, I, n]) => <button type="button" role="tab" aria-selected={k === 'inbox' || k === 'history' ? tab === k : inSettings} key={l} className={(k === 'inbox' || k === 'history' ? tab === k : inSettings) ? 'on' : ''} onClick={() => setTab(k)}><I size={15} />{l}{n ? <em>{n}</em> : null}</button>)}</div>
+    <div className="sms-tabs" role="tablist">{tabs.map(([k, l, I, n]) => <button type="button" role="tab" aria-selected={isTab(k)} key={l} className={isTab(k) ? 'on' : ''} onClick={() => setTab(k)}><I size={15} />{l}{n ? <em>{n}</em> : null}</button>)}</div>
 
     {tab === 'inbox' && <section className="sms-pane">
       {filters}
+      <div className="smx-chips2" role="group" aria-label="Quick filters">
+        {[['all', `All ${payments.length}`], ['check', `Needs review ${needsReview}`], ['ready', `Ready ${readyCount}`]].map(([k, l]) => <button type="button" key={k} className={`sms-chipbtn ${view === k ? 'on' : ''}`} onClick={() => setView(k)}>{l}</button>)}
+        <button type="button" className={`sms-chipbtn ${minAmt ? 'on' : ''}`} onClick={() => setMinAmt(m => m ? 0 : 500)}>{`Over ${fmt(500)}`}</button>
+        <select value={range} onChange={e => setRange(e.target.value)} aria-label="Date range"><option value="all">Any date</option><option value="today">Today</option><option value="week">Last 7 days</option><option value="month">This month</option></select>
+        <button type="button" className="sms-chipbtn ghost" onClick={saveFilter}>Save filter</button>
+      </div>
+      {groups.length > 0 && shown.length > 1 && <div className="smx-groups"><span>Quick groups</span>{groups.map(g => <button type="button" key={g.key} className="sms-chipbtn" onClick={() => approveGroup(g)}>{g.label} ×{g.ids.length} · Approve</button>)}</div>}
       <div className="sms-pane-top"><p>{loading ? 'Loading…' : shown.length ? `${shown.length} waiting for review` : 'Nothing waiting'}</p><button type="button" className="btn btn-sm" onClick={() => { setSelectMode(m => !m); setSel([]); }}>{selectMode ? 'Done selecting' : 'Select'}</button>{shown.filter(x => x._acc && Number(x._amount) > 0).length > 1 && <button type="button" className="btn btn-primary btn-sm" onClick={approveAll}><Check size={14} /> Approve all ready ({shown.filter(x => x._acc && Number(x._amount) > 0).length})</button>}</div>
       {!loading && !payments.length && <div className="sms-empty"><MessageSquare size={26} /><b>No SMS yet</b><small>Connect your phone, then new bank messages show up here.</small><button type="button" className="btn btn-primary btn-sm" onClick={() => setTab('connect')}>Connect phone</button></div>}
       {selectMode && <div className="smx-bulk"><label className="smx-bulk-all"><input type="checkbox" checked={shown.length > 0 && picked.length === shown.length} onChange={e => setSel(e.target.checked ? shown.map(x => x.id) : [])} /> {picked.length} selected</label>
@@ -317,10 +414,27 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
         <button type="button" className="btn btn-sm" disabled={!picked.length} onClick={bulkDismiss}><X size={14} /> Dismiss</button>
         <button type="button" className="btn btn-primary btn-sm" disabled={!picked.length} onClick={bulkApprove}><Check size={14} /> Approve</button></div>}
       <p className="smx-tip">Swipe a row right to approve, left to dismiss. On a computer, drag it or use the buttons.</p>
-      <div className="smx-list">{shown.map(x => <SmsCard key={x.id} x={x} selectMode={selectMode} selected={sel.includes(x.id)} onSelect={toggleSel} dup={dupFor(x)} bal={balFor(x)} usable={usable} expCats={expCats} currency={currency} fmt={fmt} patch={patch} onApprove={approve} onDismiss={dismiss} onRemember={remember} editing={!!editingIds[x.id]} setEditing={setEditing} />)}</div>
+      <div className="smx-list">{shown.map(x => <SmsCard key={x.id} conf={confMap[x.id]} sug={suggestAuto(x, hist, configs)} onAutoRule={addAutoRule} xfer={xfers[x.id]} onTransfer={approveTransfer} cur={curOf(x)} x={x} selectMode={selectMode} selected={sel.includes(x.id)} onSelect={toggleSel} dup={dupFor(x)} bal={balFor(x)} usable={usable} expCats={expCats} currency={currency} fmt={fmt} patch={patch} onApprove={approve} onDismiss={dismiss} onRemember={remember} editing={!!editingIds[x.id]} setEditing={setEditing} />)}</div>
       {noise.length > 0 && <details className="sms-other"><summary>Not a payment ({noise.length}) <small>OTP codes, offers…</small></summary>
         {noise.map(x => <div className="sms-other-row" key={x.id}><p dir="auto">{x.body}</p><button type="button" className="btn btn-sm" onClick={() => dismiss(x)}><X size={14} /> Dismiss</button></div>)}
         <div className="sms-actions"><button type="button" className="btn btn-sm" onClick={async () => { for (const x of noise) await dismiss(x); }}>Dismiss all</button></div></details>}
+    </section>}
+
+    {tab === 'insights' && <SmsInsights items={items} hist={hist} configs={configs} usable={usable} accounts={accounts} transactions={transactions} fmt={fmt} flagged={flagged} />}
+
+    {tab === 'devices' && <section className="sms-pane">
+      {subnav}
+      <SmsDevices devices={devices} setDevices={setDevices} token={token} lastSms={lastSms} userId={userId} supabase={supabase} setToast={setToast} copy={copy} makeToken={makeToken} quiet={quiet} setQuiet={setQuiet} exportHist={exportHist} histCount={histShown.length} />
+    </section>}
+
+    {tab === 'rules' && <section className="sms-pane">
+      {subnav}
+      <p className="sms-hint">What Pocket learned from your corrections, and your auto-approve rules.</p>
+      {configs.flatMap(c => (c.learned || []).map((l, i) => ({ c, l, i }))).map(({ c, l, i }) => <div className="smd-row" key={`${c.account_id}-${i}`}><span className="smd-ic"><RefreshCw size={15} /></span><div><b>{l.bank || 'Bank'}: amount pattern</b><small>{usable.find(a => a.id === c.account_id)?.name || 'Account'} · learned {ago(l.at)} · <code>{l.pattern}</code></small></div><button type="button" className="btn btn-sm" onClick={async () => { const row = { ...c, learned: (c.learned || []).filter((_, j) => j !== i), amount_pattern: c.amount_pattern === l.pattern ? null : c.amount_pattern, updated_at: new Date().toISOString() }; const { data, error } = await supabase.from('account_sms_config').upsert(row, { onConflict: 'account_id' }).select().single(); if (error) { setToast(error.message); return; } setConfigs(o => [...o.filter(z => z.account_id !== data.account_id), data]); }}>Remove</button></div>)}
+      {!configs.some(c => (c.learned || []).length) && <div className="sms-empty"><b>Nothing learned yet</b><small>When you fix an amount before approving, Pocket remembers how that bank writes it.</small></div>}
+      {configs.flatMap(c => (c.auto_rules || []).map((r, i) => ({ c, r, i }))).length > 0 && <><h4 className="smd-sub">Auto-approve rules</h4>{configs.flatMap(c => (c.auto_rules || []).map((r, i) => ({ c, r, i }))).map(({ c, r, i }) => <div className="smd-row" key={`${c.account_id}-r${i}`}><span className="smd-ic"><Check size={15} /></span><div><b>{r.merchant}</b><small>{usable.find(a => a.id === c.account_id)?.name} · up to {fmt(r.max)}</small></div><button type="button" className="btn btn-sm" onClick={async () => { const row = { ...c, auto_rules: (c.auto_rules || []).filter((_, j) => j !== i), updated_at: new Date().toISOString() }; const { data, error } = await supabase.from('account_sms_config').upsert(row, { onConflict: 'account_id' }).select().single(); if (error) { setToast(error.message); return; } setConfigs(o => [...o.filter(z => z.account_id !== data.account_id), data]); }}>Remove</button></div>)}</>}
+      <h4 className="smd-sub">Backup</h4>
+      <SmsRulesBackup configs={configs} accounts={accounts} userId={userId} supabase={supabase} setToast={setToast} onImported={row => setConfigs(o => [...o.filter(z => z.account_id !== row.account_id), row])} />
     </section>}
 
     {tab === 'history' && <section className="sms-pane">
@@ -390,5 +504,6 @@ export function SmsPage({ accounts, transactions = [], session, supabase, curren
       {testResult && <div className="sms-result"><div><small>Type</small><b>{testResult.type === 'Income' ? 'Money in' : testResult.type === 'Expense' ? 'Money out' : 'Not detected'}</b></div><div><small>Amount</small><b>{testResult.amount ?? 'Not detected'}</b></div><div><small>Merchant</small><b>{testResult.merchant || '—'}</b></div><div><small>Account</small><b>{testResult.account || 'No match'}</b></div></div>}
     </section>}
     </div>
+    {undo && <div className="smx-undo" role="status"><span>Approved {undo.label}</span><button type="button" onClick={doUndo}>Undo</button></div>}
   </div>;
 }

@@ -17,7 +17,7 @@ const normalizeDigits = s => String(s || '').replace(/[٠-٩]/g, d => AR_DIGITS.
 const DEBIT = ['purchase', 'purchased', 'spent', 'debited', 'debit', 'withdrawn', 'withdrawal', 'paid', 'payment', 'pos ', 'transferred to', 'sent', 'charged', 'سحب', 'خصم', 'مشتريات', 'شراء', 'تم دفع', 'دفع', 'تحويل صادر', 'تم تحويل', 'تنفيذ تحويل', 'تم تنفيذ', 'من حسابكم', 'تم سداد', 'سداد'];
 const CREDIT = ['credited', 'credit ', 'deposit', 'deposited', 'received', 'refund', 'salary', 'transferred from', 'incoming', 'اضافة', 'إضافة', 'ايداع', 'إيداع', 'استلام', 'تم استلام', 'تحويل وارد', 'راتب', 'استرداد', 'استقبال', 'تم استقبال', 'الى حسابكم'];
 const NOISE_BEFORE = /(balance|available|avail|limit|bal|رصيد|الرصيد|المتاح|حد)[^0-9]{0,18}$/i;
-const CUR = '(?:EGP|LE|L\\.E\\.?|E£|£E|£|جنيه|ج\\.م|جم|USD|\\$)';
+const CUR = '(?:EGP|LE|L\\.E\\.?|E£|£E|£|جنيه|ج\\.م|جم|USD|US\\$|\\$|EUR|€|SAR|AED)';
 
 const lc = s => String(s || '').toLowerCase();
 const clean = a => Number(String(a).replace(/,/g, ''));
@@ -122,9 +122,15 @@ Deno.serve(async (req) => {
   if (!supabaseUrl || !serviceKey) return json({ ok: false, error: 'Server configuration incomplete' }, 503);
   const service = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
+  let userId = null, deviceId = null;
   const { data: tk } = await service.from('sms_tokens').select('user_id').eq('token', token).maybeSingle();
-  if (!tk) return json({ ok: false, error: 'Invalid token' }, 401);
-  const userId = tk.user_id;
+  if (tk) userId = tk.user_id;
+  else {
+    const { data: dv } = await service.from('sms_devices').select('id,user_id').eq('token', token).eq('revoked', false).maybeSingle();
+    if (dv) { userId = dv.user_id; deviceId = dv.id; }
+  }
+  if (!userId) return json({ ok: false, error: 'Invalid token' }, 401);
+  if (deviceId) await service.from('sms_devices').update({ last_seen_at: new Date().toISOString() }).eq('id', deviceId);
 
   const { data: allowed } = await service.rpc('check_rate_limit', { p_key: `sms:${userId}`, p_max: 200, p_window_seconds: 600 });
   if (allowed === false) return json({ ok: false, error: 'Too many messages. Try again soon.' }, 429);
