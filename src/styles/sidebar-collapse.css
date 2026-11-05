@@ -46,3 +46,18 @@
 .default-star.is-default{color:var(--warning,#f2a64b)}
 .default-star.is-default svg{fill:currentColor}
 .default-chip{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;color:var(--brand,#3157f6);background:var(--brand-soft,#eaf0ff);vertical-align:middle}
+
+/* Collapse button lives in its own row under the logo so it stays in the same place when collapsed/expanded */
+.sidebar-collapse-row{display:none}
+@media(min-width:901px){
+.sidebar-collapse-row{display:flex;align-items:center;justify-content:flex-start;padding:0 0 10px 3px}
+.app-shell.sidebar-compact .sidebar-collapse-row{justify-content:center;padding:0 0 10px}
+.sidebar .brand{justify-content:flex-start}
+}
+/* hamburger only where the sidebar becomes a drawer (phones) */
+.topbar .menu-toggle{display:none!important}
+@media(max-width:680px){.topbar .menu-toggle{display:inline-grid!important}}
+@media(min-width:901px){
+.sidebar .brand{min-height:56px;padding-top:0;padding-bottom:0}
+.app-shell.sidebar-compact .sidebar .brand{flex-direction:row;justify-content:center;min-height:56px;padding:0;gap:0}
+}
