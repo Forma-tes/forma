@@ -288,3 +288,8 @@
 .pw-rules li.ok{color:#187d55}
 [data-lg-theme="dark"] .pw-meter i{background:#30384a}
 [data-lg-theme="dark"] .pw-rules li.ok{color:#56c9a0}
+
+/* Username availability */
+.un-status{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;font-weight:600;color:#6c7182}
+.un-status.ok{color:#187d55}.un-status.bad{color:#c03e48}
+[data-lg-theme="dark"] .un-status.ok{color:#56c9a0}[data-lg-theme="dark"] .un-status.bad{color:#ff8790}

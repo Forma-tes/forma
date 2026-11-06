@@ -2,6 +2,7 @@ import { ArrowDownLeft, ArrowUpRight, CalendarClock, Car, Check, CreditCard, Lan
 import { useState } from 'react';
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber.jsx';
 import { PasswordInput } from '../../components/ui/PasswordInput.jsx';
+import { UsernameStatus } from '../../components/ui/UsernameStatus.jsx';
 import { PasswordRules, passwordOk } from '../../components/ui/PasswordRules.jsx';
 import { ArtCalendar, ArtCard, ArtCoins, ArtGoal, ArtNote, ArtReceipt } from './LoginArt.jsx';
 
@@ -20,6 +21,7 @@ export function AuthScreen(p){
  const submit=isSignup?signUp:isForgot?resetPassword:isUpdatePassword?updatePassword:signIn;
  const theme='light';
  const [style]=useState(initialStyle);
+ const [unStatus,setUnStatus]=useState('idle');
  const go=m=>{setAuthMode(m);setAuthMsg('')};
  const two=style===2;
  const headline=['Make','room','for','what','matters.'];
@@ -37,12 +39,12 @@ export function AuthScreen(p){
    <fieldset className="lg-field lg-gender" style={i()}><legend>Gender</legend><div className="lg-pills">{[{value:'female',label:'Female'},{value:'male',label:'Male'},{value:'prefer_not_to_say',label:'Prefer not to say'}].map(g=><button key={g.value} type="button" className={authGender===g.value?'on':''} aria-pressed={authGender===g.value} onClick={()=>setAuthGender(g.value)}>{authGender===g.value&&<Check size={14}/>}{g.label}</button>)}</div><small>Used to personalize suggested transaction categories. You can change it later in Account &amp; Profile.</small></fieldset>
   </>}
   {!isUpdatePassword&&<label className="lg-field" style={i()}><span>{isSignin?'Email or username':isSignup?'Email address (optional)':'Email address'}</span><input type={isSignin?'text':'email'} autoComplete={isSignin?'username':'email'} required={!isSignup} value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="you@example.com"/></label>}
-  {isSignup&&!authEmail.trim()&&<label className="lg-field" style={i()}><span>Username</span><input autoComplete="username" required minLength={3} maxLength={32} value={authUsername} onChange={e=>setAuthUsername(e.target.value)} placeholder="e.g. nora.m"/><small>No email? Pick a username to sign in with. Without an email you can’t reset your password by email. You can add one later in your profile.</small></label>}
+  {isSignup&&!authEmail.trim()&&<label className="lg-field" style={i()}><span>Username</span><input autoComplete="username" required minLength={3} maxLength={32} value={authUsername} onChange={e=>setAuthUsername(e.target.value)} placeholder="e.g. nora.m"/><UsernameStatus value={authUsername} onStatus={setUnStatus}/><small>No email? Pick a username to sign in with. Without an email you can’t reset your password by email. You can add one later in your profile.</small></label>}
   {!isForgot&&<label className="lg-field" style={i()}><span>{isUpdatePassword?'New password':'Password'}</span><PasswordInput autoComplete={isSignup||isUpdatePassword?'new-password':'current-password'} minLength={isSignup||isUpdatePassword?10:1} required value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder={isSignup||isUpdatePassword?'At least 10 characters':'Enter your password'}/>{(isSignup||isUpdatePassword)&&<PasswordRules value={authPassword}/>}</label>}
   {isUpdatePassword&&<label className="lg-field" style={i()}><span>Confirm new password</span><PasswordInput autoComplete="new-password" minLength={10} required value={authConfirmPassword} onChange={e=>setAuthConfirmPassword(e.target.value)} placeholder="Enter the new password again"/></label>}
   {isSignin&&<div className="lg-options" style={i()}><label className="lg-check"><input type="checkbox" checked={stayLoggedIn} onChange={e=>setStayLoggedIn(e.target.checked)}/><span>Stay logged in</span></label><button type="button" className="lg-link" onClick={()=>go('forgot')}>Forgot password?</button></div>}
  </>;
- const submitBtn=<button className="lg-submit" type="submit" disabled={busy||((isSignup||isUpdatePassword)&&!passwordOk(authPassword))} style={i()}>{busy?<LoaderCircle size={18} className="spin"/>:null}<span>{busy?'Please wait…':isSignup?'Create account':isForgot?'Send reset link':isUpdatePassword?'Update password':two?'Continue':'Sign in'}</span>{!busy&&!two&&<ArrowUpRight size={17} className="lg-submit-arrow" aria-hidden="true"/>}</button>;
+ const submitBtn=<button className="lg-submit" type="submit" disabled={busy||((isSignup||isUpdatePassword)&&!passwordOk(authPassword))||(isSignup&&!authEmail.trim()&&(unStatus==='taken'||unStatus==='invalid'||unStatus==='checking'))} style={i()}>{busy?<LoaderCircle size={18} className="spin"/>:null}<span>{busy?'Please wait…':isSignup?'Create account':isForgot?'Send reset link':isUpdatePassword?'Update password':two?'Continue':'Sign in'}</span>{!busy&&!two&&<ArrowUpRight size={17} className="lg-submit-arrow" aria-hidden="true"/>}</button>;
  const messages=<>
   {authMsg&&<p className={`lg-msg ${ok?'ok':'bad'}`} role="status">{authMsg}</p>}
   {isSignin&&/not confirmed|confirmation email|confirm your email/i.test(authMsg||'')&&<button type="button" className="lg-link lg-resend" onClick={resendConfirmation} disabled={busy}>{busy?'Sending…':'Resend confirmation email'}</button>}
