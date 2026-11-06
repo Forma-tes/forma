@@ -1010,3 +1010,5 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .tour-actions{display:flex;justify-content:space-between;gap:10px}
 @keyframes tipIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.tip-pop,.tip-pop li,.tour-card,.tour-back{animation:none}}
+.rec-off td:not([data-label="Active"]):not(.rec-actions){opacity:.5}
+.rec-off .status-tag{opacity:1}
