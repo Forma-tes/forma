@@ -13,6 +13,7 @@ import { SmsPage } from './features/sms/SmsPage.jsx';
 import { AccessManagementPage } from './features/admin/AccessManagementPage.jsx';
 import { EmailStatusBar } from './components/ui/EmailStatusBar.jsx';
 import { WelcomeWizard } from './features/overview/WelcomeWizard.jsx';
+import { AppTour } from './components/ui/AppTour.jsx';
 import { AccessRestricted } from './features/admin/AccessRestricted.jsx';
 import { VehicleManagementPage } from './features/admin/VehicleManagementPage.jsx';
 import { AccountProfileModal } from './features/auth/AccountProfileModal.jsx';
@@ -975,6 +976,11 @@ function App(){
   const wizardKey=`pocket-welcome-${session?.user?.id||'local'}`;
   useEffect(()=>{if(!cloudReady||!session?.user?.id||!accountsLoaded||busy)return;let seen=false;try{seen=localStorage.getItem(wizardKey)==='1'}catch{}if(!seen&&accounts.length===0&&transactions.length===0&&allowedFeatures.length>0)setWizardOpen(true)},[accountsLoaded,busy,session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const closeWizard=()=>{setWizardOpen(false);try{localStorage.setItem(wizardKey,'1')}catch{}};
+  const tourKey=`pocket-tour-${session?.user?.id||'local'}`;
+  const [tourOpen,setTourOpen]=useState(false);
+  const closeTour=()=>{setTourOpen(false);try{localStorage.setItem(tourKey,'1')}catch{}};
+  useEffect(()=>{const h=()=>setTourOpen(true);window.addEventListener('pocket:tour',h);return()=>window.removeEventListener('pocket:tour',h)},[]);
+  useEffect(()=>{if(!cloudReady||!session?.user?.id||!accountsLoaded||busy||wizardOpen)return;let seen=true;try{seen=localStorage.getItem(tourKey)==='1'}catch{}const fresh=Date.now()-new Date(session.user.created_at||0).getTime()<14*864e5;if(!seen&&fresh)setTourOpen(true)},[accountsLoaded,busy,session?.user?.id,wizardOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   const wizardSteps=[{key:'tx',feat:'transactions',emoji:'🧾',title:'Record a transaction',desc:'Add an expense or income. It takes about 20 seconds.',cta:'Add a transaction',action:()=>{if(!accounts.length){setToast('Add an account first, then record a transaction.');return}setEditing(null);setModal('transaction')}},{key:'sms',feat:'bank_sms',emoji:'💬',title:'Connect your bank SMS',desc:'Bank messages land in Pocket and you approve them as transactions.',cta:'Open Bank SMS',action:()=>setPage('Bank SMS')},{key:'credit',feat:'accounts',emoji:'💳',title:'Add a credit card or installment app',desc:'Track Valu, Halan, Aman and your cards with their limits.',cta:'Add a card',action:()=>creditActions.addCard()},{key:'budget',feat:'budgets',emoji:'🎯',title:'Set a monthly budget',desc:'Pick a category and a limit so you can see where money goes.',cta:'Set a budget',action:()=>{setEditing(null);setModal('budget')}},{key:'goal',feat:'goals',emoji:'🐷',title:'Create a savings goal',desc:'Something to save towards, with a target date.',cta:'Create a goal',action:()=>{setEditing(null);setModal('goal')}},{key:'bill',feat:'subscriptions',emoji:'🔁',title:'Add a recurring bill',desc:'Rent, subscriptions or installments, so nothing is missed.',cta:'Add a bill',action:()=>{setEditing(null);setModal('recurring')}}].filter(st=>allowedFeatures.includes(st.feat));
   const canSeeCurrentPage=['Admin access','Access requests','Access management'].includes(page)?isAdmin:page==='Access restricted'?true:allowedFeatures.includes(getPageFeature(page));
   const openCredit=id=>{setDebtFocus(id);setPage('Debts & installments')};
@@ -1062,6 +1068,7 @@ function App(){
      {modal==='app-settings'&&<SettingsModal {...{onClose:()=>setModal(null),design,setDesign,sidebarSize,setSidebarSize,isAdmin,backupForUsers,setBackupVisibility,exportCSV,exportBackup,handleImport,restoreBackup,session,supabase,onOpenProfile:()=>setModal('profile')}}/>}
     {modal==='profile'&&<AccountProfileModal {...{sendEmailVerification,addAccountEmail,onClose:()=>setModal(null),openAvatarPicker:gender=>{setAvatarPickerGender(gender||session?.user?.user_metadata?.gender||'prefer_not_to_say');setModal('avatar-picker')},session,saveProfile,profileSaving,profileName:session?.user?.user_metadata?.full_name||profileName,gender:session?.user?.user_metadata?.gender||'prefer_not_to_say',currency,timezone,profileAvatar}}/>}
     {modal==='avatar-picker'&&<AvatarPickerModal current={profileAvatar} gender={avatarPickerGender} onClose={()=>setModal('profile')} onChoose={avatar=>{setProfileAvatar(avatar);setModal('profile')}} />}
+    {tourOpen&&!wizardOpen&&<AppTour onClose={closeTour}/>}
     {wizardOpen&&<WelcomeWizard name={displayName.split(' ')[0]} currency={currency} canAccount={allowedFeatures.includes('accounts')} steps={wizardSteps} onClose={closeWizard} onCreateAccount={createSetupAccount}/>}
     {modal==='account'&&<AccountModal initial={editing} onClose={()=>{setModal(null);setEditing(null)}} onSave={saveAccount}/> }
     {modal==='account-from-transaction'&&<AccountModal initial={null} onClose={()=>setModal('transaction')} onSave={async form=>{const payload={name:form.name.trim(),type:form.type,opening_balance:Number(form.opening_balance||0),opening_balance_date:form.opening_balance_date||localISODate(),color:form.color||'#6c7cf5'};const saved=await saveRecord('financial_accounts',payload);if(!saved)return;setAccounts(old=>[saved,...old]);setModal('transaction');setToast('Account added. Select it for your transaction.')}}/>}

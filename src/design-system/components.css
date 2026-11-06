@@ -985,3 +985,28 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 :root[data-theme="dark"] .cfr-row.due .cfr-ic{background:rgba(242,176,98,.18);color:#f5c27d}
 :root[data-theme="dark"] .cfr-amt{color:#ffb7be}:root[data-theme="dark"] .cfr-row.income .cfr-amt{color:#8df0cd}:root[data-theme="dark"] .cfr-row.due .cfr-amt{color:#f5c27d}
 @media (prefers-reduced-motion:reduce){.cfr-row{animation:none;opacity:1}}
+
+/* Page tips + app tour */
+.tip-wrap{position:relative;display:inline-flex;vertical-align:middle;margin-left:8px}
+.tip-btn{width:28px;height:28px;border-radius:99px;border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff);color:var(--muted,#6c7182);display:grid;place-items:center;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.tip-btn:hover,.tip-btn[aria-expanded="true"]{color:#3157f6;border-color:#3157f6;background:var(--brand-soft,#eaf0ff)}
+.tip-pop{position:absolute;top:36px;left:0;z-index:40;width:290px;max-width:80vw;padding:14px;border-radius:16px;background:var(--surface,#fff);border:1px solid var(--border,#e5e8f0);box-shadow:0 18px 40px rgba(24,32,57,.14);font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--text,#171923);animation:tipIn .22s ease both}
+.heading-actions .tip-pop{left:auto;right:0}
+.tip-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tip-head button{border:0;background:none;color:var(--muted,#6c7182);cursor:pointer;display:grid;place-items:center}
+.tip-pop ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.tip-pop li{padding-left:14px;position:relative;line-height:1.45;animation:tipIn .3s ease both;animation-delay:calc(var(--i)*60ms + 80ms)}
+.tip-pop li:before{content:"";position:absolute;left:0;top:7px;width:6px;height:6px;border-radius:50%;background:#3157f6}
+.tip-replay{margin-top:12px;border:0;background:none;color:#3157f6;font-weight:700;font-size:12px;cursor:pointer;padding:0}
+.tour-back{position:fixed;inset:0;z-index:90;background:rgba(15,20,35,.45);display:grid;place-items:center;padding:16px;animation:tipIn .2s ease both}
+.tour-card{position:relative;width:min(420px,100%);padding:28px 26px 22px;border-radius:24px;background:var(--surface,#fff);color:var(--text,#171923);box-shadow:0 30px 70px rgba(15,20,35,.3);animation:tipIn .28s ease both}
+.tour-card h2{margin:6px 0 8px;font-family:Sora,Manrope,sans-serif;font-size:22px;letter-spacing:-.03em}
+.tour-card p{margin:0;color:var(--muted,#6c7182);font-size:14px;line-height:1.5}
+.tour-step{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#3157f6}
+.tour-x{position:absolute;top:14px;right:14px;border:0;background:none;color:var(--muted,#6c7182);cursor:pointer}
+.tour-dots{display:flex;gap:6px;margin:18px 0}
+.tour-dots i{width:7px;height:7px;border-radius:99px;background:var(--border,#e5e8f0);transition:width .25s,background .25s}
+.tour-dots i.on{width:22px;background:#3157f6}
+.tour-actions{display:flex;justify-content:space-between;gap:10px}
+@keyframes tipIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tip-pop,.tip-pop li,.tour-card,.tour-back{animation:none}}
