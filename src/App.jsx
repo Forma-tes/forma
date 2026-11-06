@@ -706,7 +706,7 @@ function App(){
   }
   async function signUp(e){
     e.preventDefault(); if(!supabase)return;
-    if(authPassword.length<8){setAuthMsg('Use a password with at least 8 characters.');return;}
+    if(authPassword.length<10){setAuthMsg('Use a password with at least 10 characters.');return;}
     setBusy(true);setAuthMsg('');
     if(!authEmail.trim()){
       const username=authUsername.trim();
@@ -748,7 +748,7 @@ function App(){
   }
   async function updatePassword(e){
     e.preventDefault(); if(!supabase)return;
-    if(authPassword.length<8){setAuthMsg('Use a password with at least 8 characters.');return;}
+    if(authPassword.length<10){setAuthMsg('Use a password with at least 10 characters.');return;}
     if(authPassword!==authConfirmPassword){setAuthMsg('The passwords do not match.');return;}
     setBusy(true);setAuthMsg('');
     const {error}=await supabase.auth.updateUser({password:authPassword});
