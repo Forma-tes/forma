@@ -707,10 +707,10 @@ function App(){
   async function signUp(e){
     e.preventDefault(); if(!supabase)return;
     if(authPassword.length<10){setAuthMsg('Use a password with at least 10 characters.');return;}
+    const username=authUsername.trim();
+    if(!/^[a-zA-Z0-9._-]{3,32}$/.test(username)){setAuthMsg('Choose a username (3–32 characters: letters, numbers, dots, underscores or hyphens).');return;}
     setBusy(true);setAuthMsg('');
     if(!authEmail.trim()){
-      const username=authUsername.trim();
-      if(!/^[a-zA-Z0-9._-]{3,32}$/.test(username)){setBusy(false);setAuthMsg('Choose a username (3–32 characters: letters, numbers, dots, underscores or hyphens) or add an email.');return;}
       const {error:fnError}=await supabase.functions.invoke('public-signup',{body:{full_name:authName.trim(),gender:authGender,avatar:defaultAvatarForGender(authGender),username,password:authPassword}});
       if(fnError){let msg=fnError.message;try{const j=await fnError.context?.json?.();if(j?.error)msg=j.error;}catch{}setBusy(false);setAuthMsg(msg||'Could not create the account.');return;}
       const {error:inError}=await supabase.auth.signInWithPassword({email:`${username.toLowerCase().replace(/[^a-z0-9._-]/g,'-')}@users.pocket.local`,password:authPassword});
@@ -721,7 +721,7 @@ function App(){
     const {data,error}=await supabase.auth.signUp({
       email:authEmail.trim(),
       password:authPassword,
-      options:{data:{full_name:authName.trim(),gender:authGender,avatar:defaultAvatarForGender(authGender)},emailRedirectTo:authRedirectUrl()}
+      options:{data:{full_name:authName.trim(),username,gender:authGender,avatar:defaultAvatarForGender(authGender)},emailRedirectTo:authRedirectUrl()}
     });
     setBusy(false);
     if(error){setAuthMsg(error.message);return;}
