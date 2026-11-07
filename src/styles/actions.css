@@ -1,0 +1,8 @@
+/* One look for the action row of every popup, wizard and form: secondary on the left, primary on the right. */
+.tx-wizard-actions,.modal-actions,.category-wizard-actions,.admin-wizard-actions,.vehicle-form-actions,.category-create-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+.tx-wizard-actions>:only-child,.modal-actions>:only-child,.category-wizard-actions>:only-child,.admin-wizard-actions>:only-child,.vehicle-form-actions>:only-child{margin-left:auto}
+.tx-wizard-actions .btn,.modal-actions .btn,.category-wizard-actions .btn,.admin-wizard-actions .btn,.vehicle-form-actions .btn{flex:0 0 auto;min-width:112px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+@media (max-width:640px){
+ .tx-wizard-actions .btn,.modal-actions .btn,.category-wizard-actions .btn,.admin-wizard-actions .btn,.vehicle-form-actions .btn{flex:1 1 0;min-width:0}
+ .tx-wizard-actions .btn-primary,.modal-actions .btn-primary{flex-grow:1.5}
+}

@@ -7,7 +7,7 @@ import { PageHeading } from '../../components/ui/PageHeading.jsx';
 import { accountFlows, cardSummary, isCard, isLiability, isProvider, money, providerSummary } from '../../lib/credit.js';
 import { isGoalsAccount } from '../../lib/features.js';
 import { accountLook } from '../../lib/accountLook.js';
-import { shortDate } from '../../lib/format.js';
+import { localISODate, shortDate } from '../../lib/format.js';
 import { DueChip, LimitBar, PaymentCard } from '../credit/CreditSummary.jsx';
 
 export function AccountsPage({accounts,transactions,debts=[],setModal,setEditing,removeRecord,setAccounts,currency,requestConfirm,defaultAccountId,setDefaultAccountId,accountsView='grid',setAccountsView=()=>{},creditActions={},openSms=null,pendingSms=0}){
@@ -18,7 +18,11 @@ export function AccountsPage({accounts,transactions,debts=[],setModal,setEditing
  const liabilities=accounts.filter(isLiability).map(a=>isCard(a)?{account:a,card:true,s:cardSummary(a,transactions,undefined,debts)}:{account:a,card:false,s:providerSummary(a,debts,undefined,transactions)});
  const owedTotal=liabilities.reduce((sum,x)=>sum+(x.card?x.s.owed:x.s.used),0);
  const standaloneDebt=debts.filter(d=>!d.provider_account_id).reduce((t,d)=>t+Math.max(0,Number(d.remaining_amount||0)),0);
- const netWorth=total-owedTotal-standaloneDebt;
+ const thisMonth=localISODate().slice(0,7);
+ const num0=v=>Number(v||0);
+ const cardDueNow=liabilities.reduce((t,x)=>t+(x.card?(x.s.groups||[]).filter(g=>String(g.due).slice(0,7)<=thisMonth).reduce((a,g)=>a+num0(g.remaining),0):num0(x.s.looseOwed)),0);
+ const installmentsNow=debts.reduce((t,d)=>num0(d.remaining_amount)>0?t+Math.min(num0(d.monthly_payment)||num0(d.remaining_amount),num0(d.remaining_amount)):t,0);
+ const netWorth=total-cardDueNow-installmentsNow;
  const exportAccounts=format=>exportTable(format,'accounts','Accounts',[...rows.map(a=>({Name:a.name,Kind:'Account',Type:a.type||'',[`Balance (${currency})`]:Number(a.balance||0)})),...liabilities.map(x=>({Name:x.account.name,Kind:x.card?'Credit card':'Installment app',Type:x.account.type||'',[`Owed (${currency})`]:Number(x.card?x.s.owed:x.s.used)||0}))]);
  const askDelete=a=>requestConfirm(isLiability(a)?(isCard(a)?'Delete this credit card?':'Delete this installment app?'):'Delete account or wallet?',isLiability(a)?`Delete “${a.name}”? ${isCard(a)?'Your purchases stay in Transactions, but they will no longer be tracked on a card.':'Its installment plans stay, but they will no longer be grouped under this app.'}`:`Delete “${a.name}”? Existing transactions will remain but will no longer contribute to this balance.`,()=>removeRecord('financial_accounts',a.id,setAccounts,accounts));
  const edit=a=>{if(isLiability(a)){creditActions.editAccount?.(a);return}setEditing(a);setModal('account')};
@@ -36,7 +40,7 @@ export function AccountsPage({accounts,transactions,debts=[],setModal,setEditing
 
  return <>
   <PageHeading eyebrow="YOUR MONEY, ORGANIZED" title="Accounts" subtitle="Track cash, bank accounts, and e-wallets in one place. Balances include only transactions linked to each account." actions={<><MenuButton label="Export" icon={Download} items={[{label:'CSV',description:'Plain text, opens anywhere',icon:FileText,onClick:()=>exportAccounts('csv')},{label:'Excel',description:'.xlsx spreadsheet',icon:FileSpreadsheet,onClick:()=>exportAccounts('xlsx')}]}/>{openSms&&<button className="btn" onClick={()=>openSms('inbox')}><MessageSquare size={17}/> Bank SMS{pendingSms>0&&<span className="sms-badge">{pendingSms}</span>}</button>}<button className="btn btn-primary" onClick={()=>{setEditing(null);setModal('account')}}><Plus size={17}/> Add account</button></>}/>
-  <div className="metric-grid acc-metrics"><MetricCard label="Tracked balance" value={fmt(total)} icon={Wallet} tone="blue" note="opening balances + linked activity"/><MetricCard label="Accounts" value={String(rows.length)} icon={CreditCard} tone="green" note="cash, bank, and wallets"/><MetricCard label="Net worth" value={fmt(netWorth)} icon={ArrowLeftRight} tone={netWorth>=0?'green':'red'} note="balances minus credit & debts"/>{liabilities.length>0&&<MetricCard label="Credit owed" value={fmt(owedTotal)} icon={ShoppingBag} tone="red" note="cards and installment apps"/>}</div>
+  <div className="metric-grid acc-metrics"><MetricCard label="Tracked balance" value={fmt(total)} icon={Wallet} tone="blue" note="opening balances + linked activity"/><MetricCard label="Accounts" value={String(rows.length)} icon={CreditCard} tone="green" note="cash, bank, and wallets"/><MetricCard label="Net worth" value={fmt(netWorth)} icon={ArrowLeftRight} tone={netWorth>=0?'green':'red'} note="balances minus this month’s credit & debts"/>{liabilities.length>0&&<MetricCard label="Credit owed" value={fmt(owedTotal)} icon={ShoppingBag} tone="red" note="cards and installment apps"/>}</div>
   {rows.some(a=>a.balance<0)&&<div className="acc-alert" role="alert"><AlertTriangle size={18}/><div><b>{rows.filter(a=>a.balance<0).map(a=>a.name).join(', ')} {rows.filter(a=>a.balance<0).length>1?'are':'is'} below zero</b><small>Usually this means an expense was logged without enough opening balance, or a transfer is missing. Check the account's transactions or edit its opening balance.</small></div></div>}
   <div className="acc-toolbar"><div><h2>Your accounts</h2><p>{rows.length} account{rows.length===1?'':'s'}</p></div><div className="cc-view" role="group" aria-label="Choose how accounts are shown"><button type="button" className={`cc-view-btn ${view==='grid'?'on':''}`} aria-pressed={view==='grid'} onClick={()=>setAccountsView('grid')}><LayoutGrid size={15}/> Grid</button><button type="button" className={`cc-view-btn ${view==='list'?'on':''}`} aria-pressed={view==='list'} onClick={()=>setAccountsView('list')}><List size={15}/> List</button></div></div>
   {rows.length?(view==='grid'?<div className="goal-grid">{rows.map(gridCard)}</div>:<div className="acc-list">{rows.map(listRow)}</div>):<EmptyState icon={Wallet} title="No accounts yet" text="Add a cash, bank, or wallet account to start tracking balances."/>}

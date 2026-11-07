@@ -990,8 +990,7 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 .tip-wrap{position:relative;display:inline-flex;vertical-align:middle;margin-left:8px}
 .tip-btn{width:28px;height:28px;border-radius:99px;border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff);color:var(--muted,#6c7182);display:grid;place-items:center;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
 .tip-btn:hover,.tip-btn[aria-expanded="true"]{color:#3157f6;border-color:#3157f6;background:var(--brand-soft,#eaf0ff)}
-.tip-pop{position:absolute;top:36px;left:0;z-index:40;width:290px;max-width:80vw;padding:14px;border-radius:16px;background:var(--surface,#fff);border:1px solid var(--border,#e5e8f0);box-shadow:0 18px 40px rgba(24,32,57,.14);font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--text,#171923);animation:tipIn .22s ease both}
-.heading-actions .tip-pop{left:auto;right:0}
+.tip-pop{position:fixed;z-index:200;max-width:calc(100vw - 32px);padding:14px;border-radius:16px;background:var(--surface,#fff);border:1px solid var(--border,#e5e8f0);box-shadow:0 18px 40px rgba(24,32,57,.14);font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--text,#171923);animation:tipIn .22s ease both}
 .tip-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .tip-head button{border:0;background:none;color:var(--muted,#6c7182);cursor:pointer;display:grid;place-items:center}
 .tip-pop ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
@@ -1012,3 +1011,5 @@ body .btn.btn-sm{font-size:13px!important;min-height:34px!important}
 @media (prefers-reduced-motion:reduce){.tip-pop,.tip-pop li,.tour-card,.tour-back{animation:none}}
 .rec-off td:not([data-label="Active"]):not(.rec-actions){opacity:.5}
 .rec-off .status-tag{opacity:1}
+
+:root[data-theme="dark"] .tip-pop,:root[data-theme="dark"] .tour-card{background:#1d2432;border-color:#30384a;color:#edf0f8}

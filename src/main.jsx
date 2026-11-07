@@ -15,4 +15,5 @@ import './styles/login.css';
 
 createRoot(document.getElementById('root')).render(<ErrorBoundary><App /><Analytics /></ErrorBoundary>);
 import './styles/dark-contrast.css';
+import './styles/actions.css';
 import './styles/vehicles-motion.css';
