@@ -65,3 +65,21 @@
 :root[data-theme="dark"] .fuel-type-card{background:linear-gradient(180deg,color-mix(in srgb,var(--fc) 22%,#1d2432),#1d2432 80%);border-color:color-mix(in srgb,var(--fc) 45%,#30384a)}
 .fuel-card{border-top:3px solid var(--fc,transparent)}
 .fuel-card .vehicle-record-icon{background:color-mix(in srgb,var(--fc,#32b98a) 16%,transparent)!important;color:var(--fc,#32b98a)!important}
+
+/* Fuel card: tank gauge design */
+.fuel-gauge-card{padding:16px 18px!important;border-top:0!important;display:flex;flex-direction:column;gap:12px}
+.fg-main{display:flex;gap:16px;align-items:center}
+.fg-tank{width:46px;height:88px;flex:none;border-radius:13px;border:2px solid color-mix(in srgb,var(--fc) 30%,var(--border,#d9deea));background:color-mix(in srgb,var(--fc) 6%,var(--surface-soft,#f5f6fb));position:relative;overflow:hidden}
+.fg-tank i{position:absolute;left:0;right:0;bottom:0;height:var(--h);background:linear-gradient(180deg,color-mix(in srgb,var(--fc) 55%,#fff),var(--fc));animation:fgFill 1s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*80ms + 150ms)}
+.fg-tank i:after{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:rgba(255,255,255,.4)}
+@keyframes fgFill{from{height:0}to{height:var(--h)}}
+.fg-body{flex:1;min-width:0;display:grid;gap:6px}
+.fg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.fg-head b{display:block;font-size:15px;color:var(--fc)}
+.fg-head small{display:block;color:var(--muted,#6c7182);font-size:12px;margin-top:2px}
+.fg-sub{font-size:12.5px;color:var(--muted,#6c7182)}
+.fg-stats{display:flex;gap:22px;flex-wrap:wrap;margin-top:4px}
+.fg-stats span{display:block;font-size:11px;color:var(--muted,#6c7182);font-weight:600}
+.fg-stats b{font-family:Sora,Manrope,sans-serif;font-size:16px;letter-spacing:-.02em}
+:root[data-theme="dark"] .fg-tank{background:color-mix(in srgb,var(--fc) 14%,#1d2432);border-color:color-mix(in srgb,var(--fc) 45%,#30384a)}
+@media (prefers-reduced-motion:reduce){.fg-tank i{animation:none}}
