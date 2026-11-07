@@ -26,3 +26,7 @@
 .acc-liab-info b{display:block;font-family:Sora,Manrope,sans-serif;font-size:17px;letter-spacing:-.02em}
 .acc-liab-info .due-chip,.acc-liab-info [class*="due"]{margin-top:6px}
 @media (max-width:900px){.acc-liab-row{grid-template-columns:1fr}.acc-liab-row .pc-wrap{max-width:none}}
+
+/* Action rows: no lift or icon spin, so Back and the primary button always line up. */
+.tx-wizard-actions .btn:hover,.tx-wizard-actions .btn:active,.modal-actions .btn:hover,.modal-actions .btn:active{transform:none;translate:none}
+.tx-wizard-actions .btn svg,.modal-actions .btn svg{rotate:none!important}
