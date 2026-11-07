@@ -55,8 +55,13 @@
 @media (prefers-reduced-motion:reduce){.vc-fan,.vc-fan:before,.vehicle-add-card,.plan-card,.plan-bar i,.svc-share,.svc-arc,.svc-legend li,.svc-row,.fuel-row,.fuel-bar i{animation:none!important;opacity:1!important;transform:none!important}.plan-bar i,.fuel-bar i{width:var(--w)}.svc-arc{stroke-dashoffset:0}}
 
 /* Average km/L per fuel type */
-.fuel-type-stats{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 14px}
-.fuel-type-stats span{display:grid;gap:2px;padding:10px 14px;border-radius:14px;border:1px solid var(--border,#e5e8f0);background:var(--surface,#fff)}
-.fuel-type-stats small{font-size:11px;font-weight:700;color:var(--muted,#6c7182)}
-.fuel-type-stats b{font-family:Sora,Manrope,sans-serif;font-size:17px;letter-spacing:-.02em}
-:root[data-theme="dark"] .fuel-type-stats span{background:#1d2432;border-color:#30384a}
+.fuel-type-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:4px 0 16px}
+.fuel-type-card{display:grid;gap:6px;padding:14px 16px;border-radius:16px;border:1px solid color-mix(in srgb,var(--fc) 30%,var(--border,#e5e8f0));background:linear-gradient(180deg,color-mix(in srgb,var(--fc) 10%,transparent),transparent 70%),var(--surface,#fff);animation:vmUp .45s ease both}
+.ftc-top{display:flex;align-items:center;gap:8px;font-size:12px}
+.ftc-top i{width:10px;height:10px;border-radius:50%;background:var(--fc)}
+.ftc-top b{font-size:13px}.ftc-top span{margin-left:auto;color:var(--muted,#6c7182);font-size:11px}
+.fuel-type-card strong{font-family:Sora,Manrope,sans-serif;font-size:22px;letter-spacing:-.03em;color:var(--fc)}
+.fuel-type-card small{color:var(--muted,#6c7182);font-size:11.5px;line-height:1.4}
+:root[data-theme="dark"] .fuel-type-card{background:linear-gradient(180deg,color-mix(in srgb,var(--fc) 22%,#1d2432),#1d2432 80%);border-color:color-mix(in srgb,var(--fc) 45%,#30384a)}
+.fuel-card{border-top:3px solid var(--fc,transparent)}
+.fuel-card .vehicle-record-icon{background:color-mix(in srgb,var(--fc,#32b98a) 16%,transparent)!important;color:var(--fc,#32b98a)!important}
